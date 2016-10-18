@@ -234,7 +234,8 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
             Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+            Log.d(TAG, "Camera i = " + i + " " + cameraInfo.toString());
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 if (cameraId == 0) cameraId = i;
             }
         }
