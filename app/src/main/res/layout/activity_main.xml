@@ -13,11 +13,11 @@
 
     <Button
         android:id="@+id/btnRGB"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:text="RGB Frame Image"/>
-
-
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="32dp"
+        android:text="@string/begin_preview_button"
+        android:textSize="64sp"
+        android:lineSpacingExtra="8sp"/>
 
 </LinearLayout>

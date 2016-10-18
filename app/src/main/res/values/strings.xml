@@ -1,3 +1,5 @@
 <resources>
-    <string name="app_name">FaceDetectCamera</string>
+    <string name="app_name">优图人脸识别前端</string>
+    <string name="detect_window_title">人脸检测中</string>
+    <string name="begin_preview_button">开始检测</string>
 </resources>

@@ -130,7 +130,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Face Detect RGB");
+        getSupportActionBar().setTitle(R.string.detect_window_title);
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
