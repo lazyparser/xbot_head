@@ -42,7 +42,6 @@ import java.util.List;
  * COMPARE FPS (DETECT FRAME PER SECOND) OF 2 METHODs FOR MORE DETAIL
  */
 
-
 public final class FaceDetectRGBActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     // Number of Cameras in device.

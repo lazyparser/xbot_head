@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     public static final String TAG = MainActivity.class.getSimpleName();
 
     private static final int RC_HANDLE_CAMERA_PERM_RGB = 1;
-    private static final int RC_HANDLE_CAMERA_PERM_GRAY = 2;
 
     private Context mContext;
 
@@ -43,29 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        Button btnCameraGray = (Button) findViewById(R.id.btnGray);
-        btnCameraGray.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
-                if (rc == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(mContext, FaceDetectGrayActivity.class);
-                    startActivity(intent);
-                } else {
-                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_GRAY);
-                }
-            }
-        });
-
-        Button btnPhoto = (Button) findViewById(R.id.btnImage);
-        btnPhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, PhotoDetectActivity.class);
-                startActivity(intent);
-            }
-        });
+        
     }
 
 
@@ -86,11 +63,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == RC_HANDLE_CAMERA_PERM_GRAY) {
-            Intent intent = new Intent(mContext, FaceDetectGrayActivity.class);
-            startActivity(intent);
-            return;
-        }
 
         Log.e(TAG, "Permission not granted: results len = " + grantResults.length +
                 " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
