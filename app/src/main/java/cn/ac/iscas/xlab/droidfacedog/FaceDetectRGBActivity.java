@@ -1,11 +1,14 @@
-package m.tri.facedetectcamera.activity;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
@@ -23,18 +26,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import m.tri.facedetectcamera.R;
-import m.tri.facedetectcamera.activity.ui.FaceOverlayView;
-import m.tri.facedetectcamera.adapter.ImagePreviewAdapter;
-import m.tri.facedetectcamera.model.FaceResult;
-import m.tri.facedetectcamera.utils.CameraErrorCallback;
-import m.tri.facedetectcamera.utils.ImageUtils;
-import m.tri.facedetectcamera.utils.Util;
 
 
 /**
@@ -42,16 +38,17 @@ import m.tri.facedetectcamera.utils.Util;
  */
 
 /**
- * FACE DETECT EVERY FRAME WIL CONVERT TO GRAY BITMAP SO THIS HAS HIGHER PERFORMANCE THAN RGB BITMAP
+ * FACE DETECT EVERY FRAME WIL CONVERT TO RGB BITMAP SO THIS HAS LOWER PERFORMANCE THAN GRAY BITMAP
  * COMPARE FPS (DETECT FRAME PER SECOND) OF 2 METHODs FOR MORE DETAIL
  */
 
-public final class FaceDetectGrayActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+
+public final class FaceDetectRGBActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     // Number of Cameras in device.
     private int numberOfCameras;
 
-    public static final String TAG = FaceDetectGrayActivity.class.getSimpleName();
+    public static final String TAG = FaceDetectRGBActivity.class.getSimpleName();
 
     private Camera mCamera;
     private int cameraId = 0;
@@ -80,10 +77,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private int prevSettingWidth;
     private int prevSettingHeight;
     private android.media.FaceDetector fdet;
-
-    private byte[] grayBuff;
-    private int bufflen;
-    private int[] rgbs;
 
     private FaceResult faces[];
     private FaceResult faces_previous[];
@@ -138,7 +131,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Face Detect Gray");
+        getSupportActionBar().setTitle("Face Detect RGB");
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
@@ -152,6 +145,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         // permission is not granted yet, request permission.
         SurfaceHolder holder = mView.getHolder();
         holder.addCallback(this);
+        holder.setFormat(ImageFormat.NV21);
     }
 
 
@@ -234,9 +228,9 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        //Find the total number of cameras available
         resetData();
 
+        //Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
         Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
         for (int i = 0; i < Camera.getNumberOfCameras(); i++) {
@@ -281,9 +275,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
         float aspect = (float) previewHeight / (float) previewWidth;
         fdet = new android.media.FaceDetector(prevSettingWidth, (int) (prevSettingWidth * aspect), MAX_FACE);
 
-        bufflen = previewWidth * previewHeight;
-        grayBuff = new byte[bufflen];
-        rgbs = new int[bufflen];
 
         // Everything is configured! Finally start the camera preview again:
         startPreview();
@@ -295,7 +286,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
 
     private void setDisplayOrientation() {
         // Now set the display orientation:
-        mDisplayRotation = Util.getDisplayRotation(FaceDetectGrayActivity.this);
+        mDisplayRotation = Util.getDisplayRotation(FaceDetectRGBActivity.this);
         mDisplayOrientation = Util.getDisplayOrientation(mDisplayRotation, cameraId);
 
         mCamera.setDisplayOrientation(mDisplayOrientation);
@@ -375,11 +366,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     }
 
 
-    // fps detect face (not FPS of camera)
-    long start, end;
-    int counter = 0;
-    double fps;
-
     @Override
     public void onPreviewFrame(byte[] _data, Camera _camera) {
         if (!isThreadWorking) {
@@ -411,6 +397,11 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     }
 
 
+    // fps detect face (not FPS of camera)
+    long start, end;
+    int counter = 0;
+    double fps;
+
     /**
      * Do face detect in thread
      */
@@ -437,11 +428,24 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
             int w = prevSettingWidth;
             int h = (int) (prevSettingWidth * aspect);
 
-            ByteBuffer bbuffer = ByteBuffer.wrap(data);
-            bbuffer.get(grayBuff, 0, bufflen);
+            Bitmap bitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.RGB_565);
+            // face detection: first convert the image from NV21 to RGB_565
+            YuvImage yuv = new YuvImage(data, ImageFormat.NV21,
+                    bitmap.getWidth(), bitmap.getHeight(), null);
+            // TODO: make rect a member and use it for width and height values above
+            Rect rectImage = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
 
-            gray8toRGB32(grayBuff, previewWidth, previewHeight, rgbs);
-            Bitmap bitmap = Bitmap.createBitmap(rgbs, previewWidth, previewHeight, Bitmap.Config.RGB_565);
+            // TODO: use a threaded option or a circular buffer for converting streams?
+            //see http://ostermiller.org/convert_java_outputstream_inputstream.html
+            ByteArrayOutputStream baout = new ByteArrayOutputStream();
+            if (!yuv.compressToJpeg(rectImage, 100, baout)) {
+                Log.e("CreateBitmap", "compressToJpeg failed");
+            }
+
+            BitmapFactory.Options bfo = new BitmapFactory.Options();
+            bfo.inPreferredConfig = Bitmap.Config.RGB_565;
+            bitmap = BitmapFactory.decodeStream(
+                    new ByteArrayInputStream(baout.toByteArray()), null, bfo);
 
             Bitmap bmp = Bitmap.createScaledBitmap(bitmap, w, h, false);
 
@@ -503,8 +507,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     /**
                      * Only detect face size > 100x100
                      */
-                    if(rect.height() * rect.width() > 100 * 100) {
-                        // Check this face and previous face have same ID?
+                    if (rect.height() * rect.width() > 100 * 100) {
                         for (int j = 0; j < MAX_FACE; j++) {
                             float eyesDisPre = faces_previous[j].eyesDistance();
                             PointF midPre = new PointF();
@@ -562,7 +565,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                     //send face to FaceView to draw rect
                     mFaceView.setFaces(faces);
 
-                    //Calculate FPS (Detect Frame per Second)
+                    //calculate FPS
                     end = System.currentTimeMillis();
                     counter++;
                     double time = (double) (end - start) / 1000;
@@ -578,19 +581,6 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
                 }
             });
         }
-
-        private void gray8toRGB32(byte[] gray8, int width, int height, int[] rgb_32s) {
-            final int endPtr = width * height;
-            int ptr = 0;
-            while (true) {
-                if (ptr == endPtr)
-                    break;
-
-                final int Y = gray8[ptr] & 0xff;
-                rgb_32s[ptr] = 0xff000000 + (Y << 16) + (Y << 8) + Y;
-                ptr++;
-            }
-        }
     }
 
     /**
@@ -599,7 +589,7 @@ public final class FaceDetectGrayActivity extends AppCompatActivity implements S
     private void resetData() {
         if (imagePreviewAdapter == null) {
             facesBitmap = new ArrayList<>();
-            imagePreviewAdapter = new ImagePreviewAdapter(FaceDetectGrayActivity.this, facesBitmap, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
+            imagePreviewAdapter = new ImagePreviewAdapter(FaceDetectRGBActivity.this, facesBitmap, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
                 @Override
                 public void onClick(View v, int position) {
                     imagePreviewAdapter.setCheck(position);

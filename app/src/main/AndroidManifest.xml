@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="m.tri.facedetectcamera">
+    package="cn.ac.iscas.xlab.droidfacedog">
 
     <uses-permission android:name="android.permission.CAMERA" />
 
@@ -25,15 +25,15 @@
         </activity>
 
         <activity
-            android:name=".activity.FaceDetectGrayActivity"
+            android:name=".FaceDetectGrayActivity"
             android:screenOrientation="fullSensor" />
 
         <activity
-            android:name=".activity.FaceDetectRGBActivity"
+            android:name=".FaceDetectRGBActivity"
             android:screenOrientation="fullSensor" />
 
         <activity
-            android:name=".activity.PhotoDetectActivity" />
+            android:name=".PhotoDetectActivity" />
     </application>
 
 </manifest>

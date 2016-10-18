@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.Manifest;
 import android.content.Context;
@@ -10,10 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-
-import m.tri.facedetectcamera.activity.FaceDetectGrayActivity;
-import m.tri.facedetectcamera.activity.FaceDetectRGBActivity;
-import m.tri.facedetectcamera.activity.PhotoDetectActivity;
 
 /**
  * Created by Nguyen on 5/20/2016.

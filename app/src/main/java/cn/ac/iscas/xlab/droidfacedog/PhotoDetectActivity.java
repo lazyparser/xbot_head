@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera.activity;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.Manifest;
 import android.content.ActivityNotFoundException;
@@ -22,12 +22,6 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-
-import m.tri.facedetectcamera.R;
-import m.tri.facedetectcamera.activity.ui.FaceView;
-import m.tri.facedetectcamera.adapter.ImagePreviewAdapter;
-import m.tri.facedetectcamera.model.FaceResult;
-import m.tri.facedetectcamera.utils.ImageUtils;
 
 
 /**

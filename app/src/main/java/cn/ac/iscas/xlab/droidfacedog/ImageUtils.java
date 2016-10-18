@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera.utils;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -13,8 +13,6 @@ import android.net.Uri;
 import android.provider.MediaStore;
 
 import java.io.IOException;
-
-import m.tri.facedetectcamera.model.FaceResult;
 
 /**
  * Created by Nguyen on 5/20/2016.

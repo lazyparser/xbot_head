@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <m.tri.facedetectcamera.activity.ui.FaceView
+    <cn.ac.iscas.xlab.droidfacedog.FaceView
         android:id="@+id/faceView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

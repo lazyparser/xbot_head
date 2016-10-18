@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera.model;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.graphics.PointF;
 

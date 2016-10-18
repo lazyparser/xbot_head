@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera.adapter;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,7 +13,7 @@ import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
 
-import m.tri.facedetectcamera.R;
+import cn.ac.iscas.xlab.droidfacedog.R;
 
 /**
  * Created by Nguyen on 5/20/2016.

@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera.utils;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.Activity;
 import android.graphics.Matrix;

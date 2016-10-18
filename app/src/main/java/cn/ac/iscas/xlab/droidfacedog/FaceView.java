@@ -1,4 +1,4 @@
-package m.tri.facedetectcamera.activity.ui;
+package cn.ac.iscas.xlab.droidfacedog;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,8 +14,6 @@ import android.util.TypedValue;
 import android.view.View;
 
 import java.util.ArrayList;
-
-import m.tri.facedetectcamera.model.FaceResult;
 
 
 /**
