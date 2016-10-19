@@ -14,6 +14,18 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,13 +48,6 @@ public class ImagePreviewAdapter extends
     private int check = 0;
 
     private ViewHolder.OnItemClickListener onItemClickListener;
-    private String serverAddress;
-    // http://stackoverflow.com/questions/3698034/validating-ip-in-android
-    private static Pattern IP_ADDRESS = Pattern.compile(
-            "((25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\\.(25[0-5]|2[0-4]"
-                    + "[0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]"
-                    + "[0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}"
-                    + "|[1-9][0-9]|[0-9]))");
 
     // Pass in the context and menuModels array into the constructor
     public ImagePreviewAdapter(Context context, ArrayList<Bitmap> bitmaps, ViewHolder.OnItemClickListener onItemClickListener) {
@@ -93,23 +98,9 @@ public class ImagePreviewAdapter extends
     }
 
     private void sendFaceToServer(Bitmap bitmap) {
-        if (serverAddress == null) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            serverAddress = prefs.getString("server_ip_address", "192.168.1.60");
-        }
-        if (serverAddress == "") {
-            return;
-        }
-        // http://stackoverflow.com/questions/3698034/validating-ip-in-android
-        Matcher matcher = IP_ADDRESS.matcher(serverAddress);
-        if (matcher.matches()) {
-            Log.d("XLAB", "IP is validated: " + serverAddress);
-            // ip is correct
-        } else {
-
-            Log.d("XLAB", "IP validation failed: " + serverAddress);
-        }
-
+        PostImageForRecognitionAsync t = new PostImageForRecognitionAsync();
+        t.setCentext(context);
+        t.execute(bitmap);
     }
 
     public void insert(Bitmap bitmap, int position) {
