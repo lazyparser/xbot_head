@@ -106,9 +106,9 @@ public class FaceOverlayView extends View {
 
                     rectF.set(new RectF(
                             (mid.x - eyesDis * 1.2f) * scaleX,
-                            (mid.y - eyesDis * 0.65f) * scaleY,
+                            (mid.y - eyesDis * 1.7f) * scaleY,
                             (mid.x + eyesDis * 1.2f) * scaleX,
-                            (mid.y + eyesDis * 1.75f) * scaleY));
+                            (mid.y + eyesDis * 1.9f) * scaleY));
                     if (isFront) {
                         float left = rectF.left;
                         float right = rectF.right;

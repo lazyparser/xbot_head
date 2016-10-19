@@ -500,14 +500,14 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
 
                     Rect rect = new Rect(
                             (int) (mid.x - eyesDis * 1.20f),
-                            (int) (mid.y - eyesDis * 0.55f),
+                            (int) (mid.y - eyesDis * 1.7f),
                             (int) (mid.x + eyesDis * 1.20f),
-                            (int) (mid.y + eyesDis * 1.85f));
+                            (int) (mid.y + eyesDis * 1.9f));
 
                     /**
                      * Only detect face size > 100x100
                      */
-                    if (rect.height() * rect.width() > 100 * 100) {
+                    if (rect.height() * rect.width() > 90 * 60) {
                         for (int j = 0; j < MAX_FACE; j++) {
                             float eyesDisPre = faces_previous[j].eyesDistance();
                             PointF midPre = new PointF();
@@ -515,9 +515,9 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
 
                             RectF rectCheck = new RectF(
                                     (midPre.x - eyesDisPre * 1.5f),
-                                    (midPre.y - eyesDisPre * 1.15f),
+                                    (midPre.y - eyesDisPre * 1.9f),
                                     (midPre.x + eyesDisPre * 1.5f),
-                                    (midPre.y + eyesDisPre * 1.85f));
+                                    (midPre.y + eyesDisPre * 2.2f));
 
                             if (rectCheck.contains(mid.x, mid.y) && (System.currentTimeMillis() - faces_previous[j].getTime()) < 1000) {
                                 idFace = faces_previous[j].getId();

@@ -97,9 +97,9 @@ public class FaceView extends View {
 
                 rectF.set(new RectF(
                         (mid.x - eyesDis * 1.2f) * (float) scale,
-                        (mid.y - eyesDis * 0.55f) * (float) scale,
+                        (mid.y - eyesDis * 1.7f) * (float) scale,
                         (mid.x + eyesDis * 1.2f) * (float) scale,
-                        (mid.y + eyesDis * 1.85f) * (float) scale));
+                        (mid.y + eyesDis * 1.9f) * (float) scale));
 
                 canvas.drawRect(rectF, paint);
             }
