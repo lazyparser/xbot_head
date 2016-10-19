@@ -1,9 +1,12 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import cn.ac.iscas.xlab.droidfacedog.R;
 
@@ -31,6 +36,13 @@ public class ImagePreviewAdapter extends
     private int check = 0;
 
     private ViewHolder.OnItemClickListener onItemClickListener;
+    private String serverAddress;
+    // http://stackoverflow.com/questions/3698034/validating-ip-in-android
+    private static Pattern IP_ADDRESS = Pattern.compile(
+            "((25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\\.(25[0-5]|2[0-4]"
+                    + "[0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1]"
+                    + "[0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}"
+                    + "|[1-9][0-9]|[0-9]))");
 
     // Pass in the context and menuModels array into the constructor
     public ImagePreviewAdapter(Context context, ArrayList<Bitmap> bitmaps, ViewHolder.OnItemClickListener onItemClickListener) {
@@ -76,7 +88,28 @@ public class ImagePreviewAdapter extends
 
 
     public void add(Bitmap bitmap) {
+        sendFaceToServer(bitmap);
         insert(bitmap, bitmaps.size());
+    }
+
+    private void sendFaceToServer(Bitmap bitmap) {
+        if (serverAddress == null) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            serverAddress = prefs.getString("server_ip_address", "192.168.1.60");
+        }
+        if (serverAddress == "") {
+            return;
+        }
+        // http://stackoverflow.com/questions/3698034/validating-ip-in-android
+        Matcher matcher = IP_ADDRESS.matcher(serverAddress);
+        if (matcher.matches()) {
+            Log.d("XLAB", "IP is validated: " + serverAddress);
+            // ip is correct
+        } else {
+
+            Log.d("XLAB", "IP validation failed: " + serverAddress);
+        }
+
     }
 
     public void insert(Bitmap bitmap, int position) {
