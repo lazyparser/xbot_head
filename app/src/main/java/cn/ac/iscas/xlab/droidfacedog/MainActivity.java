@@ -22,14 +22,15 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM_RGB = 1;
 
     private Context mContext;
-
+    Button btnCameraRGB;
+    Button btnSetting;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = this;
 
-        Button btnCameraRGB = (Button) findViewById(R.id.button_detect);
+        btnCameraRGB = (Button) findViewById(R.id.button_detect);
         btnCameraRGB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -40,6 +41,16 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
                 }
+            }
+        });
+
+
+        btnSetting = (Button) findViewById(R.id.button_config);
+        btnSetting.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                    Intent intent = new Intent(mContext, SettingsActivity.class);
+                    startActivity(intent);
             }
         });
 
