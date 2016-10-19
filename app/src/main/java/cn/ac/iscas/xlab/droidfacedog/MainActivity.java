@@ -50,7 +50,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                     Intent intent = new Intent(mContext, SettingsActivity.class);
-                    startActivity(intent);
+                    // http://stackoverflow.com/questions/15172111/preferenceactivity-actionbar-home-icon-wont-return-home-unlike-et
+                    startActivityForResult(intent, 1);
             }
         });
 

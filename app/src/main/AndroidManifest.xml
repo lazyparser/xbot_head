@@ -25,7 +25,6 @@
         <activity
             android:name=".FaceDetectRGBActivity"
             android:screenOrientation="fullSensor"/>
-        <activity android:name=".PhotoDetectActivity"/>
         <activity
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity"
