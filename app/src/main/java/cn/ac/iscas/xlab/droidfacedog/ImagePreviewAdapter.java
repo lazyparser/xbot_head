@@ -1,12 +1,9 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,23 +11,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import cn.ac.iscas.xlab.droidfacedog.R;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -99,8 +80,12 @@ public class ImagePreviewAdapter extends
 
     private void sendFaceToServer(Bitmap bitmap) {
         PostImageForRecognitionAsync t = new PostImageForRecognitionAsync();
-        t.setCentext(context);
+        t.setContext(context);
         t.execute(bitmap);
+
+        GetImageAfterRecognitionAsync g = new GetImageAfterRecognitionAsync();
+        g.setContext(context);
+        g.execute("wuwei");
     }
 
     public void insert(Bitmap bitmap, int position) {

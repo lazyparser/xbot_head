@@ -15,7 +15,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -34,7 +33,7 @@ import java.util.regex.Pattern;
 
 // https://developer.android.com/reference/android/os/AsyncTask.html
 
-public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String> {
+public class GetImageAfterRecognitionAsync extends AsyncTask<String, Void, String> {
     private String serverAddress;
     // http://stackoverflow.com/questions/3698034/validating-ip-in-android
     private static Pattern IP_ADDRESS = Pattern.compile(
@@ -44,7 +43,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                     + "|[1-9][0-9]|[0-9]))");
     private Context mContext;
 
-    protected String doInBackground(Bitmap... faceImage) {
+    protected String doInBackground(String... idArray) {
         if (serverAddress == null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
             serverAddress = prefs.getString("server_ip_address", "192.168.1.60");
@@ -55,7 +54,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
         // http://stackoverflow.com/questions/3698034/validating-ip-in-android
         Matcher matcher = IP_ADDRESS.matcher(serverAddress);
         if (matcher.matches()) {
-            Log.d("xxlab", "IP is validated: " + serverAddress);
+            Log.d("xxlab", "GetImageAfterRecognitionAsync IP is validated: " + serverAddress);
             // ip is correct
 
             // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
@@ -64,81 +63,69 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
 
             HttpURLConnection client = null;
             try {
-                BufferedOutputStream outputStream;
+                DataOutputStream outputStream;
 //                DataInputStream inputStream;
-                URL url = new URL("http://" + serverAddress + ":8000/verification");
-//                URL url = new URL("http://" + serverAddress + ":8000/recognition");
+                URL url = new URL("http://" + serverAddress + ":8000/face" + "?userid=fangyafen");
                 client = (HttpURLConnection) url.openConnection();
-                client.setRequestMethod("POST");
+                client.setRequestMethod("GET");
 //                client.setRequestProperty("key","value");
-                client.setDoOutput(true);
+//                client.setDoOutput(true);
                 client.setDoInput(true);
                 client.setUseCaches(false);
                 //client.setRequestProperty("Content-Type","application/json");
                 client.setChunkedStreamingMode(0);
+                client.connect();
+//                outputStream = new DataOutputStream(client.getOutputStream());
+                Log.d("xxlab", "GetImageAfterRecognitionAsync HTTP ERROR CODE: " + client.getResponseCode());
+                Log.d("xxlab", "GetImageAfterRecognitionAsync HTTP ERROR CODE: " + client.getResponseMessage());
+                if (client.getResponseCode() >= 400) {
+                    return "";
+                }
+//                inputStream = new DataInputStream(client.getInputStream());
+                BufferedInputStream in = new BufferedInputStream(client.getInputStream());
+                byte[] buf = new byte[1024];
+                int l = in.read(buf);
+                Log.d("xxlab", "GetImageAfterRecognitionAsync RESPONCE: " + new String(buf) + " with len " + l);
+//                JsonReader jsonReader = new JsonReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
+//                Log.d("xxlab", "GetImageAfterRecognitionAsync RESPONSE: " + jsonReader.toString());
 
                 // 3. build jsonObject
-                JSONObject jsonObject = new JSONObject();
+//                JSONObject jsonObject = new JSONObject();
                 // jsonObject.accumulate("image", "base64 of image");
-                jsonObject.accumulate("Id", "fangyafen");
-                jsonObject.accumulate("Image", encodeToBase64(faceImage[0], Bitmap.CompressFormat.JPEG, 100));
+                //jsonObject.accumulate("image", encodeToBase64(idArray[0], Bitmap.CompressFormat.JPEG, 100));
+//                jsonObject.put("userid", "fangyafen");
 
                 // 4. convert JSONObject to JSON to String
-                String json = jsonObject.toString();
-                Log.d("xxlab", json);
+//                String json = jsonObject.toString();
+//                Log.d("xxlab", "GetImageAfterRecognitionAsync" + json);
 
-                outputStream = new BufferedOutputStream(client.getOutputStream());
-                //outputStream.writeBytes(URLEncoder.encode(json, "UTF-8"));
-                outputStream.write(json.getBytes());
-                outputStream.flush();
-
-                client.connect();
-                int status = client.getResponseCode();
-                Log.d("xxlab", "RESPONSE: " + status);
-                Log.d("xxlab", "POST ERROR STRING: " + client.getResponseMessage());
-
-                if (status >= 400) {
-                    byte[] buf = new byte[1024];
-                    BufferedInputStream errReader = new BufferedInputStream(client.getErrorStream());
-                    int l = errReader.read(buf);
-                    Log.d("xxlab", "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
-
-                } else {
-                    JsonReader jsonReader = new JsonReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
-                    Log.d("xxlab", "RESPONSE: " + jsonReader.toString());
-//                inputStream = new DataInputStream(client.getInputStream());
-                    jsonReader.close();
-
-                }
+//                outputStream.writeBytes(json);
+//                outputStream.flush();
 
 
+//                Log.d("xxlab", "GetImageAfterRecognitionAsync RESPONSE: " + jsonReader.toString());
 
-
-                outputStream.close();
+//                outputStream.close();
+//                jsonReader.close();
                 //inputStream.close();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-                Log.d("xxlab", "oh no, catch (MalformedURLException e)");
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.d("xxlab", "oh no, catch (IOException e)");
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Log.d("xxlab", "oh no, catch (JSONException e)");
             } finally {
-                Log.d("xxlab", "FINALLY");
+                Log.d("xxlab", "GetImageAfterRecognitionAsync FINALLY");
                 if(client != null) // Make sure the connection is not null.
                     client.disconnect();
             }
         } else {
-            Log.d("xxlab", "IP validation failed: " + serverAddress);
+            Log.d("xxlab", "GetImageAfterRecognitionAsync IP validation failed: " + serverAddress);
         }
 
         return "";
     }
 
     protected void onPostExecute(String result) {
-        Log.d("xxlab", "PostImageForRecognitionAsync onPostExecute [" + result + "]");
+        Log.d("xxlab", "GetImageAfterRecognitionAsync onPostExecute [" + result + "]");
         Toast.makeText(mContext, result, Toast.LENGTH_SHORT).show();
     }
 
