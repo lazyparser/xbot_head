@@ -66,8 +66,8 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
             try {
                 BufferedOutputStream outputStream;
 //                DataInputStream inputStream;
-                URL url = new URL("http://" + serverAddress + ":8000/verification");
-//                URL url = new URL("http://" + serverAddress + ":8000/recognition");
+//                URL url = new URL("http://" + serverAddress + ":8000/verification");
+                URL url = new URL("http://" + serverAddress + ":8000/recognition");
                 client = (HttpURLConnection) url.openConnection();
                 client.setRequestMethod("POST");
 //                client.setRequestProperty("key","value");
@@ -80,7 +80,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                 // 3. build jsonObject
                 JSONObject jsonObject = new JSONObject();
                 // jsonObject.accumulate("image", "base64 of image");
-                jsonObject.accumulate("Id", "fangyafen");
+//                jsonObject.accumulate("Id", "fangyafen");
                 jsonObject.accumulate("Image", encodeToBase64(faceImage[0], Bitmap.CompressFormat.JPEG, 100));
 
                 // 4. convert JSONObject to JSON to String

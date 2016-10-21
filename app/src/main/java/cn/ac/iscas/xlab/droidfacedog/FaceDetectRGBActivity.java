@@ -24,6 +24,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 
 import java.io.ByteArrayInputStream;
@@ -101,7 +102,9 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_camera_viewer);
 
         mView = (SurfaceView) findViewById(R.id.surfaceview);
@@ -131,6 +134,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(R.string.detect_window_title);
+        getSupportActionBar().hide();
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);

@@ -83,9 +83,9 @@ public class ImagePreviewAdapter extends
         t.setContext(context);
         t.execute(bitmap);
 
-        GetImageAfterRecognitionAsync g = new GetImageAfterRecognitionAsync();
-        g.setContext(context);
-        g.execute("wuwei");
+//        GetImageAfterRecognitionAsync g = new GetImageAfterRecognitionAsync();
+//        g.setContext(context);
+//        g.execute("wuwei");
     }
 
     public void insert(Bitmap bitmap, int position) {
