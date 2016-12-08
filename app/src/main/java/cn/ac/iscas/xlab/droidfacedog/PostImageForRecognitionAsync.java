@@ -50,7 +50,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
             serverAddress = prefs.getString("server_ip_address", "192.168.1.60");
         }
         if (serverAddress.equals("")) {
-            return "";
+            return "WARNING: IP Address is Empty.";
         }
         // http://stackoverflow.com/questions/3698034/validating-ip-in-android
         Matcher matcher = IP_ADDRESS.matcher(serverAddress);
@@ -91,7 +91,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                 //outputStream.writeBytes(URLEncoder.encode(json, "UTF-8"));
                 outputStream.write(json.getBytes());
                 outputStream.flush();
-
+                outputStream.close();
                 client.connect();
                 int status = client.getResponseCode();
                 Log.d("xxlab", "RESPONSE: " + status);
@@ -102,19 +102,18 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                     BufferedInputStream errReader = new BufferedInputStream(client.getErrorStream());
                     int l = errReader.read(buf);
                     Log.d("xxlab", "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
+                    return new String(buf, 0, l);
 
                 } else {
                     JsonReader jsonReader = new JsonReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
                     Log.d("xxlab", "RESPONSE: " + jsonReader.toString());
+                    String ret = jsonReader.toString();
 //                inputStream = new DataInputStream(client.getInputStream());
                     jsonReader.close();
+                    return ret;
 
                 }
 
-
-
-
-                outputStream.close();
                 //inputStream.close();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -134,7 +133,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
             Log.d("xxlab", "IP validation failed: " + serverAddress);
         }
 
-        return "";
+        return "Timeout";
     }
 
     protected void onPostExecute(String result) {
