@@ -76,4 +76,5 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
+    <string name="begin_register_button">注册贵宾</string>
 </resources>

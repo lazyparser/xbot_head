@@ -10,7 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="cn.ac.iscas.xlab.droidfacedog.MainActivity">
 
-
     <Button
         android:id="@+id/button_detect"
         android:layout_width="match_parent"
@@ -20,6 +19,17 @@
         android:textSize="64sp"
         android:layout_weight="1"
         android:lineSpacingExtra="8sp"/>
+
+    <Button
+        android:id="@+id/button_register"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="32dp"
+        android:text="@string/begin_register_button"
+        android:textSize="64sp"
+        android:layout_weight="1"
+        android:lineSpacingExtra="8sp"/>
+
     <Button
         android:id="@+id/button_config"
         android:layout_width="match_parent"

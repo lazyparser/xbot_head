@@ -65,7 +65,7 @@ public class GetImageAfterRecognitionAsync extends AsyncTask<String, Void, Strin
             try {
                 DataOutputStream outputStream;
 //                DataInputStream inputStream;
-                URL url = new URL("http://" + serverAddress + ":8000/face" + "?userid=fangyafen");
+                URL url = new URL("http://" + serverAddress + ":8000/face" + "?userid=yafen");
                 client = (HttpURLConnection) url.openConnection();
                 client.setRequestMethod("GET");
 //                client.setRequestProperty("key","value");

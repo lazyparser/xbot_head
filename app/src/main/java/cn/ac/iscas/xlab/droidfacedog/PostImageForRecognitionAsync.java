@@ -74,8 +74,8 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                 client.setDoOutput(true);
                 client.setDoInput(true);
                 client.setUseCaches(false);
-                //client.setRequestProperty("Content-Type","application/json");
-                client.setChunkedStreamingMode(0);
+
+                //client.setChunkedStreamingMode(0);
 
                 // 3. build jsonObject
                 JSONObject jsonObject = new JSONObject();
@@ -87,12 +87,20 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                 String json = jsonObject.toString();
                 Log.d("xxlab", json);
 
+                client.setRequestProperty("Content-Length", Integer.toString(json.length()));
+                client.setRequestProperty("Content-Type","application/json");
+                client.setRequestProperty("Connection", "close");
+                client.setRequestProperty("Accept-Encoding", "identity");
+                client.setRequestProperty("Accept", "text/plain");
+
+
                 outputStream = new BufferedOutputStream(client.getOutputStream());
                 //outputStream.writeBytes(URLEncoder.encode(json, "UTF-8"));
                 outputStream.write(json.getBytes());
                 outputStream.flush();
+
+//                client.connect();
                 outputStream.close();
-                client.connect();
                 int status = client.getResponseCode();
                 Log.d("xxlab", "RESPONSE: " + status);
                 Log.d("xxlab", "POST ERROR STRING: " + client.getResponseMessage());
