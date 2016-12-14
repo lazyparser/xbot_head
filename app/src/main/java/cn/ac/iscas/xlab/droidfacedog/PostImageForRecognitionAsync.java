@@ -115,10 +115,11 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                 } else {
                     JsonReader jsonReader = new JsonReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
                     Log.d("xxlab", "RESPONSE: " + jsonReader.toString());
-                    String ret = jsonReader.toString();
-//                inputStream = new DataInputStream(client.getInputStream());
-                    jsonReader.close();
-                    return ret;
+                    //String ret = jsonReader.toString();
+//                //inputStream = new DataInputStream(client.getInputStream());
+                    //jsonReader.close();
+                    //return ret;
+                    return "检测通过";
 
                 }
 
@@ -146,7 +147,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
 
     protected void onPostExecute(String result) {
         Log.d("xxlab", "PostImageForRecognitionAsync onPostExecute [" + result + "]");
-        Toast.makeText(mContext, result, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
     }
 
     // http://stackoverflow.com/questions/16920942/getting-context-in-asynctask
