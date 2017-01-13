@@ -124,8 +124,8 @@ public class FaceOverlayView extends View {
             canvas.restore();
         }
 
-        DecimalFormat df2 = new DecimalFormat(".##");
-        canvas.drawText("Detected_Frame/s: " + df2.format(fps) + " @ " + previewWidth + "x" + previewHeight, mTextPaint.getTextSize(), mTextPaint.getTextSize(), mTextPaint);
+//        DecimalFormat df2 = new DecimalFormat(".##");
+//        canvas.drawText("Detected_Frame/s: " + df2.format(fps) + " @ " + previewWidth + "x" + previewHeight, mTextPaint.getTextSize(), mTextPaint.getTextSize(), mTextPaint);
     }
 
     public void setPreviewWidth(int previewWidth) {
