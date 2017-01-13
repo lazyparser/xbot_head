@@ -7,16 +7,16 @@
 
     <ImageView
         android:id="@+id/imagePreview"
-        android:layout_width="@dimen/image_preview"
-        android:layout_height="@dimen/image_preview"
+        android:layout_width="@dimen/image_preview_width"
+        android:layout_height="@dimen/image_preview_width"
         android:layout_gravity="right"
         android:scaleType="fitCenter"
         android:adjustViewBounds="true"/>
 
     <RelativeLayout
         android:id="@+id/layoutCheck"
-        android:layout_width="@dimen/image_preview"
-        android:layout_height="@dimen/image_preview"
+        android:layout_width="@dimen/image_preview_width"
+        android:layout_height="@dimen/image_preview_width"
         android:background="@color/colorBlackOverlay">
 
         <ImageView

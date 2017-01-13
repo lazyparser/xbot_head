@@ -23,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Context mContext;
     Button btnCameraRGB;
+    Button btnXbotFace;
+    Button btnRegisterVIP;
     Button btnSetting;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +46,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        btnXbotFace = (Button) findViewById(R.id.button_xbotface);
+        btnXbotFace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+                if (rc == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(mContext, XBotFace.class);
+                    startActivity(intent);
+                } else {
+                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
+                }
+            }
+        });
+
+//        btnRegisterVIP = (Button) findViewById(R.id.button_detect);
+//        btnRegisterVIP.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+//                if (rc == PackageManager.PERMISSION_GRANTED) {
+//                    Intent intent = new Intent(mContext, btnRegisterVIP.class);
+//                    startActivity(intent);
+//                } else {
+//                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
+//                }
+//            }
+//        });
 
         btnSetting = (Button) findViewById(R.id.button_config);
         btnSetting.setOnClickListener(new View.OnClickListener() {

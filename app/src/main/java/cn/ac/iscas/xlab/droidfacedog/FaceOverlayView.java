@@ -105,10 +105,10 @@ public class FaceOverlayView extends View {
                     float eyesDis = face.eyesDistance();
 
                     rectF.set(new RectF(
-                            (mid.x - eyesDis * 1.2f) * scaleX,
-                            (mid.y - eyesDis * 1.7f) * scaleY,
-                            (mid.x + eyesDis * 1.2f) * scaleX,
-                            (mid.y + eyesDis * 1.9f) * scaleY));
+                            (mid.x - eyesDis * 1.1f) * scaleX,
+                            (mid.y - eyesDis * 1.3f) * scaleY,
+                            (mid.x + eyesDis * 1.1f) * scaleX,
+                            (mid.y + eyesDis * 1.7f) * scaleY));
                     if (isFront) {
                         float left = rectF.left;
                         float right = rectF.right;
@@ -116,9 +116,9 @@ public class FaceOverlayView extends View {
                         rectF.right = getWidth() - left;
                     }
                     canvas.drawRect(rectF, mPaint);
-                    canvas.drawText("ID " + face.getId(), rectF.left, rectF.bottom + mTextPaint.getTextSize(), mTextPaint);
-                    canvas.drawText("Confidence " + face.getConfidence(), rectF.left, rectF.bottom + mTextPaint.getTextSize() * 2, mTextPaint);
-                    canvas.drawText("EyesDistance " + face.eyesDistance(), rectF.left, rectF.bottom + mTextPaint.getTextSize() * 3, mTextPaint);
+//                    canvas.drawText("ID " + face.getId(), rectF.left, rectF.bottom + mTextPaint.getTextSize(), mTextPaint);
+//                    canvas.drawText("Confidence " + face.getConfidence(), rectF.left, rectF.bottom + mTextPaint.getTextSize() * 2, mTextPaint);
+//                    canvas.drawText("EyesDistance " + face.eyesDistance(), rectF.left, rectF.bottom + mTextPaint.getTextSize() * 3, mTextPaint);
                 }
             }
             canvas.restore();

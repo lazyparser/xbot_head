@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/topLayout"
+    android:id="@+id/xbotfacelayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
     <SurfaceView
-        android:id="@+id/surfaceview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:id="@+id/xbotfaceview"
+        android:layout_width="180dp"
+        android:layout_height="240dp" />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view"
+        android:id="@+id/xbotfacerecyclerview"
         android:layout_width="@dimen/image_preview_width"
-        android:layout_height="match_parent"
+        android:layout_height="@dimen/image_preview_height"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_margin="10dp"

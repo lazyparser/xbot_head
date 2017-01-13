@@ -16,9 +16,20 @@
         android:layout_height="match_parent"
         android:layout_margin="32dp"
         android:text="@string/begin_preview_button"
-        android:textSize="64sp"
+        android:textSize="48sp"
         android:layout_weight="1"
-        android:lineSpacingExtra="8sp"/>
+        android:lineSpacingExtra="6sp"/>
+
+
+    <Button
+        android:id="@+id/button_xbotface"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="32dp"
+        android:text="@string/begin_xbotface_button"
+        android:textSize="48sp"
+        android:layout_weight="1"
+        android:lineSpacingExtra="6sp"/>
 
     <Button
         android:id="@+id/button_register"
@@ -26,9 +37,9 @@
         android:layout_height="match_parent"
         android:layout_margin="32dp"
         android:text="@string/begin_register_button"
-        android:textSize="64sp"
+        android:textSize="48sp"
         android:layout_weight="1"
-        android:lineSpacingExtra="8sp"/>
+        android:lineSpacingExtra="6sp"/>
 
     <Button
         android:id="@+id/button_config"
@@ -36,7 +47,7 @@
         android:layout_height="match_parent"
         android:layout_margin="32dp"
         android:text="@string/config_button_text"
-        android:textSize="64sp"
+        android:textSize="48sp"
         android:layout_weight="1"
-        android:lineSpacingExtra="8sp"/>
+        android:lineSpacingExtra="6sp"/>
 </LinearLayout>
