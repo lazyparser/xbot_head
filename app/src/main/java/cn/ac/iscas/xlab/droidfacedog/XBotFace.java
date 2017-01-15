@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -45,6 +47,9 @@ import java.util.List;
 
 public final class XBotFace extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
+    public static final int IDLESTATE = 0;
+    public static final int DETECTEDSTATE = 1;
+    public static final int IDENTIFIEDSTATE = 2;
     // Number of Cameras in device.
     private int numberOfCameras;
 
@@ -90,6 +95,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private RecyclerView recyclerView;
     private ImagePreviewAdapter imagePreviewAdapter;
     private ArrayList<Bitmap> facesBitmap;
+    private int m_state;
+    private ImageView faceImageView;
+    private long m_lastchangetime;
 
 
     //==============================================================================================
@@ -129,6 +137,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             faces_previous[i] = new FaceResult();
         }
 
+        faceImageView = (ImageView) findViewById(R.id.faceimageview);
+        updateFaceState(IDLESTATE);
 
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -559,6 +569,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                                     handler.post(new Runnable() {
                                         public void run() {
                                             imagePreviewAdapter.add(faceCroped);
+                                            updateFaceState(DETECTEDSTATE);
                                         }
                                     });
                                 }
@@ -584,6 +595,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
                     if (counter == (Integer.MAX_VALUE - 1000))
                         counter = 0;
+                    updateFaceState();
 
                     isThreadWorking = false;
                 }
@@ -608,5 +620,28 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         } else {
             imagePreviewAdapter.clearAll();
         }
+    }
+
+    void updateFaceState(int state) {
+        m_state = state;
+        m_lastchangetime = System.currentTimeMillis();
+        updateFace();
+    }
+
+    void updateFaceState() {
+        long curr = System.currentTimeMillis();
+        Log.d(TAG, "Curr(" + curr + " - last(" + m_lastchangetime+ ")=" + (curr - m_lastchangetime));
+        if (curr - m_lastchangetime > 5000)
+            updateFaceState(IDLESTATE);
+    }
+    void updateFace() {
+        if (m_state == IDLESTATE)
+            faceImageView.setImageResource(R.drawable.idleface);
+        else if (m_state == DETECTEDSTATE)
+            faceImageView.setImageResource(R.drawable.detectedface);
+        else if (m_state == IDENTIFIEDSTATE)
+            faceImageView.setImageResource(R.drawable.identifiedface);
+        else
+            Log.e(TAG, "updateFace: STATE ERROR");
     }
 }
