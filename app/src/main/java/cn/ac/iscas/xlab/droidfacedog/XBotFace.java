@@ -622,7 +622,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         }
     }
 
-    void updateFaceState(int state) {
+    public void updateFaceState(int state) {
         m_state = state;
         m_lastchangetime = System.currentTimeMillis();
         updateFace();

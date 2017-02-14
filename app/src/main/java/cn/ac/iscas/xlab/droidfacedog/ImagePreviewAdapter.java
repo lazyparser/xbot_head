@@ -1,7 +1,10 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.v4.app.ActivityManagerCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;

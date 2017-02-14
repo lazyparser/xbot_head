@@ -1,5 +1,6 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -43,6 +44,10 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
                     + "[0-9]{2}|[1-9][0-9]|[1-9]|0)\\.(25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}"
                     + "|[1-9][0-9]|[0-9]))");
     private Context mContext;
+
+    public PostImageForRecognitionAsync() {
+        super();
+    }
 
     protected String doInBackground(Bitmap... faceImage) {
         if (serverAddress == null) {
@@ -148,6 +153,10 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
     protected void onPostExecute(String result) {
         Log.d("xxlab", "PostImageForRecognitionAsync onPostExecute [" + result + "]");
         Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
+        if (mContext instanceof XBotFace) {
+            XBotFace activity = (XBotFace)mContext;
+            activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
+        }
     }
 
     // http://stackoverflow.com/questions/16920942/getting-context-in-asynctask
