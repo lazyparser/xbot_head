@@ -693,7 +693,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     void updateFaceState() {
         long curr = System.currentTimeMillis();
         Log.d(TAG, "Curr(" + curr + " - last(" + m_lastchangetime+ ")=" + (curr - m_lastchangetime));
-        if (curr - m_lastchangetime > 5000)
+        if (curr - m_lastchangetime > 10000)
             updateFaceState(IDLESTATE);
     }
     void updateFace() {
