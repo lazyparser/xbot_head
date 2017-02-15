@@ -84,8 +84,6 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
 
                 // 3. build jsonObject
                 JSONObject jsonObject = new JSONObject();
-                // jsonObject.accumulate("image", "base64 of image");
-//                jsonObject.accumulate("Id", "fangyafen");
                 jsonObject.accumulate("Image", encodeToBase64(faceImage[0], Bitmap.CompressFormat.JPEG, 100));
 
                 // 4. convert JSONObject to JSON to String
