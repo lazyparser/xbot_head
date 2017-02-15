@@ -156,6 +156,11 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
         if (mContext instanceof XBotFace) {
             XBotFace activity = (XBotFace)mContext;
             activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
+
+            for (Sound s : activity.getSounds()) {
+                if (s.getAssetPath().equals("tts/welcome.mp3"))
+                    activity.play(s);
+            }
         }
     }
 

@@ -2,6 +2,8 @@ package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -10,7 +12,9 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.AudioManager;
 import android.media.Image;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +35,7 @@ import android.widget.ImageView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +104,57 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private ImageView faceImageView;
     private long m_lastchangetime;
 
+    private static final int MAX_SOUNDS=5;
+    private SoundPool mSoundPool;
+    private static final String SOUNDS_FOLDER = "tts";
+    private AssetManager mAssets;
+    private List<Sound> mSounds = new ArrayList<>();
+
+    private void loadSounds() {
+        String[] soundNames;
+        try {
+            soundNames = mAssets.list(SOUNDS_FOLDER);
+            Log.d(TAG, "xxlab Found " + soundNames.length + " sounds.");
+
+        } catch (IOException ioe){
+            Log.e(TAG, "ERROR Could not list assets", ioe);
+            return;
+        }
+
+        for (String filename : soundNames) {
+            String assetPath = SOUNDS_FOLDER + "/" + filename;
+            Sound sound = new Sound(assetPath);
+            try {
+                load(sound);
+                mSounds.add(sound);
+                Log.d(TAG, "filename = " + filename);
+            } catch (IOException ioe) {
+                Log.e(TAG, "ERROR Could not load sound file '" + filename + "': ", ioe);
+            }
+        }
+    }
+
+    private void load(Sound sound) throws IOException {
+        AssetFileDescriptor afd = mAssets.openFd(sound.getAssetPath());
+        int soundId = mSoundPool.load(afd, 1);
+        sound.setSoundId(soundId);
+    }
+
+    public void play(Sound sound) {
+        Integer soundId = sound.getSoundId();
+        if (soundId == null) {
+            return;
+        }
+        mSoundPool.play(soundId, 1.0f, 1.0f, 1, 0, 1.0f);
+    }
+
+    public List<Sound> getSounds() {
+        return mSounds;
+    }
+
+    public void releaseSounds() {
+        mSoundPool.release();
+    }
 
     //==============================================================================================
     // Activity Methods
@@ -148,6 +204,11 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
+
+        mAssets = getAssets();
+
+        mSoundPool = new SoundPool(MAX_SOUNDS, AudioManager.STREAM_MUSIC, 0);
+        loadSounds();
     }
 
 
@@ -229,6 +290,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        releaseSounds();
         resetData();
     }
 
