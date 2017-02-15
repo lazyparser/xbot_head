@@ -153,13 +153,17 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
     protected void onPostExecute(String result) {
         Log.d("xxlab", "PostImageForRecognitionAsync onPostExecute [" + result + "]");
         Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
-        if (mContext instanceof XBotFace) {
-            XBotFace activity = (XBotFace)mContext;
-            activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
+        //FIXME: very bad string magic. refactr it.
+        if (result.equals("检测通过")) {
+            if (mContext instanceof XBotFace) {
+                XBotFace activity = (XBotFace) mContext;
+                activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
 
-            for (Sound s : activity.getSounds()) {
-                if (s.getAssetPath().equals("tts/welcome.mp3"))
-                    activity.play(s);
+                for (Sound s : activity.getSounds()) {
+                    // XXX: short-circuit this function now for demo purpose.
+                    if (s.getAssetPath().equals("tts/demo.mp3"))
+                        activity.play(s);
+                }
             }
         }
     }
