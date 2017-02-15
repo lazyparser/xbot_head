@@ -122,6 +122,9 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
 //                //inputStream = new DataInputStream(client.getInputStream());
                     //jsonReader.close();
                     //return ret;
+
+                    //TODO: here we should check the JSON, extrace the id,
+                    //      and get the name (and image) belongs to the id.
                     return "检测通过";
 
                 }
