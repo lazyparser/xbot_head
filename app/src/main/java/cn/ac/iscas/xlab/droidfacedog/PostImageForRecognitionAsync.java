@@ -21,6 +21,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -29,13 +30,26 @@ import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cn.ac.iscas.xlab.droidfacedog.youtu.RecogResult;
+
 /**
  * Created by Lazyparser on 10/19/16.
  */
 
 // https://developer.android.com/reference/android/os/AsyncTask.html
 
-public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String> {
+public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Integer> {
+    public static final int RECOG_SUCCESS = 0;
+    public static final int RECOG_REJECTED = 1;
+    public static final int RECOG_TIMEOUT = 2;
+    public static final int RECOG_INVALID_URL = 3;
+    private static final int RECOG_SERVER_ERROR = 4;
+    public static final String XLAB = "xxlab";
+    public static final String SERVER_IP_ADDRESS = "server_ip_address";
+    public static final String DEFAULT_IP = "192.168.1.60";
+    public RecogResult mRecogResult;
+
+
     private String serverAddress;
     // http://stackoverflow.com/questions/3698034/validating-ip-in-android
     private static Pattern IP_ADDRESS = Pattern.compile(
@@ -49,18 +63,18 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
         super();
     }
 
-    protected String doInBackground(Bitmap... faceImage) {
+    protected Integer doInBackground(Bitmap... faceImages) {
         if (serverAddress == null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
-            serverAddress = prefs.getString("server_ip_address", "192.168.1.60");
+            serverAddress = prefs.getString(SERVER_IP_ADDRESS, DEFAULT_IP);
         }
         if (serverAddress.equals("")) {
-            return "WARNING: IP Address is Empty.";
+            return RECOG_INVALID_URL;
         }
         // http://stackoverflow.com/questions/3698034/validating-ip-in-android
         Matcher matcher = IP_ADDRESS.matcher(serverAddress);
         if (matcher.matches()) {
-            Log.d("xxlab", "IP is validated: " + serverAddress);
+            Log.d(XLAB, "IP is validated: " + serverAddress);
             // ip is correct
 
             // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
@@ -84,11 +98,11 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
 
                 // 3. build jsonObject
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.accumulate("Image", encodeToBase64(faceImage[0], Bitmap.CompressFormat.JPEG, 100));
+                jsonObject.accumulate("Image", encodeToBase64(faceImages[0], Bitmap.CompressFormat.JPEG, 100));
 
                 // 4. convert JSONObject to JSON to String
                 String json = jsonObject.toString();
-                Log.d("xxlab", json);
+                Log.d(XLAB, json);
 
                 client.setRequestProperty("Content-Length", Integer.toString(json.length()));
                 client.setRequestProperty("Content-Type","application/json");
@@ -105,57 +119,57 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
 //                client.connect();
                 outputStream.close();
                 int status = client.getResponseCode();
-                Log.d("xxlab", "RESPONSE: " + status);
-                Log.d("xxlab", "POST ERROR STRING: " + client.getResponseMessage());
+                Log.d(XLAB, "RESPONSE: " + status);
+                Log.d(XLAB, "POST ERROR STRING: " + client.getResponseMessage());
 
                 if (status >= 400) {
                     byte[] buf = new byte[1024];
                     BufferedInputStream errReader = new BufferedInputStream(client.getErrorStream());
                     int l = errReader.read(buf);
-                    Log.d("xxlab", "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
-                    return new String(buf, 0, l);
+                    Log.d(XLAB, "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
+                    return RECOG_SERVER_ERROR;
 
                 } else {
-                    JsonReader jsonReader = new JsonReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
-                    Log.d("xxlab", "RESPONSE: " + jsonReader.toString());
-                    //String ret = jsonReader.toString();
-//                //inputStream = new DataInputStream(client.getInputStream());
-                    //jsonReader.close();
-                    //return ret;
+                    InputStream in = client.getInputStream();
+                    JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
 
-                    //TODO: here we should check the JSON, extrace the id,
-                    //      and get the name (and image) belongs to the id.
-                    return "检测通过";
+                    RecogResult recogResult = new RecogResult();
+                    if (!recogResult.parseFrom(reader))
+                        return RECOG_SERVER_ERROR;
+
+                    mRecogResult = recogResult;
+                    return RECOG_SUCCESS;
 
                 }
 
                 //inputStream.close();
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-                Log.d("xxlab", "oh no, catch (MalformedURLException e)");
+                Log.d(XLAB, "oh no, catch (MalformedURLException e)");
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.d("xxlab", "oh no, catch (IOException e)");
+                Log.d(XLAB, "oh no, catch (IOException e)");
             } catch (JSONException e) {
                 e.printStackTrace();
-                Log.d("xxlab", "oh no, catch (JSONException e)");
+                Log.d(XLAB, "oh no, catch (JSONException e)");
             } finally {
-                Log.d("xxlab", "FINALLY");
+                Log.d(XLAB, "FINALLY");
                 if(client != null) // Make sure the connection is not null.
                     client.disconnect();
             }
         } else {
-            Log.d("xxlab", "IP validation failed: " + serverAddress);
+            Log.d(XLAB, "IP validation failed: " + serverAddress);
+            return RECOG_INVALID_URL;
         }
 
-        return "Timeout";
+        return RECOG_TIMEOUT;
     }
 
-    protected void onPostExecute(String result) {
-        Log.d("xxlab", "PostImageForRecognitionAsync onPostExecute [" + result + "]");
-        Toast.makeText(mContext, result, Toast.LENGTH_LONG).show();
+    protected void onPostExecute(Integer result) {
+        Log.d(XLAB, "PostImageForRecognitionAsync onPostExecute [" + result + "]");
+        Toast.makeText(mContext, Integer.toString(result), Toast.LENGTH_LONG).show();
         //FIXME: very bad string magic. refactr it.
-        if (result.equals("检测通过")) {
+        if (result == RECOG_SUCCESS) {
             if (mContext instanceof XBotFace) {
                 XBotFace activity = (XBotFace) mContext;
                 activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
@@ -188,5 +202,6 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, String
         byte[] decodedBytes = Base64.decode(input, 0);
         return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
     }
+
 }
 
