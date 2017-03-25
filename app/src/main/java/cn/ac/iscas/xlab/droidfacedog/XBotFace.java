@@ -13,7 +13,6 @@ import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioManager;
-import android.media.Image;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Bundle;
@@ -33,6 +32,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -113,7 +113,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private AssetManager mAssets;
     private List<Sound> mSounds = new ArrayList<>();
 
-    private Queue<MediaPlayer> soundQueue = new LinkedList<>();
+//    private Queue<MediaPlayer> ttsQueue;
+    private List<MediaPlayer> ttsList;
+    private int currentPlayId;
 
     private void loadSounds() {
         String[] soundNames;
@@ -214,8 +216,59 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         mSoundPool = new SoundPool(MAX_SOUNDS, AudioManager.STREAM_MUSIC, 0);
         loadSounds();
+
+        loadTTS(this);
     }
 
+    private void loadTTS(final XBotFace xbotface) {
+        ttsList = new ArrayList<>();
+        currentPlayId = 0;
+        String[] ttsFileList = {
+                "tts/name_wangpeng.mp3",
+                "tts/hello.mp3",
+                "tts/name_chaichangkun.mp3",
+                "tts/hello.mp3",
+                "tts/name_xuzhihao.mp3",
+                "tts/hello.mp3",
+                "tts/welcome.mp3",
+                "tts/HISTORY01.mp3",
+                "tts/HISTORY02.mp3",
+                "tts/HISTORY03.mp3",
+                "tts/HISTORY04.mp3",
+                "tts/HISTORY05.mp3",
+                "tts/HISTORY06.mp3",
+                "tts/HISTORY07.mp3",
+                "tts/HISTORY08.mp3",
+                "tts/HISTORY09.mp3",
+                "tts/HISTORY10.mp3",
+                "tts/HISTORY11.mp3",
+                "tts/HISTORY12.mp3",
+                "tts/HISTORY13.mp3",
+                "tts/HISTORY14.mp3",
+                "tts/HISTORY15.mp3",
+                "tts/HISTORY16.mp3",
+                "tts/HISTORY17.mp3",
+                "tts/HISTORY18.mp3"};
+        for (int i = 0; i < ttsFileList.length; i++) {
+            try {
+                AssetFileDescriptor afd = getAssets().openFd(ttsFileList[i]);
+                MediaPlayer mp = new MediaPlayer();
+                mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+                mp.prepare();
+                Toast.makeText(xbotface, "Loading ttsList[" + Integer.toString(i) + "]", Toast.LENGTH_SHORT);
+                Log.e(TAG, "Loading ttsList[" + Integer.toString(i) + "]");
+                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        xbotface.playNext();
+                    }
+                });
+                ttsList.add(mp);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -361,6 +414,12 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         // Everything is configured! Finally start the camera preview again:
         startPreview();
+    }
+
+    private void playNext() {
+        if (currentPlayId >= ttsList.size())
+            return;
+        ttsList.get(++currentPlayId).start();
     }
 
     private void setErrorCallback() {
@@ -563,8 +622,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                     break;
             }
 
-            Log.e(TAG, "[w, h] = [" + Integer.toString(bmp.getWidth()) +
-                    ", " + Integer.toString(bmp.getHeight()));
+//            Log.e(TAG, "[w, h] = [" + Integer.toString(bmp.getWidth()) +
+//                    ", " + Integer.toString(bmp.getHeight()));
             fdet = new android.media.FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACE);
 
             android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
@@ -699,6 +758,11 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         m_state = state;
         m_lastchangetime = System.currentTimeMillis();
         updateFace();
+
+        // FIXME: TMEP CODE
+        if (m_state != IDLESTATE) {
+            ttsList.get(0).start();
+        }
     }
 
     void updateFaceState() {
