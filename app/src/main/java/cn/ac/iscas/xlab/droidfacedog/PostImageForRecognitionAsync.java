@@ -73,93 +73,87 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
         }
         // http://stackoverflow.com/questions/3698034/validating-ip-in-android
         Matcher matcher = IP_ADDRESS.matcher(serverAddress);
-        if (matcher.matches()) {
-            Log.d(XLAB, "IP is validated: " + serverAddress);
-            // ip is correct
-
-            // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
-            // http://stackoverflow.com/questions/6218143/how-to-send-post-request-in-json-using-httpclient
-            // http://stackoverflow.com/questions/13911993/sending-a-json-http-post-request-from-android
-
-            HttpURLConnection client = null;
-            try {
-                BufferedOutputStream outputStream;
-//                DataInputStream inputStream;
-//                URL url = new URL("http://" + serverAddress + ":8000/verification");
-                URL url = new URL("http://" + serverAddress + ":8000/recognition");
-                client = (HttpURLConnection) url.openConnection();
-                client.setRequestMethod("POST");
-//                client.setRequestProperty("key","value");
-                client.setDoOutput(true);
-                client.setDoInput(true);
-                client.setUseCaches(false);
-
-                //client.setChunkedStreamingMode(0);
-
-                // 3. build jsonObject
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.accumulate("Image", encodeToBase64(faceImages[0], Bitmap.CompressFormat.JPEG, 100));
-
-                // 4. convert JSONObject to JSON to String
-                String json = jsonObject.toString();
-                Log.d(XLAB, json);
-
-                client.setRequestProperty("Content-Length", Integer.toString(json.length()));
-                client.setRequestProperty("Content-Type","application/json");
-                client.setRequestProperty("Connection", "close");
-                client.setRequestProperty("Accept-Encoding", "identity");
-                client.setRequestProperty("Accept", "text/plain");
-
-
-                outputStream = new BufferedOutputStream(client.getOutputStream());
-                //outputStream.writeBytes(URLEncoder.encode(json, "UTF-8"));
-                outputStream.write(json.getBytes());
-                outputStream.flush();
-
-//                client.connect();
-                outputStream.close();
-                int status = client.getResponseCode();
-                Log.d(XLAB, "RESPONSE: " + status);
-                Log.d(XLAB, "POST ERROR STRING: " + client.getResponseMessage());
-
-                if (status >= 400) {
-                    byte[] buf = new byte[1024];
-                    BufferedInputStream errReader = new BufferedInputStream(client.getErrorStream());
-                    int l = errReader.read(buf);
-                    Log.d(XLAB, "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
-                    return RECOG_SERVER_ERROR;
-
-                } else {
-                    InputStream in = client.getInputStream();
-                    JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
-
-                    RecogResult recogResult = new RecogResult();
-                    if (!recogResult.parseFrom(reader))
-                        return RECOG_SERVER_ERROR;
-
-                    mRecogResult = recogResult;
-                    return RECOG_SUCCESS;
-
-                }
-
-                //inputStream.close();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-                Log.d(XLAB, "oh no, catch (MalformedURLException e)");
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.d(XLAB, "oh no, catch (IOException e)");
-            } catch (JSONException e) {
-                e.printStackTrace();
-                Log.d(XLAB, "oh no, catch (JSONException e)");
-            } finally {
-                Log.d(XLAB, "FINALLY");
-                if(client != null) // Make sure the connection is not null.
-                    client.disconnect();
-            }
-        } else {
+        if (!matcher.matches()) {
             Log.d(XLAB, "IP validation failed: " + serverAddress);
             return RECOG_INVALID_URL;
+        }
+
+        Log.d(XLAB, "IP is validated: " + serverAddress);
+
+        // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
+        // http://stackoverflow.com/questions/6218143/how-to-send-post-request-in-json-using-httpclient
+        // http://stackoverflow.com/questions/13911993/sending-a-json-http-post-request-from-android
+        HttpURLConnection client = null;
+        try {
+            BufferedOutputStream outputStream;
+            // TODO: extract the url to youtu package.
+            URL url = new URL("http://" + serverAddress + ":8000/recognition");
+            client = (HttpURLConnection) url.openConnection();
+            client.setRequestMethod("POST");
+            client.setDoOutput(true);
+            client.setDoInput(true);
+            client.setUseCaches(false);
+
+            //client.setChunkedStreamingMode(0);
+
+            // 3. build jsonObject
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.accumulate("Image", encodeToBase64(faceImages[0], Bitmap.CompressFormat.JPEG, 100));
+
+            // 4. convert JSONObject to JSON to String
+            String jsonString = jsonObject.toString();
+            Log.d(XLAB, jsonString);
+
+            client.setRequestProperty("Content-Length", Integer.toString(jsonString.length()));
+            client.setRequestProperty("Content-Type","application/json");
+            client.setRequestProperty("Connection", "close");
+            client.setRequestProperty("Accept-Encoding", "identity");
+            client.setRequestProperty("Accept", "text/plain");
+
+            outputStream = new BufferedOutputStream(client.getOutputStream());
+            outputStream.write(jsonString.getBytes());
+            outputStream.flush();
+            outputStream.close();
+
+            int status = client.getResponseCode();
+            Log.d(XLAB, "RESPONSE CODE: " + Integer.toString(status));
+            Log.d(XLAB, "POST ERROR STRING: " + client.getResponseMessage());
+
+            // Ref: HTTP Return Code 200-399 is ok. return code above 400 means error.
+            if (status < 400) {
+                InputStream in = client.getInputStream();
+                JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
+
+                RecogResult recogResult = new RecogResult();
+                if (!recogResult.parseFrom(reader))
+                    return RECOG_SERVER_ERROR;
+
+                mRecogResult = recogResult;
+                return RECOG_SUCCESS;
+            } else {
+                // FIXME: 1024 has no means. It is just a buffer length.
+                // this block read the errorStream and logcat it.
+                byte[] buf = new byte[1024];
+                BufferedInputStream errReader = new BufferedInputStream(client.getErrorStream());
+                int l = errReader.read(buf);
+                Log.d(XLAB, "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
+                return RECOG_SERVER_ERROR;
+            }
+
+            //inputStream.close();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            Log.d(XLAB, "oh no, catch (MalformedURLException e)");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d(XLAB, "oh no, catch (IOException e)");
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Log.d(XLAB, "oh no, catch (JSONException e)");
+        } finally {
+            Log.d(XLAB, "FINALLY");
+            if(client != null) // Make sure the connection is not null.
+                client.disconnect();
         }
 
         return RECOG_TIMEOUT;
