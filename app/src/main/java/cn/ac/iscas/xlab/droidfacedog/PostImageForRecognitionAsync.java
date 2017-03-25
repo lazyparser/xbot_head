@@ -47,6 +47,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
     public static final String XLAB = "xxlab";
     public static final String SERVER_IP_ADDRESS = "server_ip_address";
     public static final String DEFAULT_IP = "192.168.1.60";
+    public static final double RECOG_THRESHOLD = 0.50;
     public RecogResult mRecogResult;
 
 
@@ -162,14 +163,19 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
     protected void onPostExecute(Integer result) {
         Log.d(XLAB, "PostImageForRecognitionAsync onPostExecute [" + result + "]");
         Toast.makeText(mContext, Integer.toString(result), Toast.LENGTH_LONG).show();
-        //FIXME: very bad string magic. refactr it.
+        // FIXME: we just have a successful json objects. Confidence is not checked yet.
         if (result == RECOG_SUCCESS) {
+            // do nothing if the face is not recognized.
+            if (mRecogResult.getConfidence() < RECOG_THRESHOLD)
+                return;
+
             if (mContext instanceof XBotFace) {
                 XBotFace activity = (XBotFace) mContext;
                 activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
 
+                // TODO: we should check the ID from RecogResult.g
                 for (Sound s : activity.getSounds()) {
-                    // XXX: short-circuit this function now for demo purpose.
+                    // FIXME: short-circuit this function now for demo purpose.
                     if (s.getAssetPath().equals("tts/demo.mp3"))
                         activity.play(s);
                 }
