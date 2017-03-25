@@ -116,6 +116,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 //    private Queue<MediaPlayer> ttsQueue;
     private List<MediaPlayer> ttsList;
     private int currentPlayId;
+    private boolean isPlayingTTS;
 
     private void loadSounds() {
         String[] soundNames;
@@ -218,8 +219,15 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         loadSounds();
 
         loadTTS(this);
+        isPlayingTTS = false;
     }
 
+    public void startPlayTTS() {
+        if (isPlayingTTS)
+            return;
+        isPlayingTTS = true;
+        ttsList.get(0).start();
+    }
     private void loadTTS(final XBotFace xbotface) {
         ttsList = new ArrayList<>();
         currentPlayId = 0;
@@ -418,8 +426,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
     private void playNext() {
         if (currentPlayId >= ttsList.size())
-            return;
-        ttsList.get(++currentPlayId).start();
+            isPlayingTTS = false;
+        else
+            ttsList.get(++currentPlayId).start();
     }
 
     private void setErrorCallback() {
@@ -761,7 +770,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         // FIXME: TMEP CODE
         if (m_state != IDLESTATE) {
-            ttsList.get(0).start();
+            startPlayTTS();
         }
     }
 
