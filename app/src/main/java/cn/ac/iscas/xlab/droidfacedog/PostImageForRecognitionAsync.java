@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Base64;
@@ -65,6 +66,8 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
     }
 
     protected Integer doInBackground(Bitmap... faceImages) {
+        Log.w(XLAB, "doInBackground(Bitmap... faceImages)");
+
         if (serverAddress == null) {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
             serverAddress = prefs.getString(SERVER_IP_ADDRESS, DEFAULT_IP);
@@ -79,7 +82,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
             return RECOG_INVALID_URL;
         }
 
-        Log.d(XLAB, "IP is validated: " + serverAddress);
+        Log.w(XLAB, "IP is validated: " + serverAddress);
 
         // http://www.wikihow.com/Execute-HTTP-POST-Requests-in-Android
         // http://stackoverflow.com/questions/6218143/how-to-send-post-request-in-json-using-httpclient
@@ -117,8 +120,8 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
             outputStream.close();
 
             int status = client.getResponseCode();
-            Log.d(XLAB, "RESPONSE CODE: " + Integer.toString(status));
-            Log.d(XLAB, "POST ERROR STRING: " + client.getResponseMessage());
+            Log.w(XLAB, "RESPONSE CODE: " + Integer.toString(status));
+            Log.w(XLAB, "POST ERROR STRING: " + client.getResponseMessage());
 
             // Ref: HTTP Return Code 200-399 is ok. return code above 400 means error.
             if (status < 400) {
@@ -137,50 +140,51 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
                 byte[] buf = new byte[1024];
                 BufferedInputStream errReader = new BufferedInputStream(client.getErrorStream());
                 int l = errReader.read(buf);
-                Log.d(XLAB, "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
+                Log.w(XLAB, "RESPONSE ERROR: " + new String(buf, 0, l) + " len " + l);
                 return RECOG_SERVER_ERROR;
             }
 
             //inputStream.close();
         } catch (MalformedURLException e) {
             e.printStackTrace();
-            Log.d(XLAB, "oh no, catch (MalformedURLException e)");
+            Log.e(XLAB, "oh no, catch (MalformedURLException e)");
         } catch (IOException e) {
             e.printStackTrace();
-            Log.d(XLAB, "oh no, catch (IOException e)");
+            Log.e(XLAB, "oh no, catch (IOException e)");
         } catch (JSONException e) {
             e.printStackTrace();
-            Log.d(XLAB, "oh no, catch (JSONException e)");
+            Log.e(XLAB, "oh no, catch (JSONException e)");
         } finally {
-            Log.d(XLAB, "FINALLY");
+            Log.e(XLAB, "FINALLY");
             if(client != null) // Make sure the connection is not null.
                 client.disconnect();
         }
+        Log.w(XLAB, "END OF doInBackground(Bitmap... faceImages)");
 
         return RECOG_TIMEOUT;
     }
 
     protected void onPostExecute(Integer result) {
-        Log.d(XLAB, "PostImageForRecognitionAsync onPostExecute [" + result + "]");
+        Log.w(XLAB, "PostImageForRecognitionAsync onPostExecute [" + result + "]");
         Toast.makeText(mContext, Integer.toString(result), Toast.LENGTH_LONG).show();
-        // FIXME: we just have a successful json objects. Confidence is not checked yet.
-        if (result == RECOG_SUCCESS) {
-            // do nothing if the face is not recognized.
-            if (mRecogResult.getConfidence() < RECOG_THRESHOLD)
-                return;
 
-            if (mContext instanceof XBotFace) {
-                XBotFace activity = (XBotFace) mContext;
-                activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
+        Log.w(XLAB, "mContext instanceof XBotFace");
+        // FIXME: XBotFace Activity only
+        if (!(mContext instanceof XBotFace))
+            return;
+        XBotFace activity = (XBotFace) mContext;
 
-                // TODO: we should check the ID from RecogResult.g
-                for (Sound s : activity.getSounds()) {
-                    // FIXME: short-circuit this function now for demo purpose.
-                    if (s.getAssetPath().equals("tts/demo.mp3"))
-                        activity.play(s);
-                }
-            }
+        // if youtu recognized the user, then try to TTS is ID(name).
+        // otherwise, play the sound of "youke"
+        if (result == RECOG_SUCCESS && mRecogResult.getConfidence() >= RECOG_THRESHOLD) {
+            activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
+            MediaPlayer ttsUserId = activity.lookupNames(mRecogResult.getId());
+            activity.prepareGreetingTTS(ttsUserId);
+        } else {
+            activity.prepareGreetingTTS();
         }
+        Log.w(XLAB, "activity.startPlayTTS();");
+        activity.startPlayTTS();
     }
 
     // http://stackoverflow.com/questions/16920942/getting-context-in-asynctask

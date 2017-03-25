@@ -37,6 +37,7 @@ import android.widget.Toast;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -58,6 +59,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     public static final int IDLESTATE = 0;
     public static final int DETECTEDSTATE = 1;
     public static final int IDENTIFIEDSTATE = 2;
+    public static final int TTS_WELCOME = 7;
+    public static final int TTS_HELLO = 0;
+    public static final int TTS_UNREGISTERED_USER = 1;
+    public static final int TTS_REGISTERED_USER = 2;
     // Number of Cameras in device.
     private int numberOfCameras;
 
@@ -113,7 +118,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private AssetManager mAssets;
     private List<Sound> mSounds = new ArrayList<>();
 
-//    private Queue<MediaPlayer> ttsQueue;
+    private Queue<MediaPlayer> ttsQueue;
     private List<MediaPlayer> ttsList;
     private int currentPlayId;
     private boolean isPlayingTTS;
@@ -226,18 +231,20 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         if (isPlayingTTS)
             return;
         isPlayingTTS = true;
-        ttsList.get(0).start();
+        playNext();
     }
     private void loadTTS(final XBotFace xbotface) {
         ttsList = new ArrayList<>();
+        ttsQueue = new ArrayDeque<>();
         currentPlayId = 0;
         String[] ttsFileList = {
+                "tts/hello.mp3",
+                "tts/guest.mp3",
+                "tts/recognized_user.mp3",
                 "tts/name_wangpeng.mp3",
-                "tts/hello.mp3",
                 "tts/name_chaichangkun.mp3",
-                "tts/hello.mp3",
                 "tts/name_xuzhihao.mp3",
-                "tts/hello.mp3",
+                "tts/name_wuyanjun.mp3",
                 "tts/welcome.mp3",
                 "tts/HISTORY01.mp3",
                 "tts/HISTORY02.mp3",
@@ -358,6 +365,11 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         super.onDestroy();
         releaseSounds();
         resetData();
+        for (int i = 0; i < ttsList.size(); ++i) {
+            MediaPlayer mp = ttsList.get(i);
+            mp.stop();
+            mp.release();
+        }
     }
 
 
@@ -425,10 +437,12 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     }
 
     private void playNext() {
-        if (currentPlayId >= ttsList.size())
+        if (ttsQueue.isEmpty()) {
             isPlayingTTS = false;
-        else
-            ttsList.get(++currentPlayId).start();
+            return;
+        }
+        MediaPlayer mp = ttsQueue.poll();
+        mp.start();
     }
 
     private void setErrorCallback() {
@@ -553,6 +567,20 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     int counter = 0;
     double fps;
 
+    public MediaPlayer lookupNames(String id) {
+        // TODO: lookup wangpeng and others here.
+        return ttsList.get(TTS_REGISTERED_USER);
+    }
+
+    public void prepareGreetingTTS(MediaPlayer ttsUserId) {
+        ttsQueue.add(ttsList.get(TTS_HELLO));
+        ttsQueue.add(ttsUserId);
+        for (int i = TTS_WELCOME; i < ttsList.size(); ++i)
+            ttsQueue.add(ttsList.get(i));
+    }
+    public void prepareGreetingTTS() {
+        prepareGreetingTTS(ttsList.get(TTS_UNREGISTERED_USER));
+    }
     /**
      * Do face detect in thread
      */
@@ -767,11 +795,6 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         m_state = state;
         m_lastchangetime = System.currentTimeMillis();
         updateFace();
-
-        // FIXME: TMEP CODE
-        if (m_state != IDLESTATE) {
-            startPlayTTS();
-        }
     }
 
     void updateFaceState() {
