@@ -14,6 +14,7 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.Image;
+import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,7 +39,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 
 /**
@@ -109,6 +112,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private static final String SOUNDS_FOLDER = "tts";
     private AssetManager mAssets;
     private List<Sound> mSounds = new ArrayList<>();
+
+    private Queue<MediaPlayer> soundQueue = new LinkedList<>();
 
     private void loadSounds() {
         String[] soundNames;
@@ -349,6 +354,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         // Create media.FaceDetector
         float aspect = (float) previewHeight / (float) previewWidth;
+        Log.e(TAG, "[[w, h]] = [" + Integer.toString(previewWidth) +
+            ", " + Integer.toString((int) (prevSettingWidth * aspect)));
         fdet = new android.media.FaceDetector(prevSettingWidth, (int) (prevSettingWidth * aspect), MAX_FACE);
 
 
@@ -388,8 +395,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         previewWidth = previewSize.width;
         previewHeight = previewSize.height;
 
-        Log.e(TAG, "previewWidth" + previewWidth);
-        Log.e(TAG, "previewHeight" + previewHeight);
+        Log.e(TAG, "previewWidth " + previewWidth);
+        Log.e(TAG, "previewHeight " + previewHeight);
 
         /**
          * Calculate size to scale full frame bitmap to smaller bitmap
@@ -503,6 +510,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             float aspect = (float) previewHeight / (float) previewWidth;
             int w = prevSettingWidth;
             int h = (int) (prevSettingWidth * aspect);
+            if (w % 2 == 1) w = w - 1;
+            if (h % 2 == 1) h = h - 1;
 
             Bitmap bitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.RGB_565);
             // face detection: first convert the image from NV21 to RGB_565
@@ -554,6 +563,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                     break;
             }
 
+            Log.e(TAG, "[w, h] = [" + Integer.toString(bmp.getWidth()) +
+                    ", " + Integer.toString(bmp.getHeight()));
             fdet = new android.media.FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACE);
 
             android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
