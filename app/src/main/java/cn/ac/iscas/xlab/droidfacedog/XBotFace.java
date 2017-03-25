@@ -63,6 +63,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     public static final int TTS_HELLO = 0;
     public static final int TTS_UNREGISTERED_USER = 1;
     public static final int TTS_REGISTERED_USER = 2;
+    public static final int TTS_USER_WANGPENG = 3;
+    public static final int TTS_USER_CCK = 4;
+    public static final int TTS_USER_XUZHIHAO = 5;
+    public static final int TTS_USER_WUYANJUN = 6;
     // Number of Cameras in device.
     private int numberOfCameras;
 
@@ -569,6 +573,31 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
     public MediaPlayer lookupNames(String id) {
         // TODO: lookup wangpeng and others here.
+//        1977976464 汪鹏
+//        2782058378 柴长坤
+//        3321435094 徐志浩
+//        0051424595 屈晟 (NOT INPLEMENTED YET)
+//        3831542170 武延军
+//        "tts/hello.mp3",
+//                "tts/guest.mp3",
+//                "tts/recognized_user.mp3",
+//        3        "tts/name_wangpeng.mp3",
+//        4        "tts/name_chaichangkun.mp3",
+//        5        "tts/name_xuzhihao.mp3",
+//        6        "tts/name_wuyanjun.mp3",
+//                "tts/welcome.mp3",
+        if (id.equalsIgnoreCase("1977976464"))
+            return ttsList.get(TTS_USER_WANGPENG);
+        if (id.equalsIgnoreCase("2782058378"))
+            return ttsList.get(TTS_USER_CCK);
+        if (id.equalsIgnoreCase("3321435094"))
+            return ttsList.get(TTS_USER_XUZHIHAO);
+        if (id.equalsIgnoreCase("0051424595"))
+            return ttsList.get(TTS_REGISTERED_USER);
+        if (id.equalsIgnoreCase("3831542170"))
+            return ttsList.get(TTS_USER_WUYANJUN);
+
+        // if not found, return a generic name.
         return ttsList.get(TTS_REGISTERED_USER);
     }
 
