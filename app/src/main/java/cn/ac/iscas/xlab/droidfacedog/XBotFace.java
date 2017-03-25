@@ -573,6 +573,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     }
 
     public void prepareGreetingTTS(MediaPlayer ttsUserId) {
+        // If is playing. do nothing.
+        if (isPlayingTTS)
+            return;
         ttsQueue.add(ttsList.get(TTS_HELLO));
         ttsQueue.add(ttsUserId);
         for (int i = TTS_WELCOME; i < ttsList.size(); ++i)
