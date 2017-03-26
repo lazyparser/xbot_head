@@ -47,8 +47,8 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
     private static final int RECOG_SERVER_ERROR = 4;
     public static final String XLAB = "xxlab";
     public static final String SERVER_IP_ADDRESS = "server_ip_address";
-    public static final String DEFAULT_IP = "192.168.1.60";
-    public static final double RECOG_THRESHOLD = 0.50;
+    public static final String DEFAULT_IP = "192.168.0.111";
+    public static final double RECOG_THRESHOLD = 0.40;
     public RecogResult mRecogResult;
 
 
@@ -166,7 +166,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
 
     protected void onPostExecute(Integer result) {
         Log.w(XLAB, "PostImageForRecognitionAsync onPostExecute [" + result + "]");
-        Toast.makeText(mContext, Integer.toString(result), Toast.LENGTH_LONG).show();
+        Toast.makeText(mContext, Integer.toString(result), Toast.LENGTH_SHORT).show();
 
         Log.w(XLAB, "mContext instanceof XBotFace");
         // FIXME: XBotFace Activity only
@@ -176,6 +176,18 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
 
         // if youtu recognized the user, then try to TTS is ID(name).
         // otherwise, play the sound of "youke"
+        String msg;
+        if (result == RECOG_SUCCESS) {
+            msg = "YOUTU: ret = " + Integer.toString(result) + ", confidence = " +
+                    Double.toString(mRecogResult.getConfidence()) + ", id = '" +
+                    mRecogResult.getId() + "'";
+        } else {
+            msg = "YOUTU: ret = " + Integer.toString(result)
+                    + "RecogResult: null";
+        }
+        Log.w(XLAB, msg);
+        Toast.makeText(mContext, msg, Toast.LENGTH_LONG).show();
+
         if (result == RECOG_SUCCESS && mRecogResult.getConfidence() >= RECOG_THRESHOLD) {
             activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
             MediaPlayer ttsUserId = activity.lookupNames(mRecogResult.getId());

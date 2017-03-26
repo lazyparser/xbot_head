@@ -127,51 +127,51 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private int currentPlayId;
     private boolean isPlayingTTS;
 
-    private void loadSounds() {
-        String[] soundNames;
-        try {
-            soundNames = mAssets.list(SOUNDS_FOLDER);
-            Log.d(TAG, "xxlab Found " + soundNames.length + " sounds.");
+//    private void loadSounds() {
+//        String[] soundNames;
+//        try {
+//            soundNames = mAssets.list(SOUNDS_FOLDER);
+//            Log.d(TAG, "xxlab Found " + soundNames.length + " sounds.");
+//
+//        } catch (IOException ioe){
+//            Log.e(TAG, "ERROR Could not list assets", ioe);
+//            return;
+//        }
+//
+//        for (String filename : soundNames) {
+//            String assetPath = SOUNDS_FOLDER + "/" + filename;
+//            Sound sound = new Sound(assetPath);
+//            try {
+//                load(sound);
+//                mSounds.add(sound);
+//                Log.d(TAG, "filename = " + filename);
+//            } catch (IOException ioe) {
+//                Log.e(TAG, "ERROR Could not load sound file '" + filename + "': ", ioe);
+//            }
+//        }
+//    }
 
-        } catch (IOException ioe){
-            Log.e(TAG, "ERROR Could not list assets", ioe);
-            return;
-        }
+//    private void load(Sound sound) throws IOException {
+//        AssetFileDescriptor afd = mAssets.openFd(sound.getAssetPath());
+//        int soundId = mSoundPool.load(afd, 1);
+//        sound.setSoundId(soundId);
+//    }
 
-        for (String filename : soundNames) {
-            String assetPath = SOUNDS_FOLDER + "/" + filename;
-            Sound sound = new Sound(assetPath);
-            try {
-                load(sound);
-                mSounds.add(sound);
-                Log.d(TAG, "filename = " + filename);
-            } catch (IOException ioe) {
-                Log.e(TAG, "ERROR Could not load sound file '" + filename + "': ", ioe);
-            }
-        }
-    }
+//    public void play(Sound sound) {
+//        Integer soundId = sound.getSoundId();
+//        if (soundId == null) {
+//            return;
+//        }
+//        mSoundPool.play(soundId, 1.0f, 1.0f, 1, 0, 1.0f);
+//    }
 
-    private void load(Sound sound) throws IOException {
-        AssetFileDescriptor afd = mAssets.openFd(sound.getAssetPath());
-        int soundId = mSoundPool.load(afd, 1);
-        sound.setSoundId(soundId);
-    }
+//    public List<Sound> getSounds() {
+//        return mSounds;
+//    }
 
-    public void play(Sound sound) {
-        Integer soundId = sound.getSoundId();
-        if (soundId == null) {
-            return;
-        }
-        mSoundPool.play(soundId, 1.0f, 1.0f, 1, 0, 1.0f);
-    }
-
-    public List<Sound> getSounds() {
-        return mSounds;
-    }
-
-    public void releaseSounds() {
-        mSoundPool.release();
-    }
+//    public void releaseSounds() {
+//        mSoundPool.release();
+//    }
 
     //==============================================================================================
     // Activity Methods
@@ -224,8 +224,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         mAssets = getAssets();
 
-        mSoundPool = new SoundPool(MAX_SOUNDS, AudioManager.STREAM_MUSIC, 0);
-        loadSounds();
+//        mSoundPool = new SoundPool(MAX_SOUNDS, AudioManager.STREAM_MUSIC, 0);
+//        loadSounds();
 
         loadTTS(this);
         isPlayingTTS = false;
@@ -367,7 +367,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        releaseSounds();
+//        releaseSounds();
         resetData();
         for (int i = 0; i < ttsList.size(); ++i) {
             MediaPlayer mp = ttsList.get(i);
@@ -572,6 +572,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     double fps;
 
     public MediaPlayer lookupNames(String id) {
+        Log.w(TAG, "lookupNames(String '" + id + "')");
+
         // TODO: lookup wangpeng and others here.
 //        1977976464 汪鹏
 //        2782058378 柴长坤
@@ -586,7 +588,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 //        5        "tts/name_xuzhihao.mp3",
 //        6        "tts/name_wuyanjun.mp3",
 //                "tts/welcome.mp3",
-        if (id.equalsIgnoreCase("1977976464"))
+        if (id.equalsIgnoreCase("1977976464")
+                || id.equalsIgnoreCase("wangpeng"))
             return ttsList.get(TTS_USER_WANGPENG);
         if (id.equalsIgnoreCase("2782058378"))
             return ttsList.get(TTS_USER_CCK);
