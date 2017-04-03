@@ -266,12 +266,20 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 Log.d(TAG,"ROS communication error");
             }
         });
+
+        RosBridgeCommunicateThread thread = new RosBridgeCommunicateThread<PublishEvent>(client);
+        thread.start();
+        thread.getLooper();
+        ((XbotApplication)getApplication()).setRosThread(thread);
+        Log.i(TAG, "Background RosBridgeCommunicateThread thread started");
+        thread.beginPublishTopicSpeakerDone();
     }
 
     public void startPlayTTS() {
         if (isPlayingTTS)
             return;
         isPlayingTTS = true;
+        ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(true);
         playNext();
     }
     private void loadTTS(final XBotFace xbotface) {
@@ -407,6 +415,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         super.onDestroy();
 //        releaseSounds();
         resetData();
+        isPlayingTTS = false;
+        ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
+
         for (int i = 0; i < ttsList.size(); ++i) {
             MediaPlayer mp = ttsList.get(i);
             mp.stop();
@@ -481,6 +492,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private void playNext() {
         if (ttsQueue.isEmpty()) {
             isPlayingTTS = false;
+            ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
             return;
         }
         MediaPlayer mp = ttsQueue.poll();

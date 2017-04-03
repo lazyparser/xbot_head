@@ -195,6 +195,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
         } else {
             activity.prepareGreetingTTS();
         }
+
         Log.w(XLAB, "activity.startPlayTTS();");
         activity.startPlayTTS();
     }
