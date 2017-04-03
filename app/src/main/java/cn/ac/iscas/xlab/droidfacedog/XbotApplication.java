@@ -9,16 +9,11 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
  * Created by lazyparser on 4/3/17.
  */
 
-class XbotApplication extends Application {
-    private static final XbotApplication ourInstance = new XbotApplication();
+public class XbotApplication extends Application {
     private static final String TAG = "XBotApplication";
     ROSBridgeClient rosClient;
 
-    static XbotApplication getInstance() {
-        return ourInstance;
-    }
-
-    private XbotApplication() {
+    public XbotApplication() {
         Log.d(TAG, "XbotApplication Instance has been created.");
     }
 

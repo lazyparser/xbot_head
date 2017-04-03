@@ -243,7 +243,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         String rosPort = "9090";
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         rosIP = prefs.getString("rosserver_ip_address", "192.168.1.111");
-        final ROSBridgeClient client = new ROSBridgeClient("ws://" + rosIP + ":" + rosPort);
+        String rosURI = "ws://" + rosIP + ":" + rosPort;
+        Log.d(TAG, "Connecting ROS " + rosURI);
+        final ROSBridgeClient client = new ROSBridgeClient(rosURI);
         // TODO check return value of client.connect()
         boolean conneSucc = client.connect(new ROSClient.ConnectionStatusListener() {
             @Override
