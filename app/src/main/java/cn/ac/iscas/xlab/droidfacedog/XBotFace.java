@@ -311,7 +311,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 MediaPlayer mp = new MediaPlayer();
                 mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
                 mp.prepare();
-                Toast.makeText(xbotface, "Loading ttsList[" + Integer.toString(i) + "]", Toast.LENGTH_SHORT);
+                // Toast.makeText(xbotface, "Loading ttsList[" + Integer.toString(i) + "]",
+                //         Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "Loading ttsList[" + Integer.toString(i) + "]");
                 mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
