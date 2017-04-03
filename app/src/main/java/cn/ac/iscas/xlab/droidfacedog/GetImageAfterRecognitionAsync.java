@@ -68,25 +68,25 @@ public class GetImageAfterRecognitionAsync extends AsyncTask<String, Void, Strin
                 URL url = new URL("http://" + serverAddress + ":8000/face" + "?userid=yafen");
                 client = (HttpURLConnection) url.openConnection();
                 client.setRequestMethod("GET");
-//                client.setRequestProperty("key","value");
-//                client.setDoOutput(true);
+//                rosClient.setRequestProperty("key","value");
+//                rosClient.setDoOutput(true);
                 client.setDoInput(true);
                 client.setUseCaches(false);
-                //client.setRequestProperty("Content-Type","application/json");
+                //rosClient.setRequestProperty("Content-Type","application/json");
                 client.setChunkedStreamingMode(0);
                 client.connect();
-//                outputStream = new DataOutputStream(client.getOutputStream());
+//                outputStream = new DataOutputStream(rosClient.getOutputStream());
                 Log.d("xxlab", "GetImageAfterRecognitionAsync HTTP ERROR CODE: " + client.getResponseCode());
                 Log.d("xxlab", "GetImageAfterRecognitionAsync HTTP ERROR CODE: " + client.getResponseMessage());
                 if (client.getResponseCode() >= 400) {
                     return "";
                 }
-//                inputStream = new DataInputStream(client.getInputStream());
+//                inputStream = new DataInputStream(rosClient.getInputStream());
                 BufferedInputStream in = new BufferedInputStream(client.getInputStream());
                 byte[] buf = new byte[1024];
                 int l = in.read(buf);
                 Log.d("xxlab", "GetImageAfterRecognitionAsync RESPONCE: " + new String(buf) + " with len " + l);
-//                JsonReader jsonReader = new JsonReader(new InputStreamReader(client.getInputStream(), "UTF-8"));
+//                JsonReader jsonReader = new JsonReader(new InputStreamReader(rosClient.getInputStream(), "UTF-8"));
 //                Log.d("xxlab", "GetImageAfterRecognitionAsync RESPONSE: " + jsonReader.toString());
 
                 // 3. build jsonObject

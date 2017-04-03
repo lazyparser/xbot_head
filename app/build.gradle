@@ -27,4 +27,8 @@ dependencies {
     compile 'com.android.support:support-v4:25.3.0'
     compile 'com.android.support:support-vector-drawable:25.3.0'
     testCompile 'junit:junit:4.12'
+    compile files('libs/java_websocket.jar')
+    compile files('libs/json-simple-1.1.jar')
+    compile files('libs/eventbus.jar')
+    compile files('libs/butterknife-7.0.1.jar')
 }

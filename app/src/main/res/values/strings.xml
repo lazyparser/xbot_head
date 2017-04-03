@@ -79,4 +79,6 @@
     <string name="begin_register_button">注册贵宾</string>
     <string name="begin_xbotface_button">机器人脸</string>
     <string name="xbotface_title">XBotFace</string>
+    <string name="pref_default_ros_ip">192.168.1.111</string>
+    <string name="pref_title_ros_ip">ROS Server IP</string>
 </resources>

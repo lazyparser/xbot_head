@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="xbotface_title">XBotFace</string>
+    <string name="pref_default_ros_ip">192.168.1.111</string>
+    <string name="pref_title_ros_ip">ROS Server IP</string>
 </resources>

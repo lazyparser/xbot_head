@@ -2,6 +2,7 @@ package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
@@ -17,6 +18,7 @@ import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -34,6 +36,10 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.jilk.ros.ROSClient;
+import com.jilk.ros.rosbridge.ROSBridgeClient;
+import com.jilk.ros.rosbridge.implementation.ROSBridgeWebSocketClient;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,6 +49,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.StringTokenizer;
 
 
 /**
@@ -229,6 +236,34 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         loadTTS(this);
         isPlayingTTS = false;
+
+        // TODO: make rosPort configurable.
+        // TODO: make rosIP configurable.
+        String rosIP = "192.168.1.111";
+        String rosPort = "9090";
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        rosIP = prefs.getString("rosserver_ip_address", "192.168.1.111");
+        final ROSBridgeClient client = new ROSBridgeClient("ws://" + rosIP + ":" + rosPort);
+        // TODO check return value of client.connect()
+        boolean conneSucc = client.connect(new ROSClient.ConnectionStatusListener() {
+            @Override
+            public void onConnect() {
+                client.setDebug(true);
+                ((XbotApplication)getApplication()).setRosClient(client);
+                Log.d(TAG,"Connect ROS success");
+            }
+
+            @Override
+            public void onDisconnect(boolean normal, String reason, int code) {
+                Log.d(TAG,"ROS disconnect");
+            }
+
+            @Override
+            public void onError(Exception ex) {
+                ex.printStackTrace();
+                Log.d(TAG,"ROS communication error");
+            }
+        });
     }
 
     public void startPlayTTS() {

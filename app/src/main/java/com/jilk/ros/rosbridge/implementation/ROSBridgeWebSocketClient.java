@@ -26,8 +26,6 @@ import com.jilk.ros.rosbridge.operation.Operation;
 import com.jilk.ros.rosbridge.operation.Publish;
 import com.jilk.ros.rosbridge.operation.ServiceResponse;
 
-import net.xxhong.rosclient.entity.PublishEvent;
-
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
@@ -41,6 +39,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 
+import cn.ac.iscas.xlab.droidfacedog.PublishEvent;
 import de.greenrobot.event.EventBus;
 
 

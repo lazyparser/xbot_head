@@ -98,7 +98,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
             client.setDoInput(true);
             client.setUseCaches(false);
 
-            //client.setChunkedStreamingMode(0);
+            //rosClient.setChunkedStreamingMode(0);
 
             // 3. build jsonObject
             JSONObject jsonObject = new JSONObject();
