@@ -417,6 +417,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         resetData();
         isPlayingTTS = false;
         ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
+        ((XbotApplication)getApplication()).getRosThread().stopPublishTopicSpeakerDone();
 
         for (int i = 0; i < ttsList.size(); ++i) {
             MediaPlayer mp = ttsList.get(i);

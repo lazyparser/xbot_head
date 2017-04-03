@@ -31,7 +31,7 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
 
     public RosBridgeCommunicateThread(ROSBridgeClient rosClient) {
         super(TAG);
-        timer = new Timer();
+        timer = null;
         mSpeakerDone = false;
         mRosClient = rosClient;
     }
@@ -90,8 +90,18 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
             }
         };
 
+        if (timer != null)
+            stopPublishTopicSpeakerDone();
+        timer = new Timer();
         timer.schedule(timerTask, DEFAULT_DELAY, DEFAULT_FREQ);
         return true;
+    }
+
+    public void stopPublishTopicSpeakerDone() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
     }
 
     public void updateSpeakerState(boolean state) {
