@@ -48,7 +48,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
     public static final String XLAB = "xxlab";
     public static final String SERVER_IP_ADDRESS = "server_ip_address";
     public static final String DEFAULT_IP = "192.168.0.111";
-    public static final double RECOG_THRESHOLD = 0.40;
+    public static final double RECOG_THRESHOLD = 0.60;
     public RecogResult mRecogResult;
 
 
