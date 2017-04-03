@@ -22,7 +22,7 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
 
     static {
         DEFAULT_DELAY = 1000; // 1000ms = delay 1s
-        DEFAULT_FREQ = 100; // 100ms = 10Hz
+        DEFAULT_FREQ = 1000; // 100ms = 10Hz, 1000ms = 1Hz
     }
 
     private boolean mSpeakerDone;
