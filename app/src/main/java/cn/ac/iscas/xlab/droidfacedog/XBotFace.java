@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.StringTokenizer;
 
+import de.greenrobot.event.EventBus;
+
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -133,6 +135,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private List<MediaPlayer> ttsList;
     private int currentPlayId;
     private boolean isPlayingTTS;
+    private MediaPlayer mCurrentPlayer;
 
 //    private void loadSounds() {
 //        String[] soundNames;
@@ -236,6 +239,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         loadTTS(this);
         isPlayingTTS = false;
+        mCurrentPlayer = null;
 
         // TODO: make rosPort configurable.
         // TODO: make rosIP configurable.
@@ -333,6 +337,37 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 e.printStackTrace();
             }
         }
+
+        EventBus.getDefault().register(this);
+    }
+
+    public void onEvent(final NarrateStatusChangeRequest req) {
+        if (req.getRequest() == NarrateStatusChangeRequest.PlayStatus.PAUSE)
+            pauseNarrating();
+        else if (req.getRequest() == NarrateStatusChangeRequest.PlayStatus.STOP)
+            stopNarrating();
+        else if (req.getRequest() == NarrateStatusChangeRequest.PlayStatus.START)
+            startPlayTTS();
+        else //(req.getRequest() == NarrateStatusChangeRequest.PlayStatus.RESUME)
+            resumeNarrating();
+    }
+
+    private void pauseNarrating() {
+        // TODO stub
+        if (mCurrentPlayer != null)
+            mCurrentPlayer.pause();
+    }
+
+    private void stopNarrating() {
+        // TODO stub
+        if(mCurrentPlayer != null)
+            mCurrentPlayer.stop();
+    }
+
+    private void resumeNarrating() {
+        //TODO stub
+        if (mCurrentPlayer != null)
+            mCurrentPlayer.start();
     }
 
     @Override
@@ -496,8 +531,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
             return;
         }
-        MediaPlayer mp = ttsQueue.poll();
-        mp.start();
+        mCurrentPlayer = ttsQueue.poll();
+        mCurrentPlayer.start();
     }
 
     private void setErrorCallback() {

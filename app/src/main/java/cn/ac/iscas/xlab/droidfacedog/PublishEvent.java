@@ -21,4 +21,10 @@ public class PublishEvent {
         this.name = name;
         msg = content;
     }
+
+    // FIXME: maybe toLogcat() is more accurate?
+    public String toString() {
+        return "{msg: '" + msg + "', id: '" + id + "', name: '"
+                + name + "', op: '" + op + "'}";
+    }
 }

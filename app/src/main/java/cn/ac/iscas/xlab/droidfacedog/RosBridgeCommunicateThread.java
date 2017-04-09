@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import de.greenrobot.event.EventBus;
+
 /**
  * Created by lazyparser on 4/3/17.
  */
@@ -34,6 +36,7 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
         timer = null;
         mSpeakerDone = false;
         mRosClient = rosClient;
+        EventBus.getDefault().register(this);
     }
 
     public boolean publishTopic(String topic, String init, int freq) {
@@ -47,7 +50,13 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
         return true;
     }
 
-    public boolean beginPublishTopicSpeakerDone() {
+    public void beginSubscribeTopicStopRun() {
+        final String topic = "/StopRun_run";
+        final String msgSub = "{\"op\": \"subscribe\", \"topic\": \"" + topic + "\"}";
+        Log.d(TAG, msgSub);
+        mRosClient.send(msgSub);
+    }
+    public void beginPublishTopicSpeakerDone() {
         final String topic = "/speaker_done";
         // Spec: Advertise before publish
         // https://github.com/RobotWebTools/rosbridge_suite/blob/groovy-devel/ROSBRIDGE_PROTOCOL.md
@@ -94,7 +103,6 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
             stopPublishTopicSpeakerDone();
         timer = new Timer();
         timer.schedule(timerTask, DEFAULT_DELAY, DEFAULT_FREQ);
-        return true;
     }
 
     public void stopPublishTopicSpeakerDone() {
@@ -106,5 +114,29 @@ public final class RosBridgeCommunicateThread<T> extends HandlerThread {
 
     public void updateSpeakerState(boolean state) {
         mSpeakerDone = state;
+    }
+
+    //Receive data from ROS server, send from ROSBridgeWebSocketClient onMessage()
+    public void onEvent(final PublishEvent event) {
+        Log.d(TAG, event.toString());
+
+        // This parameter is PublishEvent so we do not need to check the 'op'
+        // Just check the topic name.
+        if ("/StopRun_run".equals(event.name)) {
+            parseStopRunTopic(event);
+            return;
+        }
+
+    }
+
+    private void parseStopRunTopic(PublishEvent event) {
+        // TODO: the semantics of /stop_run should be refined.
+        // /StopRun_run is a boolean topic. when true is received
+        // stop the narrates.
+        if (event.msg.equals("true")) {
+            EventBus.getDefault().post(
+                    new NarrateStatusChangeRequest(
+                            NarrateStatusChangeRequest.PlayStatus.STOP));
+        }
     }
 }
