@@ -2,6 +2,7 @@ package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -242,6 +243,20 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         rosIP = prefs.getString("rosserver_ip_address", "192.168.1.111");
         String rosURI = "ws://" + rosIP + ":" + rosPort;
         Log.d(TAG, "Connecting ROS " + rosURI);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("请稍等")
+                .setMessage("正在连接至Ros服务端")
+                .setCancelable(false)
+                .setNegativeButton("取消连接", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        XBotFace.this.onBackPressed();
+                    }
+                });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
 //        final ROSBridgeClient client = new ROSBridgeClient(rosURI);
 //        // TODO check return value of client.connect()
 //        boolean conneSucc = client.connect(new ROSClient.ConnectionStatusListener() {
@@ -280,7 +295,6 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             Toast.makeText(getApplicationContext(), "连接Ros服务端失败,请开启服务端后重试", Toast.LENGTH_SHORT).show();
         }
     }
-
     public void startPlayTTS() {
         if (isPlayingTTS)
             return;
@@ -288,10 +302,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
         if (rosCommunicationThread != null) {
             rosCommunicationThread.updateSpeakerState(true);
+            playNext();
         }else{
             Log.d(TAG,"RosBridgeCommunicateThread is null");
         }
-        playNext();
     }
     private void loadTTS(final XBotFace xbotface) {
         ttsList = new ArrayList<>();
