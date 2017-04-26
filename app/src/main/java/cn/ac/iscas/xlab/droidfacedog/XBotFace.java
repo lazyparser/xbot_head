@@ -13,7 +13,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Bundle;
@@ -36,20 +35,14 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.jilk.ros.ROSClient;
-import com.jilk.ros.rosbridge.ROSBridgeClient;
-import com.jilk.ros.rosbridge.implementation.ROSBridgeWebSocketClient;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.StringTokenizer;
 
 import de.greenrobot.event.EventBus;
 
@@ -249,41 +242,55 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         rosIP = prefs.getString("rosserver_ip_address", "192.168.1.111");
         String rosURI = "ws://" + rosIP + ":" + rosPort;
         Log.d(TAG, "Connecting ROS " + rosURI);
-        final ROSBridgeClient client = new ROSBridgeClient(rosURI);
-        // TODO check return value of client.connect()
-        boolean conneSucc = client.connect(new ROSClient.ConnectionStatusListener() {
-            @Override
-            public void onConnect() {
-                client.setDebug(true);
-                ((XbotApplication)getApplication()).setRosClient(client);
-                Log.d(TAG,"Connect ROS success");
-            }
+//        final ROSBridgeClient client = new ROSBridgeClient(rosURI);
+//        // TODO check return value of client.connect()
+//        boolean conneSucc = client.connect(new ROSClient.ConnectionStatusListener() {
+//            @Override
+//            public void onConnect() {
+//                client.setDebug(true);
+//                ((XbotApplication)getApplication()).setRosClient(client);
+//                Log.d(TAG,"Connect ROS success");
+//            }
+//
+//            @Override
+//            public void onDisconnect(boolean normal, String reason, int code) {
+//                Log.d(TAG,"ROS disconnect");
+//            }
+//
+//            @Override
+//            public void onError(Exception ex) {
+//                ex.printStackTrace();
+//                Log.d(TAG,"ROS communication error");
+//            }
+//        });
+//
+//        checkConnectionResult(conneSucc);
+//
+//        RosBridgeCommunicateThread thread = new RosBridgeCommunicateThread<PublishEvent>(client);
+//        thread.start();
+//        thread.getLooper();
+//        ((XbotApplication)getApplication()).setRosThread(thread);
+//        Log.i(TAG, "Background RosBridgeCommunicateThread thread started");
+//        thread.beginPublishTopicSpeakerDone();
+    }
 
-            @Override
-            public void onDisconnect(boolean normal, String reason, int code) {
-                Log.d(TAG,"ROS disconnect");
-            }
-
-            @Override
-            public void onError(Exception ex) {
-                ex.printStackTrace();
-                Log.d(TAG,"ROS communication error");
-            }
-        });
-
-        RosBridgeCommunicateThread thread = new RosBridgeCommunicateThread<PublishEvent>(client);
-        thread.start();
-        thread.getLooper();
-        ((XbotApplication)getApplication()).setRosThread(thread);
-        Log.i(TAG, "Background RosBridgeCommunicateThread thread started");
-        thread.beginPublishTopicSpeakerDone();
+    private void checkConnectionResult(boolean conneSucc) {
+        if (!conneSucc) {
+            this.onBackPressed();
+            Toast.makeText(getApplicationContext(), "连接Ros服务端失败,请开启服务端后重试", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void startPlayTTS() {
         if (isPlayingTTS)
             return;
         isPlayingTTS = true;
-        ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(true);
+        RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
+        if (rosCommunicationThread != null) {
+            rosCommunicationThread.updateSpeakerState(true);
+        }else{
+            Log.d(TAG,"RosBridgeCommunicateThread is null");
+        }
         playNext();
     }
     private void loadTTS(final XBotFace xbotface) {
@@ -451,8 +458,13 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 //        releaseSounds();
         resetData();
         isPlayingTTS = false;
-        ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
-        ((XbotApplication)getApplication()).getRosThread().stopPublishTopicSpeakerDone();
+        RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
+        if (rosCommunicationThread != null) {
+            rosCommunicationThread.updateSpeakerState(false);
+            rosCommunicationThread.stopPublishTopicSpeakerDone();
+        }else{
+            Log.d(TAG, "RosBridgeCommunicateThread is null");
+        }
 
         for (int i = 0; i < ttsList.size(); ++i) {
             MediaPlayer mp = ttsList.get(i);
@@ -528,7 +540,12 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private void playNext() {
         if (ttsQueue.isEmpty()) {
             isPlayingTTS = false;
-            ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
+            RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
+            if (rosCommunicationThread != null) {
+                rosCommunicationThread.updateSpeakerState(false);
+            }else{
+                Log.d(TAG, "RosBridgeCommunicateThread is null");
+            }
             return;
         }
         mCurrentPlayer = ttsQueue.poll();
