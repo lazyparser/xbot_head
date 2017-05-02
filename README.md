@@ -1,17 +1,28 @@
 XBot Head
 =========
 
-XBot Head is used for XBot.
+XBot Head is used for XBot.Xbot Head is an android application that can recognise specific faces with the support of recognition server. What is more,it can control the media player of android devices to play audio file.There will be more functions for VIP,which are in developing stage.
 
 ## Thanks
 [bytefish][bytefish] for a sample Face Detection with Android
 This Project is originally developed by Nguyen Minh Tri - <tri2991@gmail.com>
 
+## Contributors of this project
+
+* Wei Wu  [lazyparser](https://github.com/lazyparser)
+
+* Songting Li  [lisongting](https://github.com/lisongting)
+
+### Original authors:
+* Nguyen Minh Tri  [betri28](https://github.com/betri28)
+
+* xxhong  [hibernate2011](https://github.com/hibernate2011)
 
 License
 --------
 
     Copyright 2017 Wei Wu
+    Copyright 2017 Songting Li
     Copyright 2016 Nguyen Minh Tri. Wei Wu.
 
     Licensed under the Apache License, Version 2.0 (the "License");
