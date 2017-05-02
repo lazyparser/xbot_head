@@ -224,9 +224,12 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                         dialog.dismiss();
                         timer.cancel();
                         Toast.makeText(XBotFace.this, "连接成功", Toast.LENGTH_SHORT).show();
+
+                        startPreview();
                     }
                 }else if(msg.what == CONN_ROS_SERVER_ERROR){
-                    Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "连接失败，正在重试");
                 }
             }
         };
@@ -254,7 +257,15 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 //        mSoundPool = new SoundPool(MAX_SOUNDS, AudioManager.STREAM_MUSIC, 0);
 //        loadSounds();
 
-        loadTTS(this);
+        //在这里Activity的生命周期里直接加载TTS,这样会比较耗时大概会导致Activity延迟1秒启动
+        //loadTTS(this);
+        //所以新开线程去加载TTS
+        new Thread(){
+            public void run() {
+                loadTTS(XBotFace.this);
+            }
+        }.start();
+
         isPlayingTTS = false;
         mCurrentPlayer = null;
 
@@ -267,13 +278,14 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         XBotFace.this.onBackPressed();
+                        timer.cancel();
                     }
                 });
         dialog = builder.create();
         dialog.show();
 
 
-        //启动定时任务，每三秒种发起一次连接
+        //启动定时任务，每3秒种发起一次连接
         //然后将结果发送给Handler，
         timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -290,10 +302,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     }
 
     private boolean connectToRosServer(){
-        String rosIP = "192.168.1.111";
+        String rosIP = "192.168.1.151";
         String rosPort = "9090";
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        rosIP = prefs.getString("rosserver_ip_address", "192.168.1.111");
+        rosIP = prefs.getString("rosserver_ip_address", "192.168.1.151");
         String rosURI = "ws://" + rosIP + ":" + rosPort;
         Log.d(TAG, "Connecting ROS " + rosURI);
         final ROSBridgeClient client = new ROSBridgeClient(rosURI);
