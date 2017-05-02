@@ -2,6 +2,7 @@ package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
@@ -13,11 +14,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -38,7 +39,6 @@ import android.widget.Toast;
 
 import com.jilk.ros.ROSClient;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
-import com.jilk.ros.rosbridge.implementation.ROSBridgeWebSocketClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -46,10 +46,10 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import de.greenrobot.event.EventBus;
 
@@ -76,6 +76,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     public static final int TTS_USER_CCK = 4;
     public static final int TTS_USER_XUZHIHAO = 5;
     public static final int TTS_USER_WUYANJUN = 6;
+    public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
+    public static final int CONN_ROS_SERVER_ERROR = 0x12;
     // Number of Cameras in device.
     private int numberOfCameras;
 
@@ -137,6 +139,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     private boolean isPlayingTTS;
     private MediaPlayer mCurrentPlayer;
 
+    private Timer timer;
+    private AlertDialog dialog;
 //    private void loadSounds() {
 //        String[] soundNames;
 //        try {
@@ -211,8 +215,24 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        //定义Handler，用来接收TimerTask中发回来的连接状态
+        handler = new Handler(){
+            public void handleMessage(Message msg) {
+                //如果连接成功
+                if (msg.what == CONN_ROS_SERVER_SUCCESS) {
+                    if (dialog.isShowing()) {
+                        dialog.dismiss();
+                        timer.cancel();
+                        Toast.makeText(XBotFace.this, "连接成功", Toast.LENGTH_SHORT).show();
 
-        handler = new Handler();
+                        startPreview();
+                    }
+                }else if(msg.what == CONN_ROS_SERVER_ERROR){
+                    //Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "连接失败，正在重试");
+                }
+            }
+        };
         faces = new FaceResult[MAX_FACE];
         faces_previous = new FaceResult[MAX_FACE];
         for (int i = 0; i < MAX_FACE; i++) {
@@ -237,16 +257,55 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 //        mSoundPool = new SoundPool(MAX_SOUNDS, AudioManager.STREAM_MUSIC, 0);
 //        loadSounds();
 
-        loadTTS(this);
+        //在这里Activity的生命周期里直接加载TTS,这样会比较耗时大概会导致Activity延迟1秒启动
+        //loadTTS(this);
+        //所以新开线程去加载TTS
+        new Thread(){
+            public void run() {
+                loadTTS(XBotFace.this);
+            }
+        }.start();
+
         isPlayingTTS = false;
         mCurrentPlayer = null;
 
-        // TODO: make rosPort configurable.
-        // TODO: make rosIP configurable.
-        String rosIP = "192.168.1.111";
+        //启动一个对话框提示用户等待，然后连接至Ros服务器
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("请稍等")
+                .setMessage("正在连接至Ros服务端")
+                .setCancelable(false)
+                .setNegativeButton("取消连接", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        XBotFace.this.onBackPressed();
+                        timer.cancel();
+                    }
+                });
+        dialog = builder.create();
+        dialog.show();
+
+
+        //启动定时任务，每3秒种发起一次连接
+        //然后将结果发送给Handler，
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                boolean result = connectToRosServer();
+                if(result){
+                    handler.sendEmptyMessage(CONN_ROS_SERVER_SUCCESS);
+                }else{
+                    handler.sendEmptyMessage(CONN_ROS_SERVER_ERROR);
+                }
+            }
+        },0,3000);
+    }
+
+    private boolean connectToRosServer(){
+        String rosIP = "192.168.1.151";
         String rosPort = "9090";
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        rosIP = prefs.getString("rosserver_ip_address", "192.168.1.111");
+        rosIP = prefs.getString("rosserver_ip_address", "192.168.1.151");
         String rosURI = "ws://" + rosIP + ":" + rosPort;
         Log.d(TAG, "Connecting ROS " + rosURI);
         final ROSBridgeClient client = new ROSBridgeClient(rosURI);
@@ -270,21 +329,28 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 Log.d(TAG,"ROS communication error");
             }
         });
-
-        RosBridgeCommunicateThread thread = new RosBridgeCommunicateThread<PublishEvent>(client);
-        thread.start();
-        thread.getLooper();
-        ((XbotApplication)getApplication()).setRosThread(thread);
-        Log.i(TAG, "Background RosBridgeCommunicateThread thread started");
-        thread.beginPublishTopicSpeakerDone();
+        if (conneSucc) {
+            RosBridgeCommunicateThread thread = new RosBridgeCommunicateThread<PublishEvent>(client);
+            thread.start();
+            thread.getLooper();
+            ((XbotApplication)getApplication()).setRosThread(thread);
+            Log.i(TAG, "Background RosBridgeCommunicateThread thread started");
+            thread.beginPublishTopicSpeakerDone();
+        }
+        return conneSucc;
     }
 
     public void startPlayTTS() {
         if (isPlayingTTS)
             return;
         isPlayingTTS = true;
-        ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(true);
-        playNext();
+        RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
+        if (rosCommunicationThread != null) {
+            rosCommunicationThread.updateSpeakerState(true);
+            playNext();
+        }else{
+            Log.d(TAG,"RosBridgeCommunicateThread is null");
+        }
     }
     private void loadTTS(final XBotFace xbotface) {
         ttsList = new ArrayList<>();
@@ -426,7 +492,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         super.onResume();
 
         Log.i(TAG, "onResume");
-        startPreview();
+        //如果对话框消失，说明与Ros服务端连接成功
+        if (!dialog.isShowing()) {
+            startPreview();
+        }
     }
 
     /**
@@ -451,8 +520,13 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 //        releaseSounds();
         resetData();
         isPlayingTTS = false;
-        ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
-        ((XbotApplication)getApplication()).getRosThread().stopPublishTopicSpeakerDone();
+        RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
+        if (rosCommunicationThread != null) {
+            rosCommunicationThread.updateSpeakerState(false);
+            rosCommunicationThread.stopPublishTopicSpeakerDone();
+        }else{
+            Log.d(TAG, "RosBridgeCommunicateThread is null");
+        }
 
         for (int i = 0; i < ttsList.size(); ++i) {
             MediaPlayer mp = ttsList.get(i);
@@ -522,13 +596,20 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
 
         // Everything is configured! Finally start the camera preview again:
-        startPreview();
+        if (!dialog.isShowing()) {
+            startPreview();
+        }
     }
 
     private void playNext() {
         if (ttsQueue.isEmpty()) {
             isPlayingTTS = false;
-            ((XbotApplication)getApplication()).getRosThread().updateSpeakerState(false);
+            RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
+            if (rosCommunicationThread != null) {
+                rosCommunicationThread.updateSpeakerState(false);
+            }else{
+                Log.d(TAG, "RosBridgeCommunicateThread is null");
+            }
             return;
         }
         mCurrentPlayer = ttsQueue.poll();
