@@ -3,13 +3,18 @@ package cn.ac.iscas.xlab.droidfacedog;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+
+import cn.ac.iscas.xlab.droidfacedog.config.Config;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -84,8 +89,28 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        initConfiguration();
+
     }
 
+    //在该函数中，获取settings中设置的所有属性值，并将相关的值存放在Config中
+    public void initConfiguration() {
+        Resources res = getResources();
+
+        SharedPreferences sharedPreference = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String strThreshold = sharedPreference.getString(res.getString(R.string.key_recog_threshold), "0.6");
+
+        Config.RECOG_THRESHOLD = Double.parseDouble(strThreshold);
+
+        Config.ENABLE_MESSAGE_NOTIFICATION = sharedPreference.getBoolean(res.getString(R.string.key_enable_notification),true);
+
+        Config.ROS_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_ros_server_ip), "192.168.1.111");
+
+        Config.RECOGNITION_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_recognition_server_ip), "192.168.0.111");
+
+        Log.i("tag", "MainActivity启动时初始化：" + Config.string());
+    }
 
     private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
         Log.w(TAG, "Camera permission is not granted. Requesting permission");
