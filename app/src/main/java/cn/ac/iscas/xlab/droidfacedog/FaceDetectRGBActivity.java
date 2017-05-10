@@ -33,6 +33,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
+import cn.ac.iscas.xlab.droidfacedog.util.Util;
+
 
 /**
  * Created by Nguyen on 5/20/2016.

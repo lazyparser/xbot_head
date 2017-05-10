@@ -21,6 +21,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.util.RegexCheckUtil;
 
 
 public class SettingsActivity extends AppCompatPreferenceActivity {
@@ -155,7 +156,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             addPreferencesFromResource(R.xml.pref_general);
             setHasOptionsMenu(true);
 
-            bindPreferenceSummaryToValue(findPreference(res.getString(R.string.key_recog_server_ip)));
+            bindPreferenceSummaryToValue(findPreference(res.getString(R.string.key_recognition_server_ip)));
             bindPreferenceSummaryToValue(findPreference(res.getString(R.string.key_ros_server_ip)));
             bindPreferenceSummaryToValue(findPreference(res.getString(R.string.key_recog_threshold)));
         }

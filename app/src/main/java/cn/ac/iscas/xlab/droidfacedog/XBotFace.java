@@ -51,6 +51,8 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
+import cn.ac.iscas.xlab.droidfacedog.util.Util;
 import de.greenrobot.event.EventBus;
 
 
