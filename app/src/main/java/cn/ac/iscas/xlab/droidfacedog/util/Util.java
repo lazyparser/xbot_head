@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog;
+package cn.ac.iscas.xlab.droidfacedog.util;
 
 import android.app.Activity;
 import android.graphics.Matrix;

@@ -2,9 +2,10 @@
 
     <EditTextPreference
         android:capitalize="words"
+        android:summary="@string/pref_default_display_name"
         android:defaultValue="@string/pref_default_display_name"
         android:inputType="textCapWords"
-        android:key="server_ip_address"
+        android:key="@string/key_recognition_server_ip"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -12,12 +13,19 @@
 
     <EditTextPreference
         android:capitalize="words"
+        android:summary="@string/pref_default_ros_ip"
         android:defaultValue="@string/pref_default_ros_ip"
         android:inputType="textCapWords"
-        android:key="rosserver_ip_address"
+        android:key="@string/key_ros_server_ip"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
         android:title="@string/pref_title_ros_ip"/>
 
+    <EditTextPreference
+        android:title="@string/pref_recog_threshold"
+        android:summary="@string/pref_default_recog_threshold"
+        android:defaultValue="@string/pref_default_recog_threshold"
+        android:key="@string/key_recog_threshold"
+        />
 </PreferenceScreen>
