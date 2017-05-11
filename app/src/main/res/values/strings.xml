@@ -20,7 +20,7 @@
     <string name="pref_default_ros_ip">192.168.1.111</string>
     <string name="pref_title_ros_ip">ROS服务端IP地址</string>
 
-    <string name="pref_recog_threshold">人脸检测阈值</string>
+    <string name="pref_recog_threshold">人脸检测阈值:</string>
     <string name="pref_default_recog_threshold">0.6</string>
     <string name="pref_recog_threshold_summary">设置人脸检测阈值:\n范围(0~1)</string>
 
