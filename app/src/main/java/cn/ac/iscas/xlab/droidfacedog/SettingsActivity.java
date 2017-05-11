@@ -57,14 +57,10 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 }
             } else if (key.equals(res.getString(R.string.key_recog_threshold))) {
                 String stringValue = value.toString();
-                String oldSummary = (String) ( preference).getSummary();
-                if (RegexCheckUtil.isRightThreshold(stringValue)) {
-                    Config.RECOG_THRESHOLD = Double.parseDouble(stringValue);
-                    preference.setSummary(stringValue);
-                }else{
-                    preference.setSummary(oldSummary);
-                    Toast.makeText(preference.getContext(),res.getString(R.string.toast_wrong_threshold), Toast.LENGTH_SHORT).show();
-                    return false;
+                if (!stringValue.equals(preference.getSummary())) {
+                    double d = Double.parseDouble(stringValue) / 100.0;
+                    preference.setSummary(String.valueOf(d));
+                    Config.RECOG_THRESHOLD = d;
                 }
             } else if (key.equals(res.getString(R.string.key_enable_notification))) {
                 Config.ENABLE_MESSAGE_NOTIFICATION = (Boolean) value;
@@ -81,7 +77,6 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                 & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE;
     }
 
-
     private static void bindPreferenceSummaryToValue(Preference preference) {
         // Set the listener to watch for value changes.
         preference.setOnPreferenceChangeListener(sBindPreferenceSummaryToValueListener);
@@ -96,6 +91,12 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
                     PreferenceManager
                             .getDefaultSharedPreferences(preference.getContext())
                             .getBoolean(preference.getKey(),true)
+            );
+        } else if (preference instanceof SeekbarPreference) {
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
+                    PreferenceManager
+                            .getDefaultSharedPreferences(preference.getContext())
+                            .getInt(preference.getKey(), 60)
             );
         }
     }

@@ -99,9 +99,9 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences sharedPreference = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String strThreshold = sharedPreference.getString(res.getString(R.string.key_recog_threshold), "0.6");
+        int intThreshold = sharedPreference.getInt(res.getString(R.string.key_recog_threshold),60);
 
-        Config.RECOG_THRESHOLD = Double.parseDouble(strThreshold);
+        Config.RECOG_THRESHOLD = (double) intThreshold / 100;
 
         Config.ENABLE_MESSAGE_NOTIFICATION = sharedPreference.getBoolean(res.getString(R.string.key_enable_notification),true);
 

@@ -22,10 +22,8 @@
         android:singleLine="true"
         android:title="@string/pref_title_ros_ip"/>
 
-    <EditTextPreference
-        android:title="@string/pref_recog_threshold"
-        android:summary="@string/pref_default_recog_threshold"
-        android:defaultValue="@string/pref_default_recog_threshold"
+    <cn.ac.iscas.xlab.droidfacedog.SeekbarPreference
         android:key="@string/key_recog_threshold"
-        />
+        android:summary="@string/pref_default_recog_threshold"
+        android:defaultValue="@string/pref_default_recog_threshold" />
 </PreferenceScreen>
