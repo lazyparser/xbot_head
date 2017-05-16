@@ -18,6 +18,9 @@ public class Config {
 
     public static boolean ENABLE_MESSAGE_NOTIFICATION;
 
+    //讯飞开放平台中获得的APPID
+    public static final String APPID = "59198461";
+
     public static String string() {
         StringBuffer sb = new StringBuffer();
         sb.append("人脸识别服务端：" + RECOGNITION_SERVER_IP + ":" + RECOGNITION_SERVER_PORT);

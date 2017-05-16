@@ -1,11 +1,9 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Base64;
@@ -19,15 +17,12 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -176,6 +171,7 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
 
         // if youtu recognized the user, then try to TTS is ID(name).
         // otherwise, play the sound of "youke"
+        //在没有人脸识别服务器时，result会是RECOG_TIMEOUT。
         String msg;
         if (result == RECOG_SUCCESS) {
             msg = "YOUTU: ret = " + Integer.toString(result) + ", confidence = " +
@@ -190,14 +186,11 @@ public class PostImageForRecognitionAsync extends AsyncTask<Bitmap, Void, Intege
 
         if (result == RECOG_SUCCESS && mRecogResult.getConfidence() >= RECOG_THRESHOLD) {
             activity.updateFaceState(XBotFace.IDENTIFIEDSTATE);
-            MediaPlayer ttsUserId = activity.lookupNames(mRecogResult.getId());
-            activity.prepareGreetingTTS(ttsUserId);
+            activity.speekOutUser(mRecogResult.getId());
         } else {
-            activity.prepareGreetingTTS();
+            activity.speekOutUser(XBotFace.TTS_UNREGISTERED_USER);
         }
 
-        Log.w(XLAB, "activity.startPlayTTS();");
-        activity.startPlayTTS();
     }
 
     // http://stackoverflow.com/questions/16920942/getting-context-in-asynctask
