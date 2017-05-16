@@ -37,11 +37,18 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.SpeechError;
+import com.iflytek.cloud.SpeechSynthesizer;
+import com.iflytek.cloud.SpeechUtility;
+import com.iflytek.cloud.SynthesizerListener;
+import com.iflytek.cloud.util.ResourceUtil;
 import com.jilk.ros.ROSClient;
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -51,9 +58,12 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 import de.greenrobot.event.EventBus;
+
+import static cn.ac.iscas.xlab.droidfacedog.PostImageForRecognitionAsync.XLAB;
 
 
 /**
@@ -71,8 +81,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     public static final int DETECTEDSTATE = 1;
     public static final int IDENTIFIEDSTATE = 2;
     public static final int TTS_WELCOME = 7;
-    public static final int TTS_HELLO = 0;
-    public static final int TTS_UNREGISTERED_USER = 1;
+    //public static final int TTS_HELLO = 0;
+    // public static final int TTS_UNREGISTERED_USER = 1;
     public static final int TTS_REGISTERED_USER = 2;
     public static final int TTS_USER_WANGPENG = 3;
     public static final int TTS_USER_CCK = 4;
@@ -80,6 +90,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     public static final int TTS_USER_WUYANJUN = 6;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
+    public static final String TTS_UNREGISTERED_USER = "0000000000";
     // Number of Cameras in device.
     private int numberOfCameras;
 
@@ -143,55 +154,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
     private Timer timer;
     private AlertDialog dialog;
-//    private void loadSounds() {
-//        String[] soundNames;
-//        try {
-//            soundNames = mAssets.list(SOUNDS_FOLDER);
-//            Log.d(TAG, "xxlab Found " + soundNames.length + " sounds.");
-//
-//        } catch (IOException ioe){
-//            Log.e(TAG, "ERROR Could not list assets", ioe);
-//            return;
-//        }
-//
-//        for (String filename : soundNames) {
-//            String assetPath = SOUNDS_FOLDER + "/" + filename;
-//            Sound sound = new Sound(assetPath);
-//            try {
-//                load(sound);
-//                mSounds.add(sound);
-//                Log.d(TAG, "filename = " + filename);
-//            } catch (IOException ioe) {
-//                Log.e(TAG, "ERROR Could not load sound file '" + filename + "': ", ioe);
-//            }
-//        }
-//    }
 
-//    private void load(Sound sound) throws IOException {
-//        AssetFileDescriptor afd = mAssets.openFd(sound.getAssetPath());
-//        int soundId = mSoundPool.load(afd, 1);
-//        sound.setSoundId(soundId);
-//    }
-
-//    public void play(Sound sound) {
-//        Integer soundId = sound.getSoundId();
-//        if (soundId == null) {
-//            return;
-//        }
-//        mSoundPool.play(soundId, 1.0f, 1.0f, 1, 0, 1.0f);
-//    }
-
-//    public List<Sound> getSounds() {
-//        return mSounds;
-//    }
-
-//    public void releaseSounds() {
-//        mSoundPool.release();
-//    }
-
-    //==============================================================================================
-    // Activity Methods
-    //==============================================================================================
+    //科大讯飞的语音合成器[需要联网才能使用]
+    private SpeechSynthesizer ttsSynthesizer;
+    private SynthesizerListener synthesizerListener;
 
     /**
      * Initializes the UI and initiates the creation of a face detector.
@@ -226,6 +192,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                         dialog.dismiss();
                         timer.cancel();
                         Toast.makeText(XBotFace.this, "连接成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(XBotFace.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
 
                         startPreview();
                     }
@@ -301,6 +268,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 }
             }
         },0,3000);
+
+        SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+Config.APPID);
     }
 
     private boolean connectToRosServer(){
@@ -359,13 +328,13 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         ttsQueue = new ArrayDeque<>();
         currentPlayId = 0;
         String[] ttsFileList = {
-                "tts/hello.mp3",
-                "tts/guest.mp3",
-                "tts/recognized_user.mp3",
-                "tts/name_wangpeng.mp3",
-                "tts/name_chaichangkun.mp3",
-                "tts/name_xuzhihao.mp3",
-                "tts/name_wuyanjun.mp3",
+//                "tts/hello.mp3",
+//                "tts/guest.mp3",
+//                "tts/recognized_user.mp3",
+//                "tts/name_wangpeng.mp3",
+//                "tts/name_chaichangkun.mp3",
+//                "tts/name_xuzhihao.mp3",
+//                "tts/name_wuyanjun.mp3",
                 "tts/welcome.mp3",
                 "tts/HISTORY01.mp3",
                 "tts/HISTORY02.mp3",
@@ -492,12 +461,14 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     @Override
     protected void onResume() {
         super.onResume();
-
+        initSynthesizer();
         Log.i(TAG, "onResume");
+
         //如果对话框消失，说明与Ros服务端连接成功
         if (!dialog.isShowing()) {
             startPreview();
         }
+
     }
 
     /**
@@ -535,6 +506,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             mp.stop();
             mp.release();
         }
+        ttsSynthesizer.stopSpeaking();
+        ttsSynthesizer.destroy();
     }
 
 
@@ -740,51 +713,120 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     int counter = 0;
     double fps;
 
-    public MediaPlayer lookupNames(String id) {
-        Log.w(TAG, "lookupNames(String '" + id + "')");
+    //        1977976464 汪鹏
+    //        2782058378 柴长坤
+    //        3321435094 徐志浩
+    //        0051424595 屈晟 (NOT INPLEMENTED YET)
+    //        3831542170 武延军
+    //根据不同的用户有不同的问候语
+    public void speekOutUser(String userId){
+        if (isPlayingTTS)
+            return;
+        StringBuilder text = new StringBuilder();
+        text.append("你好，");
+        if (userId.equalsIgnoreCase("1977976464")
+                || userId.equalsIgnoreCase("wangpeng")){
+            text.append("汪鹏。");
+        }else if (userId.equalsIgnoreCase("2782058378")){
+            text.append("柴长昆。");
+        }else if (userId.equalsIgnoreCase("3321435094")){
+            text.append("徐志浩。");
+        }else if (userId.equalsIgnoreCase("3831542170")){
+            text.append("武延军。");
+        }else if (userId.equalsIgnoreCase("0051424595")) {
+            text.append("注册用户。");
+        }else if(userId.equals(TTS_UNREGISTERED_USER)){
+            text.append("游客。");
+        }
 
-        // TODO: lookup wangpeng and others here.
-//        1977976464 汪鹏
-//        2782058378 柴长坤
-//        3321435094 徐志浩
-//        0051424595 屈晟 (NOT INPLEMENTED YET)
-//        3831542170 武延军
-//        "tts/hello.mp3",
-//                "tts/guest.mp3",
-//                "tts/recognized_user.mp3",
-//        3        "tts/name_wangpeng.mp3",
-//        4        "tts/name_chaichangkun.mp3",
-//        5        "tts/name_xuzhihao.mp3",
-//        6        "tts/name_wuyanjun.mp3",
-//                "tts/welcome.mp3",
-        if (id.equalsIgnoreCase("1977976464")
-                || id.equalsIgnoreCase("wangpeng"))
-            return ttsList.get(TTS_USER_WANGPENG);
-        if (id.equalsIgnoreCase("2782058378"))
-            return ttsList.get(TTS_USER_CCK);
-        if (id.equalsIgnoreCase("3321435094"))
-            return ttsList.get(TTS_USER_XUZHIHAO);
-        if (id.equalsIgnoreCase("0051424595"))
-            return ttsList.get(TTS_REGISTERED_USER);
-        if (id.equalsIgnoreCase("3831542170"))
-            return ttsList.get(TTS_USER_WUYANJUN);
+        //创建一个监听器
+        synthesizerListener = new SynthesizerListener() {
+            @Override
+            public void onSpeakBegin() {
+                Log.i(TAG, "--TTS--onSpeakBegin()--");
+            }
 
-        // if not found, return a generic name.
-        return ttsList.get(TTS_REGISTERED_USER);
+            @Override
+            public void onBufferProgress(int i, int i1, int i2, String s) {
+                Log.i(TAG, "--TTS--onBufferProgress()--");
+            }
+
+            @Override
+            public void onSpeakPaused() {
+                Log.i(TAG, "--TTS--onSpeakPaused()--");
+            }
+
+            @Override
+            public void onSpeakResumed() {
+                Log.i(TAG, "--TTS--onSpeakResumed()--");
+            }
+
+            @Override
+            public void onSpeakProgress(int i, int i1, int i2) {
+                Log.i(TAG, "--TTS--onSpeakProgress()--");
+            }
+
+            @Override
+            public void onCompleted(SpeechError speechError) {
+                Log.i(TAG, "--TTS--onCompleted()--");
+
+                enqueueSpeekingResources();
+                Log.i(XLAB, "activity.startPlayTTS();");
+                startPlayTTS();
+            }
+
+            @Override
+            public void onEvent(int i, int i1, int i2, Bundle bundle) {
+                Log.i(TAG, "--TTS--onEvent()--");
+            }
+        };
+
+        //设置声音文件的缓存。仅支持保存为 pcm 和 wav 格式
+        String cacheFileName = getExternalCacheDir() + "/" + userId + ".pcm";
+        //如果本地已经有离线缓存，则直接播放离线缓存文件
+        if (isCacheExist(cacheFileName)) {
+            ttsSynthesizer.setParameter(ResourceUtil.TTS_RES_PATH, cacheFileName);
+            ttsSynthesizer.startSpeaking(text.toString(),synthesizerListener);
+            Log.i(TAG, "播放离线缓存文件---");
+        } else {
+            //如果本地没有缓存，则播放在线数据的同时缓存到本地
+            ttsSynthesizer.setParameter(SpeechConstant.TTS_AUDIO_PATH, cacheFileName);
+            //开始播放
+            ttsSynthesizer.startSpeaking(text.toString(),synthesizerListener );
+            Log.i(TAG, "离线文件不存在,在线播放---");
+        }
+
     }
 
-    public void prepareGreetingTTS(MediaPlayer ttsUserId) {
+    public boolean isCacheExist(String cacheFileName) {
+        File f = new File(cacheFileName);
+        if (f.exists()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    //初始化语音合成器
+    public void initSynthesizer() {
+
+        //创建 SpeechSynthesizer 对象, 第二个参数：本地合成时传 InitListener，可以为Null
+        ttsSynthesizer = SpeechSynthesizer.createSynthesizer(XBotFace.this, null);
+
+        ttsSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoyu"); //设置发音人
+        ttsSynthesizer.setParameter(SpeechConstant.SPEED, "50");//设置语速
+        ttsSynthesizer.setParameter(SpeechConstant.VOLUME, "80");//设置音量，范围 0~100
+        ttsSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD); //设置云端
+
+    }
+    //在该方法中将所有要播放的音频同一加入到一个队列中。然后调用startPlayTTS()播放
+    public void enqueueSpeekingResources() {
         // If is playing. do nothing.
         if (isPlayingTTS)
             return;
-        ttsQueue.add(ttsList.get(TTS_HELLO));
-        ttsQueue.add(ttsUserId);
-        for (int i = TTS_WELCOME; i < ttsList.size(); ++i)
+        for (int i = 0; i < ttsList.size(); ++i)
             ttsQueue.add(ttsList.get(i));
     }
-    public void prepareGreetingTTS() {
-        prepareGreetingTTS(ttsList.get(TTS_UNREGISTERED_USER));
-    }
+
     /**
      * Do face detect in thread
      */
