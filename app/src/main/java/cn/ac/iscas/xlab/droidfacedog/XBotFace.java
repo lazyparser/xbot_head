@@ -328,13 +328,6 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         ttsQueue = new ArrayDeque<>();
         currentPlayId = 0;
         String[] ttsFileList = {
-//                "tts/hello.mp3",
-//                "tts/guest.mp3",
-//                "tts/recognized_user.mp3",
-//                "tts/name_wangpeng.mp3",
-//                "tts/name_chaichangkun.mp3",
-//                "tts/name_xuzhihao.mp3",
-//                "tts/name_wuyanjun.mp3",
                 "tts/welcome.mp3",
                 "tts/HISTORY01.mp3",
                 "tts/HISTORY02.mp3",
@@ -713,30 +706,17 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     int counter = 0;
     double fps;
 
-    //        1977976464 汪鹏
-    //        2782058378 柴长坤
-    //        3321435094 徐志浩
-    //        0051424595 屈晟 (NOT INPLEMENTED YET)
-    //        3831542170 武延军
-    //根据不同的用户有不同的问候语
     public void speekOutUser(String userId){
         if (isPlayingTTS)
             return;
         StringBuilder text = new StringBuilder();
         text.append("你好，");
-        if (userId.equalsIgnoreCase("1977976464")
-                || userId.equalsIgnoreCase("wangpeng")){
-            text.append("汪鹏。");
-        }else if (userId.equalsIgnoreCase("2782058378")){
-            text.append("柴长昆。");
-        }else if (userId.equalsIgnoreCase("3321435094")){
-            text.append("徐志浩。");
-        }else if (userId.equalsIgnoreCase("3831542170")){
-            text.append("武延军。");
-        }else if (userId.equalsIgnoreCase("0051424595")) {
-            text.append("注册用户。");
-        }else if(userId.equals(TTS_UNREGISTERED_USER)){
+
+        if (userId.equals(TTS_UNREGISTERED_USER)) {
             text.append("游客。");
+        } else {
+            String name = hexStringToString(userId);
+            text.append(name+"。");
         }
 
         //创建一个监听器
@@ -747,7 +727,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             }
 
             @Override
-            public void onBufferProgress(int i, int i1, int i2, String s) {
+            public void onBufferProgress(int progress, int beginPos, int endPos,String info) {
                 Log.i(TAG, "--TTS--onBufferProgress()--");
             }
 
@@ -762,7 +742,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             }
 
             @Override
-            public void onSpeakProgress(int i, int i1, int i2) {
+            public void onSpeakProgress(int progress,int beginPos,int endPos) {
                 Log.i(TAG, "--TTS--onSpeakProgress()--");
             }
 
@@ -775,8 +755,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 startPlayTTS();
             }
 
+            //扩展用接口，由具体业务进行约定。
             @Override
-            public void onEvent(int i, int i1, int i2, Bundle bundle) {
+            public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
                 Log.i(TAG, "--TTS--onEvent()--");
             }
         };
@@ -1058,5 +1039,27 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             faceImageView.setImageResource(R.drawable.identifiedface);
         else
             Log.e(TAG, "updateFace: STATE ERROR");
+    }
+
+    public String hexStringToString(String s) {
+        if (s == null || s.equals("")) {
+            return null;
+        }
+        s = s.replace(" ", "");
+        byte[] baKeyword = new byte[s.length() / 2];
+        for (int i = 0; i < baKeyword.length; i++) {
+            try {
+                baKeyword[i] = (byte) (0xff & Integer.parseInt(
+                        s.substring(i * 2, i * 2 + 2), 16));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            s = new String(baKeyword, "utf-8");
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        }
+        return s;
     }
 }
