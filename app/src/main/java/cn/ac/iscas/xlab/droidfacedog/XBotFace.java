@@ -59,11 +59,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 import de.greenrobot.event.EventBus;
 
-import static cn.ac.iscas.xlab.droidfacedog.PostImageForRecognitionAsync.XLAB;
 
 
 /**
@@ -77,19 +77,14 @@ import static cn.ac.iscas.xlab.droidfacedog.PostImageForRecognitionAsync.XLAB;
 
 public final class XBotFace extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
+    public static final String XLAB = "xxlab";
     public static final int IDLESTATE = 0;
     public static final int DETECTEDSTATE = 1;
     public static final int IDENTIFIEDSTATE = 2;
-    public static final int TTS_WELCOME = 7;
-    //public static final int TTS_HELLO = 0;
-    // public static final int TTS_UNREGISTERED_USER = 1;
-    public static final int TTS_REGISTERED_USER = 2;
-    public static final int TTS_USER_WANGPENG = 3;
-    public static final int TTS_USER_CCK = 4;
-    public static final int TTS_USER_XUZHIHAO = 5;
-    public static final int TTS_USER_WUYANJUN = 6;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
+    public static final int HANDLER_UPDATE_FACE_STATE = 0x13;
+    public static final int HANDLER_PLAY_TTS = 0x14;
     public static final String TTS_UNREGISTERED_USER = "0000000000";
     // Number of Cameras in device.
     private int numberOfCameras;
@@ -201,6 +196,12 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 }else if(msg.what == CONN_ROS_SERVER_ERROR){
                     //Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "连接失败，正在重试");
+                } else if (msg.what == HANDLER_UPDATE_FACE_STATE) {
+                    updateFaceState(IDENTIFIEDSTATE);
+                } else if (msg.what == HANDLER_PLAY_TTS) {
+                    Bundle data = msg.getData();
+                    String userName = (String) data.get("userId");
+                    speekOutUser(userName);
                 }
             }
         };
@@ -984,6 +985,10 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                                     handler.post(new Runnable() {
                                         public void run() {
                                             imagePreviewAdapter.add(faceCroped);
+
+                                            YoutuConnection connection = new YoutuConnection(getApplicationContext(),handler);
+                                            connection.sendBitmap(faceCroped);
+
                                             updateFaceState(DETECTEDSTATE);
                                         }
                                     });

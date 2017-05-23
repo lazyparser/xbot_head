@@ -1,10 +1,7 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
-import android.app.ActivityManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.support.v4.app.ActivityManagerCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -23,7 +20,6 @@ import java.util.ArrayList;
 
 public class ImagePreviewAdapter extends
         RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
 
     // Store the context for later use
     private Context context;
@@ -77,18 +73,8 @@ public class ImagePreviewAdapter extends
 
 
     public void add(Bitmap bitmap) {
-        sendFaceToServer(bitmap);
+        //sendFaceToServer(bitmap);
         insert(bitmap, bitmaps.size());
-    }
-
-    private void sendFaceToServer(Bitmap bitmap) {
-        PostImageForRecognitionAsync t = new PostImageForRecognitionAsync();
-        t.setContext(context);
-        t.execute(bitmap);
-
-//        GetImageAfterRecognitionAsync g = new GetImageAfterRecognitionAsync();
-//        g.setContext(context);
-//        g.execute("wuwei");
     }
 
     public void insert(Bitmap bitmap, int position) {
