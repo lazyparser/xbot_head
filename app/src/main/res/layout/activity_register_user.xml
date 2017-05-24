@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/register_background"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/register_layout_padding"
+    android:paddingLeft="@dimen/register_layout_padding"
+    android:paddingRight="@dimen/register_layout_padding"
+    android:paddingTop="@dimen/register_layout_padding"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/register_welcome"
+            android:textSize="@dimen/register_welcome_size"
+            android:gravity="center"
+            android:textColor="@color/welcome_textColor"/>
+    </RelativeLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/id_text_input_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|top"
+        android:layout_weight="2"
+        >
+        <EditText
+            android:id="@+id/id_textView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:hint="@string/register_hint"
+            android:inputType="textPersonName"
+            android:textSize="@dimen/register_editText_size"
+            />
+        <Button
+            android:layout_marginTop="@dimen/register_bt_camera_marginTop"
+            android:id="@+id/id_bt_camera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/register_captureImage"/>
+    </android.support.design.widget.TextInputLayout>
+
+</LinearLayout>

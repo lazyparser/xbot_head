@@ -5,4 +5,6 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="colorBlackOverlay">#44000000</color>
+    <color name="register_background">#e3e3e3</color>
+    <color name="welcome_textColor">#333333</color>
 </resources>

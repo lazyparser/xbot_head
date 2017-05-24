@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
     Button btnCameraRGB;
     Button btnXbotFace;
-    Button btnRegisterVIP;
+    Button btnRegisterUser;
     Button btnSetting;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,19 +65,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        btnRegisterVIP = (Button) findViewById(R.id.button_detect);
-//        btnRegisterVIP.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
-//                if (rc == PackageManager.PERMISSION_GRANTED) {
-//                    Intent intent = new Intent(mContext, btnRegisterVIP.class);
-//                    startActivity(intent);
-//                } else {
-//                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
-//                }
-//            }
-//        });
+        btnRegisterUser = (Button) findViewById(R.id.button_register);
+        btnRegisterUser.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, RegisterActivity.class);
+                startActivity(intent);
+            }
+        });
 
         btnSetting = (Button) findViewById(R.id.button_config);
         btnSetting.setOnClickListener(new View.OnClickListener() {

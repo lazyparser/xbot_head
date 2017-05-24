@@ -41,6 +41,8 @@
             android:label="@string/title_activity_settings">
 
         </activity>
+        <activity android:name=".RegisterActivity"
+            />
     </application>
 
 </manifest>

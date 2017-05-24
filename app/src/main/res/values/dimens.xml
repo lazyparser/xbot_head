@@ -6,4 +6,8 @@
     <dimen name="image_preview_width">60dp</dimen>
     <dimen name="image_preview_height">200dp</dimen>
 
+    <dimen name="register_layout_padding">16dp</dimen>
+    <dimen name="register_welcome_size">30sp</dimen>
+    <dimen name="register_editText_size">15sp</dimen>
+    <dimen name="register_bt_camera_marginTop">20dp</dimen>
 </resources>
