@@ -39,10 +39,11 @@
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity"
             android:label="@string/title_activity_settings">
-
         </activity>
         <activity android:name=".RegisterActivity"
-            />
+            android:theme="@style/NoTitleTheme"/>
+        <activity android:name=".CameraActivity"
+            android:theme="@style/NoTitleTheme"/>
     </application>
 
 </manifest>
