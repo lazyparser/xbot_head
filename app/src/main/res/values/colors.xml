@@ -7,4 +7,6 @@
     <color name="colorBlackOverlay">#44000000</color>
     <color name="register_background">#e3e3e3</color>
     <color name="welcome_textColor">#333333</color>
+
+    <color name="camera_shoot_color">#77ff77</color>
 </resources>
