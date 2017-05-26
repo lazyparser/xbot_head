@@ -39,4 +39,5 @@
     <string name="camera_shoot">拍照</string>
     <string name="button_retry">重拍</string>
     <string name="button_ok">确认注册</string>
+    <string name="button_home">返回主界面</string>
 </resources>

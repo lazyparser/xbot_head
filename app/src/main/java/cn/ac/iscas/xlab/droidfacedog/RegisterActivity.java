@@ -7,6 +7,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import cn.ac.iscas.xlab.droidfacedog.util.RegexCheckUtil;
 
 /**
  * Created by lisongting on 2017/5/23.
@@ -28,7 +31,14 @@ public class RegisterActivity extends AppCompatActivity {
         btStartCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(RegisterActivity.this, CameraActivity.class));
+                String userName = editText.getText().toString();
+                if (RegexCheckUtil.isRightPersonName(userName)) {
+                    Intent intent = new Intent(RegisterActivity.this, CameraActivity.class);
+                    intent.putExtra("userName",userName);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(RegisterActivity.this, "请输入正确的姓名", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

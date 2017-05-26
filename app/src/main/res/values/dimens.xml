@@ -17,6 +17,7 @@
 
     <dimen name="camera_shoot_font_size">20sp</dimen>
     <dimen name="bottom_linear_layout">20dp</dimen>
-
+    <dimen name="button_retry_right_margin">10dp</dimen>
+    <dimen name="button_home_top_margin">15dp</dimen>
 
 </resources>

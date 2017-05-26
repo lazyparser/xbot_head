@@ -1,10 +1,12 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -14,6 +16,8 @@ import android.hardware.camera2.CaptureRequest;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -32,6 +36,8 @@ import android.widget.Toast;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
+
 import static android.view.View.GONE;
 
 /**
@@ -48,52 +54,72 @@ public class CameraActivity extends AppCompatActivity {
     private CameraCaptureSession mCameraCaptureSession;
     private CameraDevice mCameraDevice;
     
-    private Button bt_ok,bt_reCapture;
+    private Button bt_ok,bt_reCapture,bt_home;
     
     private LinearLayout linearLayout;
     private TextView tv_shoot;
+    private Handler handler;
     public static final String TAG = "CameraActivity";
+    private Bitmap faceBitmap;
+    public static final int REGISTER_SUCCESS = 0x11;
+    public static final int REGISTER_FAIL = 0x22;
+    public static final int REGISTER_ALREADY_EXIST = 0x33;
+    public static final int REGISTER_TIMEOUT = 0x44;
+    public static final int REGISTER_PIC_TOO_LARGE = 0x55;
+    public static final int REGISTER_HAS_NO_FACE = 0x66;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
 
-
         linearLayout = (LinearLayout) findViewById(R.id.bottom_linear_layout);
         bt_ok = (Button) findViewById(R.id.id_bt_ok);
         bt_reCapture = (Button) findViewById(R.id.id_bt_again);
+        bt_home = (Button) findViewById(R.id.id_bt_home);
         tv_shoot = (TextView) findViewById(R.id.id_tv_oval);
         iv_show = (ImageView) findViewById(R.id.id_iv_show_picture);
         mSurfaceView = (SurfaceView) findViewById(R.id.id_surface_view);
 
         initView();
 
-        bt_ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(CameraActivity.this, "Sending....", Toast.LENGTH_SHORT).show();
-                Bitmap faceBitmap = iv_show.getDrawingCache();
-                iv_show.setDrawingCacheEnabled(false);
-            }
-        });
-        bt_reCapture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(CameraActivity.this, "reCapturing..", Toast.LENGTH_SHORT).show();
-                reCapture();
-            }
-        });
+        initClickListener();
 
-        tv_shoot.setOnClickListener(new View.OnClickListener() {
+        handler = new Handler(){
             @Override
-            public void onClick(View v) {
-                takePicture();
+            public void handleMessage(Message msg) {
+                int result = msg.what;
+                switch (result) {
+                    case REGISTER_SUCCESS:
+                        Toast.makeText(CameraActivity.this, "注册成功", Toast.LENGTH_LONG).show();
+                        bt_ok.setVisibility(GONE);
+                        bt_reCapture.setVisibility(GONE);
+                        bt_home.setVisibility(View.VISIBLE);
+                        break;
+                    case REGISTER_FAIL:
+                        Toast.makeText(CameraActivity.this, "注册失败,请检查服务端配置", Toast.LENGTH_SHORT).show();
+                        break;
+                    case REGISTER_ALREADY_EXIST:
+                        Toast.makeText(CameraActivity.this, "注册失败，用户已存在", Toast.LENGTH_SHORT).show();
+                        break;
+                    case REGISTER_TIMEOUT:
+                        Toast.makeText(CameraActivity.this, "连接超时，请确保优图服务端已开启", Toast.LENGTH_SHORT).show();
+                        break;
+                    case REGISTER_PIC_TOO_LARGE:
+                        Toast.makeText(CameraActivity.this, "注册失败,图片尺寸过大", Toast.LENGTH_SHORT).show();
+                        break;
+                    case REGISTER_HAS_NO_FACE:
+                        Toast.makeText(CameraActivity.this, "人脸不在图像中或人脸检测失败", Toast.LENGTH_SHORT).show();
+                        break;
+                    default:
+                        Toast.makeText(CameraActivity.this, "注册失败,错误码:"+result, Toast.LENGTH_SHORT).show();
+                        break;
+                }
             }
-        });
+        };
+
     }
 
     public void initView() {
-
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.setKeepScreenOn(true);
 
@@ -101,7 +127,6 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 Log.i(TAG, "---surfaceCreated---");
-                Toast.makeText(CameraActivity.this, "请将头部置于屏幕中央", Toast.LENGTH_SHORT).show();
                 initCamera2();
             }
 
@@ -122,6 +147,41 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
+    public void initClickListener() {
+        bt_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                String userName = getIntent().getStringExtra("userName");
+
+                //传入handler来处理优图服务端返回的注册结果
+                YoutuConnection youtuConnection = new YoutuConnection(CameraActivity.this, handler);
+                //进行注册
+                youtuConnection.registerFace(userName,faceBitmap);
+            }
+        });
+        bt_reCapture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reCapture();
+            }
+        });
+
+        bt_home.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(CameraActivity.this, MainActivity.class));
+            }
+        });
+
+        tv_shoot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                takePicture();
+            }
+        });
+
+    }
     private void initCamera2() {
         mCameraID = ""+CameraCharacteristics.LENS_FACING_BACK;
         WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -143,11 +203,21 @@ public class CameraActivity extends AppCompatActivity {
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                if (bitmap != null) {
-                    iv_show.setDrawingCacheEnabled(true);
-                    iv_show.setImageBitmap(bitmap);
-                    Log.i("tag",bitmap.getRowBytes()+"|"+bitmap.getDensity()+"");
+                Bitmap tmpBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                if (tmpBitmap != null) {
+                    Log.i("tag", "width:"+tmpBitmap.getWidth() +"height:"+ tmpBitmap.getHeight());
+
+                    //调节bitmap的尺寸大小
+                    int width = tmpBitmap.getWidth();
+                    int height = tmpBitmap.getHeight();
+                    Matrix matrix = new Matrix();
+                    if (width >= 1500 || height >= 1500) {
+                        matrix.postScale(0.3F, 0.3F);
+                    }
+                    matrix.postScale(0.5F, 0.5F);
+                    faceBitmap = Bitmap.createBitmap(tmpBitmap, 0, 0, width, height, matrix, true);
+                    iv_show.setImageBitmap(tmpBitmap);
                 }
             }
         },null);
