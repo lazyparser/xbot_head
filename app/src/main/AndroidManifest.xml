@@ -44,7 +44,7 @@
         <activity android:name=".RegisterActivity"
             android:theme="@style/NoTitleTheme"/>
         <activity android:name=".CameraActivity"
-            android:theme="@style/NoTitleTheme"/>
+            android:theme="@style/Theme.FullScreen"/>
     </application>
 
 </manifest>

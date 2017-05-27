@@ -45,6 +45,7 @@ import static android.view.View.GONE;
  */
 @TargetApi(21)
 public class CameraActivity extends AppCompatActivity {
+
     private SurfaceView mSurfaceView;
     private SurfaceHolder mSurfaceHolder;
     private ImageView iv_show;
@@ -53,14 +54,13 @@ public class CameraActivity extends AppCompatActivity {
     private ImageReader mImageReader;
     private CameraCaptureSession mCameraCaptureSession;
     private CameraDevice mCameraDevice;
-    
     private Button bt_ok,bt_reCapture,bt_home;
-    
     private LinearLayout linearLayout;
     private TextView tv_shoot;
     private Handler handler;
     public static final String TAG = "CameraActivity";
     private Bitmap faceBitmap;
+
     public static final int REGISTER_SUCCESS = 0x11;
     public static final int REGISTER_FAIL = 0x22;
     public static final int REGISTER_ALREADY_EXIST = 0x33;
@@ -68,6 +68,7 @@ public class CameraActivity extends AppCompatActivity {
     public static final int REGISTER_PIC_TOO_LARGE = 0x55;
     public static final int REGISTER_HAS_NO_FACE = 0x66;
 
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.camera_layout);
@@ -82,8 +83,12 @@ public class CameraActivity extends AppCompatActivity {
 
         initView();
 
-        initClickListener();
+        initOnClickListener();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
         handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
@@ -116,7 +121,6 @@ public class CameraActivity extends AppCompatActivity {
                 }
             }
         };
-
     }
 
     public void initView() {
@@ -128,6 +132,7 @@ public class CameraActivity extends AppCompatActivity {
             public void surfaceCreated(SurfaceHolder holder) {
                 Log.i(TAG, "---surfaceCreated---");
                 initCamera2();
+                Log.i(TAG, "SurfaceView  width:"+mSurfaceView.getWidth() + "， height:" + mSurfaceView.getHeight());
             }
 
             @Override
@@ -147,7 +152,7 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
-    public void initClickListener() {
+    public void initOnClickListener() {
         bt_ok.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -160,6 +165,7 @@ public class CameraActivity extends AppCompatActivity {
                 youtuConnection.registerFace(userName,faceBitmap);
             }
         });
+
         bt_reCapture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,6 +188,30 @@ public class CameraActivity extends AppCompatActivity {
         });
 
     }
+
+    private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
+        @Override
+        public void onOpened(@NonNull CameraDevice camera) {
+            mCameraDevice = camera;
+
+            takePreview();
+        }
+
+        @Override
+        public void onDisconnected(@NonNull CameraDevice camera) {
+            if (mCameraDevice != null) {
+                mCameraDevice.close();
+                mCameraDevice = null;
+            }
+        }
+
+        @Override
+        public void onError(@NonNull CameraDevice camera,  int error) {
+            Toast.makeText(CameraActivity.this, "摄像头开启失败", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    //初始化摄像头
     private void initCamera2() {
         mCameraID = ""+CameraCharacteristics.LENS_FACING_BACK;
         WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -189,7 +219,10 @@ public class CameraActivity extends AppCompatActivity {
         windowManager.getDefaultDisplay().getMetrics(dm);
         int width = dm.widthPixels;
         int height = dm.heightPixels;
+
+        Log.i(TAG, "DisplayMetrics width:" + width + ",height:" + height);
         mImageReader = ImageReader.newInstance(width, height, ImageFormat.JPEG, 1);
+        Log.i(TAG, "ImageReader width:" + mImageReader.getWidth() + ",height:" + mImageReader.getHeight());
 
         mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
@@ -206,7 +239,7 @@ public class CameraActivity extends AppCompatActivity {
                 Bitmap tmpBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
                 if (tmpBitmap != null) {
-                    Log.i("tag", "width:"+tmpBitmap.getWidth() +"height:"+ tmpBitmap.getHeight());
+                    Log.i(TAG, "Bitmap info: [width:"+tmpBitmap.getWidth() +",height:"+ tmpBitmap.getHeight()+"]");
 
                     //调节bitmap的尺寸大小
                     int width = tmpBitmap.getWidth();
@@ -214,8 +247,9 @@ public class CameraActivity extends AppCompatActivity {
                     Matrix matrix = new Matrix();
                     if (width >= 1500 || height >= 1500) {
                         matrix.postScale(0.3F, 0.3F);
+                    } else {
+                        matrix.postScale(0.5F, 0.5F);
                     }
-                    matrix.postScale(0.5F, 0.5F);
                     faceBitmap = Bitmap.createBitmap(tmpBitmap, 0, 0, width, height, matrix, true);
                     iv_show.setImageBitmap(tmpBitmap);
                 }
@@ -236,27 +270,6 @@ public class CameraActivity extends AppCompatActivity {
 
     }
 
-    private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
-        @Override
-        public void onOpened(@NonNull CameraDevice camera) {
-            mCameraDevice = camera;
-            takePreview();
-        }
-
-        @Override
-        public void onDisconnected(@NonNull CameraDevice camera) {
-            if (mCameraDevice != null) {
-                mCameraDevice.close();
-                mCameraDevice = null;
-            }
-        }
-
-        @Override
-        public void onError(@NonNull CameraDevice camera,  int error) {
-            Toast.makeText(CameraActivity.this, "摄像头开启失败", Toast.LENGTH_SHORT).show();
-        }
-    };
-
     private void takePreview() {
         try{
             //创建预览需要的CaptureRequest.Builder
@@ -264,6 +277,8 @@ public class CameraActivity extends AppCompatActivity {
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 
             requestbuilder.addTarget(mSurfaceHolder.getSurface());
+            Log.i(TAG, "surfaceHolder width:" + mSurfaceHolder.getSurfaceFrame().width() +
+                    ",height:" + mSurfaceHolder.getSurfaceFrame().height());
 
             //创建CameraSession,该对象负责管理处理预览请求和拍照请求
             mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(),mImageReader.getSurface()),
@@ -338,6 +353,15 @@ public class CameraActivity extends AppCompatActivity {
         linearLayout.setVisibility(GONE);
         mSurfaceView.setVisibility(View.VISIBLE);
         tv_shoot.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "CameraActivity--onDestroy--");
+        faceBitmap.recycle();
+        mSurfaceHolder.getSurface().release();
+        mImageReader.getSurface().release();
     }
 
 }

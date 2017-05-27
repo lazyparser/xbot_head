@@ -186,7 +186,6 @@ public class YoutuConnection {
                         rightListener,
                         errorListener);
 
-
                 VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
             }
         }.start();
@@ -222,7 +221,6 @@ public class YoutuConnection {
         }
         return stringBuilder.toString();
     }
-
 
 
 }
