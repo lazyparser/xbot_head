@@ -14,7 +14,7 @@
 
     <string name="pref_title_new_message_notifications">新消息通知</string>
 
-    <string name="begin_register_button">注册贵宾</string>
+    <string name="begin_register_button">用户注册</string>
     <string name="begin_xbotface_button">机器人脸</string>
     <string name="xbotface_title">XBotFace</string>
     <string name="pref_default_ros_ip">192.168.1.111</string>
@@ -32,4 +32,12 @@
 
     <string name="toast_wrong_ip">请输入正确的IP地址</string>
     <string name="toast_wrong_threshold">请输入正确的阈值</string>
+
+    <string name="register_welcome">Welcome!</string>
+    <string name="register_hint">请输入你的姓名</string>
+    <string name="register_captureImage">开始采集头像</string>
+    <string name="camera_shoot">拍照</string>
+    <string name="button_retry">重拍</string>
+    <string name="button_ok">确认注册</string>
+    <string name="button_home">返回主界面</string>
 </resources>

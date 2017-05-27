@@ -22,7 +22,8 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -39,8 +40,11 @@
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity"
             android:label="@string/title_activity_settings">
-
         </activity>
+        <activity android:name=".RegisterActivity"
+            android:theme="@style/NoTitleTheme"/>
+        <activity android:name=".CameraActivity"
+            android:theme="@style/Theme.FullScreen"/>
     </application>
 
 </manifest>

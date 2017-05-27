@@ -6,4 +6,18 @@
     <dimen name="image_preview_width">60dp</dimen>
     <dimen name="image_preview_height">200dp</dimen>
 
+    <dimen name="register_layout_padding">16dp</dimen>
+    <dimen name="register_welcome_size">30sp</dimen>
+    <dimen name="register_editText_size">15sp</dimen>
+    <dimen name="register_bt_camera_marginTop">20dp</dimen>
+
+    <dimen name="camera_text_magin_bottom">10dp</dimen>
+    <dimen name="camera_text_padding_r_l">20dp</dimen>
+    <dimen name="camera_text_padding_t_b">10dp</dimen>
+
+    <dimen name="camera_shoot_font_size">20sp</dimen>
+    <dimen name="bottom_linear_layout">20dp</dimen>
+    <dimen name="button_retry_right_margin">10dp</dimen>
+    <dimen name="button_home_top_margin">15dp</dimen>
+
 </resources>

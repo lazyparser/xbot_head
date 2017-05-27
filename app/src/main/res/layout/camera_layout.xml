@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <SurfaceView
+        android:id="@+id/id_surface_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <TextView
+        android:id="@+id/id_tv_oval"
+        android:layout_marginBottom="@dimen/camera_text_magin_bottom"
+        android:paddingLeft="@dimen/camera_text_padding_r_l"
+        android:paddingRight="@dimen/camera_text_padding_r_l"
+        android:paddingBottom="@dimen/camera_text_padding_t_b"
+        android:paddingTop="@dimen/camera_text_padding_t_b"
+        android:background="@drawable/oval_drawable"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:textColor="@color/camera_shoot_color"
+        android:text="@string/camera_shoot"
+        android:textSize="@dimen/camera_shoot_font_size"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        android:id="@+id/id_iv_show_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_centerInParent="true"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:id="@+id/bottom_linear_layout"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="@dimen/bottom_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="horizontal"
+        android:gravity="center"
+        >
+        <Button
+            android:id="@+id/id_bt_again"
+            android:text="@string/button_retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="@dimen/button_retry_right_margin"/>
+        <Button
+            android:id="@+id/id_bt_ok"
+            android:text="@string/button_ok"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/id_bt_home"
+        android:text="@string/button_home"
+        android:visibility="gone"
+        android:layout_marginTop="@dimen/button_home_top_margin"
+        android:layout_below="@id/id_iv_show_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"/>
+
+</RelativeLayout>
