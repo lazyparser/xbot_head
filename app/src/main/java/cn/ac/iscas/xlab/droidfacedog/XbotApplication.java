@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 
+import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
+
 /**
  * Created by lazyparser on 4/3/17.
  */

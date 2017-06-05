@@ -9,6 +9,7 @@ import android.util.Log;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
 import de.greenrobot.event.EventBus;
 
 /**

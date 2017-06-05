@@ -39,7 +39,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.SocketChannel;
 
-import cn.ac.iscas.xlab.droidfacedog.PublishEvent;
+import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
 import de.greenrobot.event.EventBus;
 
 

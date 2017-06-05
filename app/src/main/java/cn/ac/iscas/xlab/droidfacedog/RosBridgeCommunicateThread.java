@@ -5,11 +5,10 @@ import android.util.Log;
 
 import com.jilk.ros.rosbridge.ROSBridgeClient;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
 import de.greenrobot.event.EventBus;
 
 /**

@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog.youtu;
+package cn.ac.iscas.xlab.droidfacedog.bean;
 
 import android.util.JsonReader;
 import android.util.Log;

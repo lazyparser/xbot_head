@@ -58,6 +58,9 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
+import cn.ac.iscas.xlab.droidfacedog.bean.Sound;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
