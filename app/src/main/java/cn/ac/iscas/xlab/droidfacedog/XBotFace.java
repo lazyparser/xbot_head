@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -50,8 +49,6 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -172,6 +169,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
     //ServiceConnection
     private ServiceConnection serviceConnection;
+
+    private AudioManager audioManager;
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -245,13 +244,11 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         //在这里Activity的生命周期里直接加载TTS,这样会比较耗时大概会导致Activity延迟1秒启动
         //loadTTS(this);
         //所以新开线程去加载TTS
-        new Thread(){
-            public void run() {
-                loadTTS(XBotFace.this);
-            }
-        }.start();
-
-        isPlayingTTS = false;
+//        new Thread(){
+//            public void run() {
+//                loadTTS(XBotFace.this);
+//            }
+//        }.start();
         mCurrentPlayer = null;
 
         //启动一个对话框提示用户等待，然后连接至Ros服务器
@@ -266,6 +263,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                         timer.cancel();
                         Toast.makeText(XBotFace.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
 
+                        if (serviceConnection != null) {
+                            unbindService(serviceConnection);
+                        }
                         startPreview();
                     }
                 })
@@ -299,6 +299,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+Config.APPID);
 
+        audioManager = new AudioManager(this);
+        audioManager.loadTts();
+
         //创建ServiceConnection对象
         serviceConnection = new ServiceConnection() {
             @Override
@@ -317,124 +320,15 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
-    /*
-    private boolean connectToRosServer(){
-        String rosIP = "192.168.1.151";
-        String rosPort = "9090";
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        rosIP = prefs.getString("rosserver_ip_address", "192.168.1.151");
-        String rosURI = "ws://" + rosIP + ":" + rosPort;
-        Log.d(TAG, "Connecting ROS " + rosURI);
-        client = new ROSBridgeClient(rosURI);
-        // TODO check return value of client.connect()
-        boolean conneSucc = client.connect(new ROSClient.ConnectionStatusListener() {
-            @Override
-            public void onConnect() {
-                client.setDebug(true);
-                ((XbotApplication)getApplication()).setRosClient(client);
-                Log.d(TAG,"Connect ROS success");
-            }
-
-            @Override
-            public void onDisconnect(boolean normal, String reason, int code) {
-                Log.d(TAG,"ROS disconnect");
-            }
-
-            @Override
-            public void onError(Exception ex) {
-                ex.printStackTrace();
-                Log.d(TAG,"ROS communication error");
-            }
-        });
-        if (conneSucc) {
-            RosBridgeCommunicateThread thread = new RosBridgeCommunicateThread<PublishEvent>(client);
-            thread.start();
-            thread.getLooper();
-            ((XbotApplication)getApplication()).setRosThread(thread);
-            Log.i(TAG, "Background RosBridgeCommunicateThread thread started");
-            thread.beginPublishTopicSpeakerDone();
-        }
-        return conneSucc;
-    }*/
-
-    public void startPlayTTS() {
-        if (isPlayingTTS){
-            return;
-        }
-        isPlayingTTS = true;
-        if (isEnableRos) {
-//            RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication) getApplication()).getRosThread();
-//            if (rosCommunicationThread != null) {
-//                rosCommunicationThread.updateSpeakerState(true);
-//                playNext();
-//            } else {
-//                Log.d(TAG, "RosBridgeCommunicateThread is null");
-//            }
-        } else {
-            playNext();
-        }
-
-    }
-    private void loadTTS(final XBotFace xbotface) {
-        ttsList = new ArrayList<>();
-        ttsQueue = new ArrayDeque<>();
-        currentPlayId = 0;
-        String[] ttsFileList = {
-                "tts/part0.mp3",
-                "tts/part1.mp3",
-                "tts/part2.mp3",
-                "tts/part3.mp3",
-                "tts/part4.mp3",
-                "tts/part5.mp3",
-                "tts/part6.mp3",
-                "tts/part7.mp3",
-                "tts/part8.mp3",
-                "tts/part9.mp3",
-                "tts/part10.mp3",
-                };
-        for (int i = 0; i < ttsFileList.length; i++) {
-            try {
-                AssetFileDescriptor afd = getAssets().openFd(ttsFileList[i]);
-                MediaPlayer mp = new MediaPlayer();
-                mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-                mp.prepare();
-
-                Log.e(TAG, "Loading ttsList[" + Integer.toString(i) + "]");
-                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mp) {
-                        xbotface.playNext();
-                    }
-                });
-                ttsList.add(mp);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-    }
 
     public void onEvent(RobotStatus status) {
-
+        int locationId = status.getLocationId();
+        boolean isMoving = status.isMoving();
+        //如果到达了新的位置，并且audioManager并没有在播放音频，则开始播放指定id的音频
+        if (locationId != currentPlayId && !audioManager.isPlaying()) {
+            audioManager.play(locationId);
+        }
     }
-
-//    private void pauseNarrating() {
-//        // TODO stub
-//        if (mCurrentPlayer != null)
-//            mCurrentPlayer.pause();
-//    }
-//
-//    private void stopNarrating() {
-//        // TODO stub
-//        if(mCurrentPlayer != null)
-//            mCurrentPlayer.stop();
-//    }
-//
-//    private void resumeNarrating() {
-//        //TODO stub
-//        if (mCurrentPlayer != null)
-//            mCurrentPlayer.start();
-//    }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -498,7 +392,6 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             startPreview();
         }
 
-        //绑定RosConnectionService
     }
 
     /**
@@ -524,20 +417,9 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         Log.i(TAG, "onDestroy");
         unbindService(serviceConnection);
         resetData();
-        isPlayingTTS = false;
-//        RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
-//        if (rosCommunicationThread != null) {
-//            rosCommunicationThread.updateSpeakerState(false);
-//            rosCommunicationThread.stopPublishTopicSpeakerDone();
-//        }else{
-//            Log.d(TAG, "RosBridgeCommunicateThread is null");
-//        }
 
-        for (int i = 0; i < ttsList.size(); ++i) {
-            MediaPlayer mp = ttsList.get(i);
-            mp.stop();
-            mp.release();
-        }
+        audioManager.releaseMemory();
+
         ttsSynthesizer.stopSpeaking();
         ttsSynthesizer.destroy();
         EventBus.getDefault().unregister(this);
@@ -611,20 +493,20 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         }
     }
 
-    private void playNext() {
-        if (ttsQueue.isEmpty()) {
-            isPlayingTTS = false;
+//    private void playNext() {
+//        if (ttsQueue.isEmpty()) {
+//            isPlayingTTS = false;
 //            RosBridgeCommunicateThread rosCommunicationThread = ((XbotApplication)getApplication()).getRosThread();
 //            if (rosCommunicationThread != null) {
 //                rosCommunicationThread.updateSpeakerState(false);
 //            }else{
 //                Log.d(TAG, "RosBridgeCommunicateThread is null");
 //            }
-            return;
-        }
-        mCurrentPlayer = ttsQueue.poll();
-        mCurrentPlayer.start();
-    }
+//            return;
+//        }
+//        mCurrentPlayer = ttsQueue.poll();
+//        mCurrentPlayer.start();
+//    }
 
     private void setErrorCallback() {
         mCamera.setErrorCallback(mErrorCallback);
@@ -749,7 +631,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     double fps;
 
     public void speekOutUser(String userId){
-        if (isPlayingTTS)
+        if (audioManager.isPlaying())
             return;
 
         Log.i(TAG, "speeckOutUser()");
@@ -794,9 +676,8 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             public void onCompleted(SpeechError speechError) {
                 Log.i(TAG, "--TTS--onCompleted()--");
 
-                enqueueSpeekingResources();
-                Log.i(XLAB, "activity.startPlayTTS();");
-                startPlayTTS();
+                //首先播放第0个音频
+                audioManager.play(0);
             }
 
             //扩展用接口，由具体业务进行约定。
@@ -837,20 +718,11 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         //创建 SpeechSynthesizer 对象, 第二个参数：本地合成时传 InitListener，可以为Null
         ttsSynthesizer = SpeechSynthesizer.createSynthesizer(XBotFace.this, null);
 
-        ttsSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoyu"); //设置发音人
+        ttsSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoyan"); //设置发音人
         ttsSynthesizer.setParameter(SpeechConstant.SPEED, "50");//设置语速
         ttsSynthesizer.setParameter(SpeechConstant.VOLUME, "80");//设置音量，范围 0~100
         ttsSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD); //设置云端
 
-    }
-    //在该方法中将所有要播放的音频同一加入到一个队列中。然后调用startPlayTTS()播放
-    public void enqueueSpeekingResources() {
-        // If is playing. do nothing.
-        if (isPlayingTTS){
-            return;
-        }
-        for (int i = 0; i < ttsList.size(); ++i)
-            ttsQueue.add(ttsList.get(i));
     }
 
     /**

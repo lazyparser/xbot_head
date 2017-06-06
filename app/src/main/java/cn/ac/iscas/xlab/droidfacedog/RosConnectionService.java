@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
 import cn.ac.iscas.xlab.droidfacedog.bean.RobotStatus;
+import cn.ac.iscas.xlab.droidfacedog.bean.TtsStatus;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -38,10 +39,9 @@ public class RosConnectionService extends Service{
             return isConnected;
         }
 
-        public void publishTtsStatus() {
+        public void publishTtsStatus(TtsStatus ttsStatus) {
 
         }
-        
     }
 
     @Override
@@ -121,15 +121,15 @@ public class RosConnectionService extends Service{
                     }
                 });
                 if (conneSucc) {
-                    //订阅Ros即将发布的topic
-//                    JSONObject strSubscribe = new JSONObject();
-//                    try {
-//                        strSubscribe.put("op", "subscribe");
-//                        strSubscribe.put("topic", SUBSCRIBE_TOPIC);
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//                    rosBridgeClient.send(strSubscribe.toString());
+                    // 订阅Ros即将发布的topic
+                    JSONObject strSubscribe = new JSONObject();
+                    try {
+                        strSubscribe.put("op", "subscribe");
+                        strSubscribe.put("topic", SUBSCRIBE_TOPIC);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    rosBridgeClient.send(strSubscribe.toString());
                     Log.i("tag", "RosConnectionService连接Ros成功");
                 } else {
                     Log.i("tag", "RosConnectionService连接Ros失败");
