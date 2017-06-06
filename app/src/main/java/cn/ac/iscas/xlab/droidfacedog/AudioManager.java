@@ -20,8 +20,6 @@ public class AudioManager {
     private int currentId;
     private boolean isPlaying;
 
-
-
     private Context context;
 
     //使用Map来维护整个要播放的音频列表

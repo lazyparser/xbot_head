@@ -28,6 +28,7 @@ public class RosConnectionService extends Service{
 
     public static final String TAG = "RosConnectionService";
     public static final String SUBSCRIBE_TOPIC = "/museum_position";
+    public static final String PUBLISH_TOPIC = "/tts_status";
 
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
@@ -39,8 +40,39 @@ public class RosConnectionService extends Service{
             return isConnected;
         }
 
-        public void publishTtsStatus(TtsStatus ttsStatus) {
+        public void publishTtsStatus(TtsStatus status) {
 
+//            JSONObject jsonObject = new JSONObject();
+//            try {
+//                jsonObject.put("id", status.getId());
+//                jsonObject.put("isplaying", status.isplaying());
+//                Log.i("tag", jsonObject.toString());
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+//            String msg = "{\"op\":\"publish\",\"topic\":\"" + PUBLISH_TOPIC + "\",\"msg\":{"++"}}";
+//            String msg = "{\"op\":\"publish\",\"topic\":\"" + PUBLISH_TOPIC + "\",\"msg\":"+jsonObject.toString();
+//            rosBridgeClient.send(msg);
+
+
+
+
+            JSONObject body = new JSONObject();
+            try {
+                JSONObject jsonMsg = new JSONObject();
+                jsonMsg.put("id", status.getId());
+                jsonMsg.put("isplaying", status.isplaying());
+
+                body.put("op", "publish");
+                body.put("topic",PUBLISH_TOPIC);
+                body.put("msg", jsonMsg);
+
+                rosBridgeClient.send(body.toString());
+
+                Log.i(TAG, "Send To Ros Server:" + body.toString());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -105,7 +137,6 @@ public class RosConnectionService extends Service{
                     @Override
                     public void onConnect() {
                         rosBridgeClient.setDebug(true);
-//                        ((XbotApplication)getApplication()).setRosClient(rosBridgeClient);
                         Log.i("tag","ConnectionStatusListener--onConnect");
                     }
 
