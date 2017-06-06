@@ -45,6 +45,8 @@
             android:theme="@style/NoTitleTheme"/>
         <activity android:name=".CameraActivity"
             android:theme="@style/Theme.FullScreen"/>
+
+        <service android:name=".RosConnectionService" />
     </application>
 
 </manifest>
