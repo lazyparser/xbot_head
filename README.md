@@ -1,7 +1,7 @@
 XBot Head
 =========
 
-[![Build Status on Travis:](https://travis-ci.org/lisongting/xbot_head.svg?branch=master)](https://travis-ci.org/lisongting/xbot_head)
+[![Build Status](https://travis-ci.org/lisongting/xbot_head.svg?branch=master)](https://travis-ci.org/lisongting/xbot_head)
 
 XBot Head is used for XBot.Xbot Head is an android application that can recognise specific faces with the support of recognition server.User can register by just a few steps. What is more,it can control the media player of android devices to play audio files that is about  The Software Museum of Chinese Academy of Sciences.
 
