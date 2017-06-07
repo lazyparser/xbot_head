@@ -17,6 +17,8 @@ import java.util.Map;
 public class AudioManager {
 
     public static final String TAG = "AudioManager";
+    //用来表示没有播放音频
+    public static final int CURRENT_NOT_PLAYING = -1;
     private int currentId;
     private boolean isPlaying;
 
@@ -42,7 +44,7 @@ public class AudioManager {
     public AudioManager(Context context) {
         this.context = context;
         audioMap = new HashMap<>();
-        currentId = -1;
+        currentId = CURRENT_NOT_PLAYING;
         isPlaying = false;
     }
 
@@ -61,7 +63,7 @@ public class AudioManager {
                             @Override
                             public void onCompletion(MediaPlayer mp) {
                                 isPlaying = false;
-                                currentId = -1;
+                                currentId = CURRENT_NOT_PLAYING;
                             }
                         });
                         audioMap.put(i,mp);
@@ -93,7 +95,7 @@ public class AudioManager {
         }
         audioMap = null;
         isPlaying = false;
-        currentId = -1;
+        currentId = CURRENT_NOT_PLAYING;
     }
 
     public int getCurrentId() {

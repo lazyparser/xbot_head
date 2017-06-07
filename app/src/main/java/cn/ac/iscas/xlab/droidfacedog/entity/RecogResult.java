@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog.bean;
+package cn.ac.iscas.xlab.droidfacedog.entity;
 
 import android.util.JsonReader;
 import android.util.Log;
