@@ -15,9 +15,9 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cn.ac.iscas.xlab.droidfacedog.bean.PublishEvent;
-import cn.ac.iscas.xlab.droidfacedog.bean.RobotStatus;
-import cn.ac.iscas.xlab.droidfacedog.bean.TtsStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.PublishEvent;
+import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -30,6 +30,7 @@ public class RosConnectionService extends Service{
     public static final String SUBSCRIBE_TOPIC = "/museum_position";
     public static final String PUBLISH_TOPIC = "/tts_status";
 
+
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
 
@@ -41,21 +42,6 @@ public class RosConnectionService extends Service{
         }
 
         public void publishTtsStatus(TtsStatus status) {
-
-//            JSONObject jsonObject = new JSONObject();
-//            try {
-//                jsonObject.put("id", status.getId());
-//                jsonObject.put("isplaying", status.isplaying());
-//                Log.i("tag", jsonObject.toString());
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//            String msg = "{\"op\":\"publish\",\"topic\":\"" + PUBLISH_TOPIC + "\",\"msg\":{"++"}}";
-//            String msg = "{\"op\":\"publish\",\"topic\":\"" + PUBLISH_TOPIC + "\",\"msg\":"+jsonObject.toString();
-//            rosBridgeClient.send(msg);
-
-
-
 
             JSONObject body = new JSONObject();
             try {

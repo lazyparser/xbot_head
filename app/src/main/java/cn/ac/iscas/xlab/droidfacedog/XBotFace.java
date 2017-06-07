@@ -52,9 +52,9 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
-import cn.ac.iscas.xlab.droidfacedog.bean.RobotStatus;
-import cn.ac.iscas.xlab.droidfacedog.bean.TtsStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;

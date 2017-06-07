@@ -1,8 +1,11 @@
 XBot Head
 =========
 
-XBot Head is used for XBot.Xbot Head is an android application that can recognise specific faces with the support of recognition server. What is more,it can control the media player of android devices to play audio files.
-There will be more functions for VIP,which are in developing stage.
+[![Build Status on Travis:](https://travis-ci.org/lisongting/xbot_head.svg?branch=master)](https://travis-ci.org/lisongting/xbot_head)
+
+XBot Head is used for XBot.Xbot Head is an android application that can recognise specific faces with the support of recognition server.User can register by just a few steps. What is more,it can control the media player of android devices to play audio files that is about  The Software Museum of Chinese Academy of Sciences.
+
+There will be more funny functions ,which are in developing stage.
 
 Coming soon~~
 
@@ -27,13 +30,13 @@ License
     Copyright 2017 Wei Wu
     Copyright 2017 Songting Li
     Copyright 2016 Nguyen Minh Tri. Wei Wu.
-
+    
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-
+    
        http://www.apache.org/licenses/LICENSE-2.0
-
+    
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.

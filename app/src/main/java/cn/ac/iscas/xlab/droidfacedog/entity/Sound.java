@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog.bean;
+package cn.ac.iscas.xlab.droidfacedog.entity;
 
 /**
  * Created by wuwei on 02/14/17.

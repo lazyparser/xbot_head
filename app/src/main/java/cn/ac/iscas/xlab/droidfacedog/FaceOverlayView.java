@@ -13,7 +13,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 
-import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 
 /**
  * Created by Nguyen on 5/20/2016.

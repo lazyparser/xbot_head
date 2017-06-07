@@ -15,7 +15,7 @@ import android.view.View;
 
 import java.util.ArrayList;
 
-import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 
 
 /**
