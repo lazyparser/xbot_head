@@ -1,7 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog;
-
-import android.content.Intent;
-import android.support.annotation.IntegerRes;
+package cn.ac.iscas.xlab.droidfacedog.bean;
 
 /**
  * Created by wuwei on 02/14/17.

@@ -16,7 +16,6 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 
     <application
-        android:name=".XbotApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -45,6 +44,8 @@
             android:theme="@style/NoTitleTheme"/>
         <activity android:name=".CameraActivity"
             android:theme="@style/Theme.FullScreen"/>
+
+        <service android:name=".RosConnectionService" />
     </application>
 
 </manifest>

@@ -73,7 +73,7 @@ public class ImagePreviewAdapter extends
 
 
     public void add(Bitmap bitmap) {
-        //sendFaceToServer(bitmap);
+
         insert(bitmap, bitmaps.size());
     }
 

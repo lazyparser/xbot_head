@@ -14,7 +14,7 @@ import android.provider.MediaStore;
 
 import java.io.IOException;
 
-import cn.ac.iscas.xlab.droidfacedog.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
 
 /**
  * Created by Nguyen on 5/20/2016.

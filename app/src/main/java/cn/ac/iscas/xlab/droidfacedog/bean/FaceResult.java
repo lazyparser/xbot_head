@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog;
+package cn.ac.iscas.xlab.droidfacedog.bean;
 
 import android.graphics.PointF;
 

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 

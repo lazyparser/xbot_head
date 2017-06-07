@@ -13,7 +13,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 
-import java.text.DecimalFormat;
+import cn.ac.iscas.xlab.droidfacedog.bean.FaceResult;
 
 /**
  * Created by Nguyen on 5/20/2016.
