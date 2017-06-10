@@ -214,12 +214,6 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         faceImageView = (ImageView) findViewById(R.id.faceimageview);
         updateFaceState(IDLESTATE);
 
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(R.string.xbotface_title);
-        getSupportActionBar().hide();
-
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
 
@@ -400,7 +394,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     protected void onDestroy() {
 
         Log.i(TAG, "onDestroy");
-        unbindService(serviceConnection);
+//        unbindService(serviceConnection);
         resetData();
 
         audioManager.releaseMemory();

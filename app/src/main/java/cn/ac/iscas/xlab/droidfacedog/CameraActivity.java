@@ -232,7 +232,7 @@ public class CameraActivity extends AppCompatActivity {
                 tv_shoot.setVisibility(GONE);
                 iv_show.setVisibility(View.VISIBLE);
                 linearLayout.setVisibility(View.VISIBLE);
-                Image image = reader.acquireNextImage();
+                Image image = reader.acquireLatestImage();
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
@@ -359,7 +359,9 @@ public class CameraActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "CameraActivity--onDestroy--");
-        faceBitmap.recycle();
+        if (faceBitmap != null) {
+            faceBitmap.recycle();
+        }
         mSurfaceHolder.getSurface().release();
         mImageReader.getSurface().release();
     }

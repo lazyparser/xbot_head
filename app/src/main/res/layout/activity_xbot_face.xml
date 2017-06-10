@@ -6,12 +6,7 @@
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-    <SurfaceView
-        android:id="@+id/xbotfaceview"
-        android:layout_width="200dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_height="200dp" />
+
     <ImageView
         android:id="@+id/faceimageview"
         android:layout_width="800dp"
@@ -21,6 +16,13 @@
         android:background="#FFFFFF"
         android:scaleType="fitCenter"
         android:src="@drawable/idleface" />
+
+    <SurfaceView
+        android:id="@+id/xbotfaceview"
+        android:layout_width="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_height="200dp" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/xbotfacerecyclerview"
