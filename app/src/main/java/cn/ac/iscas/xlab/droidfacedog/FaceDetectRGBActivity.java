@@ -18,7 +18,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -26,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -74,7 +74,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     private final CameraErrorCallback mErrorCallback = new CameraErrorCallback();
 
 
-    private static final int MAX_FACE = 10;
+    private static final int MAX_FACE = 3;
     private boolean isThreadWorking = false;
     private Handler handler;
     private FaceDetectThread detectThread = null;
@@ -95,7 +95,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     private ImagePreviewAdapter imagePreviewAdapter;
     private ArrayList<Bitmap> facesBitmap;
 
-
+    private TextView fpsTextView;
     //==============================================================================================
     // Activity Methods
     //==============================================================================================
@@ -124,6 +124,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+        fpsTextView = (TextView) findViewById(R.id.id_tv_fps);
 
         handler = new Handler();
         faces = new FaceResult[MAX_FACE];
@@ -138,7 +139,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(R.string.detect_window_title);
-        getSupportActionBar().hide();
+//        getSupportActionBar().hide();
 
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
@@ -148,6 +149,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
+        Log.i(TAG, "Activity--onPostCreate()");
         // Check for the camera permission before accessing the camera.  If the
         // permission is not granted yet, request permission.
         SurfaceHolder holder = mView.getHolder();
@@ -158,8 +160,8 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_camera, menu);
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.menu_camera, menu);
 
         return true;
     }
@@ -200,7 +202,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     protected void onResume() {
         super.onResume();
 
-        Log.i(TAG, "onResume");
+        Log.i(TAG, "Activity--onResume()");
         startPreview();
     }
 
@@ -210,7 +212,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     @Override
     protected void onPause() {
         super.onPause();
-        Log.i(TAG, "onPause");
+        Log.i(TAG, "Activity--onPause()");
         if (mCamera != null) {
             mCamera.stopPreview();
         }
@@ -223,6 +225,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.i(TAG, "Activity--onDestroy()");
         resetData();
     }
 
@@ -236,6 +239,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         resetData();
+        Log.i(TAG, "SurfaceHolder--Callback---surfaceCreated()");
 
         //Find the total number of cameras available
         numberOfCameras = Camera.getNumberOfCameras();
@@ -264,6 +268,8 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+        Log.i(TAG, "SurfaceHolder--Callback---surfaceChanged()");
+
         // We have no surface, return immediately:
         if (surfaceHolder.getSurface() == null) {
             return;
@@ -286,6 +292,16 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
 
         // Everything is configured! Finally start the camera preview again:
         startPreview();
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        Log.i(TAG, "SurfaceHolder--Callback---surfaceDestroyed()");
+
+        mCamera.setPreviewCallbackWithBuffer(null);
+        mCamera.setErrorCallback(null);
+        mCamera.release();
+        mCamera = null;
     }
 
     private void setErrorCallback() {
@@ -366,15 +382,6 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
 
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        mCamera.setPreviewCallbackWithBuffer(null);
-        mCamera.setErrorCallback(null);
-        mCamera.release();
-        mCamera = null;
-    }
-
-
-    @Override
     public void onPreviewFrame(byte[] _data, Camera _camera) {
         if (!isThreadWorking) {
             if (counter == 0)
@@ -430,7 +437,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         }
 
         public void run() {
-//            Log.i("FaceDetectThread", "running");
+            Log.i(TAG, "FaceDetectThread  is  running");
 
             float aspect = (float) previewHeight / (float) previewWidth;
             int w = prevSettingWidth;
@@ -581,6 +588,8 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                         fps = counter / time;
 
                     mFaceView.setFPS(fps);
+                    Log.i(TAG, "start:"+start+",end:"+end+",FPS:" + fps);
+                    fpsTextView.setText("FPS："+fps);
 
                     if (counter == (Integer.MAX_VALUE - 1000))
                         counter = 0;

@@ -46,6 +46,8 @@
             android:theme="@style/Theme.FullScreen"/>
 
         <service android:name=".RosConnectionService" />
+        <activity android:name=".FaceDetectActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
     </application>
 
 </manifest>
