@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -158,4 +159,31 @@ public class ImageUtils {
         bmp = ImageUtils.cropBitmap(bmp, rect);
         return bmp;
     }
+
+    public static RectF getPreviewFaceRectF(PointF pointF,float eyeDistance) {
+        return new RectF(
+                (int) (pointF.x - eyeDistance * 1.20f),
+                (int) (pointF.y - eyeDistance * 1.7f),
+                (int) (pointF.x + eyeDistance * 1.20f),
+                (int) (pointF.y + eyeDistance * 1.9f));
+    }
+
+    public static RectF getCheckFaceRectF(PointF pointF, float eyeDistance) {
+        return new RectF(
+                (pointF.x - eyeDistance * 1.5f),
+                (pointF.y - eyeDistance * 1.9f),
+                (pointF.x + eyeDistance * 1.5f),
+                (pointF.y + eyeDistance * 2.2f));
+    }
+
+    public static RectF getDrawFaceRectF(PointF mid,float eyesDis,float scaleX,float scaleY) {
+        return new RectF(
+                (mid.x - eyesDis * 1.1f) * scaleX,
+                (mid.y - eyesDis * 1.3f) * scaleY,
+                (mid.x + eyesDis * 1.1f) * scaleX,
+                (mid.y + eyesDis * 1.7f) * scaleY);
+
+    }
+
+
 }

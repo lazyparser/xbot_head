@@ -10,10 +10,12 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -104,11 +106,9 @@ public class FaceOverlayView extends View {
                 if (mid.x != 0.0f && mid.y != 0.0f) {
                     float eyesDis = face.eyesDistance();
 
-                    rectF.set(new RectF(
-                            (mid.x - eyesDis * 1.1f) * scaleX,
-                            (mid.y - eyesDis * 1.3f) * scaleY,
-                            (mid.x + eyesDis * 1.1f) * scaleX,
-                            (mid.y + eyesDis * 1.7f) * scaleY));
+                    rectF.set(ImageUtils.getDrawFaceRectF(mid,eyesDis,scaleX,scaleY));
+                    Log.i(FaceDetectActivity.TAG, "really draw rect:" + rectF.width() + "x" + rectF.height());
+                    Log.i(FaceDetectRGBActivity.TAG, "really draw rect:" + rectF.width() + "x" + rectF.height());
                     if (isFront) {
                         float left = rectF.left;
                         float right = rectF.right;

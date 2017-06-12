@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
@@ -336,8 +337,8 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
         previewWidth = previewSize.width;
         previewHeight = previewSize.height;
 
-        Log.e(TAG, "previewWidth" + previewWidth);
-        Log.e(TAG, "previewHeight" + previewHeight);
+        Log.i(TAG, "previewWidth" + previewWidth);
+        Log.i(TAG, "previewHeight" + previewHeight);
 
         /**
          * Calculate size to scale full frame bitmap to smaller bitmap
@@ -463,9 +464,12 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                     new ByteArrayInputStream(baout.toByteArray()), null, bfo);
 
             Bitmap bmp = Bitmap.createScaledBitmap(bitmap, w, h, false);
+            Log.i(TAG, "bmp detected info:"+bmp.getWidth() + "x" + bmp.getHeight());
 
             float xScale = (float) previewWidth / (float) prevSettingWidth;
             float yScale = (float) previewHeight / (float) h;
+            Log.i(TAG, "previewWidth*previewHeight:" + previewWidth + "x" + previewHeight);
+            Log.i(TAG, "prevSettingWidth*prevSettingHeight:" + prevSettingWidth + "x" + prevSettingHeight);
 
             Camera.CameraInfo info = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraId, info);
@@ -496,7 +500,9 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
             fdet = new android.media.FaceDetector(bmp.getWidth(), bmp.getHeight(), MAX_FACE);
 
             android.media.FaceDetector.Face[] fullResults = new android.media.FaceDetector.Face[MAX_FACE];
-            fdet.findFaces(bmp, fullResults);
+            int found = fdet.findFaces(bmp, fullResults);
+            Log.i(TAG, "detect face bitmap info:" + bmp.getWidth() + "x" + bmp.getHeight());
+            Log.i(TAG, "found faces:" + found);
 
             for (int i = 0; i < MAX_FACE; i++) {
                 if (fullResults[i] == null) {
@@ -504,35 +510,31 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                 } else {
                     PointF mid = new PointF();
                     fullResults[i].getMidPoint(mid);
+                    Log.i(TAG, "mid Point:" + mid.x + "," + mid.y);
 
                     mid.x *= xScale;
                     mid.y *= yScale;
-
+                    Log.i(TAG, "xScale:" + xScale + ",yScale:" + yScale);
                     float eyesDis = fullResults[i].eyesDistance() * xScale;
                     float confidence = fullResults[i].confidence();
                     float pose = fullResults[i].pose(android.media.FaceDetector.Face.EULER_Y);
                     int idFace = Id;
 
-                    Rect rect = new Rect(
-                            (int) (mid.x - eyesDis * 1.20f),
-                            (int) (mid.y - eyesDis * 1.7f),
-                            (int) (mid.x + eyesDis * 1.20f),
-                            (int) (mid.y + eyesDis * 1.9f));
-
+//                    Log.i(TAG, "mid info:" + mid.x + "," + mid.y);
+                    RectF rectF = ImageUtils.getPreviewFaceRectF(mid, eyesDis);
+//                    Log.i(TAG, "rect info:" + rectF.width() + "x" + rectF.height());
                     /**
                      * Only detect face size > 100x100
                      */
-                    if (rect.height() * rect.width() > 90 * 60) {
+                    if (rectF.height() * rectF.width() > 90 * 60) {
                         for (int j = 0; j < MAX_FACE; j++) {
                             float eyesDisPre = faces_previous[j].eyesDistance();
                             PointF midPre = new PointF();
                             faces_previous[j].getMidPoint(midPre);
 
-                            RectF rectCheck = new RectF(
-                                    (midPre.x - eyesDisPre * 1.5f),
-                                    (midPre.y - eyesDisPre * 1.9f),
-                                    (midPre.x + eyesDisPre * 1.5f),
-                                    (midPre.y + eyesDisPre * 2.2f));
+                            RectF rectCheck = ImageUtils.getCheckFaceRectF(midPre, eyesDisPre);
+
+//                            Log.i(TAG, "rectCheck info:" + rectCheck.width() + "x" + rectCheck.height());
 
                             if (rectCheck.contains(mid.x, mid.y) && (System.currentTimeMillis() - faces_previous[j].getTime()) < 1000) {
                                 idFace = faces_previous[j].getId();
@@ -570,6 +572,10 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                                     });
                                 }
                             }
+                            Log.i(TAG, "faceCount:" + facesCount.size());
+                            for(Map.Entry<Integer,Integer> entry:facesCount.entrySet() ){
+                                Log.i(TAG, "entry info:" + entry.getKey() + ":" + entry.getValue());
+                            }
                         }
                     }
                 }
@@ -579,7 +585,9 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                 public void run() {
                     //send face to FaceView to draw rect
                     mFaceView.setFaces(faces);
-
+                    for (FaceResult f : faces) {
+                        Log.i(TAG, f.toString());
+                    }
                     //calculate FPS
                     end = System.currentTimeMillis();
                     counter++;
@@ -588,7 +596,7 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                         fps = counter / time;
 
                     mFaceView.setFPS(fps);
-                    Log.i(TAG, "start:"+start+",end:"+end+",FPS:" + fps);
+//                    Log.i(TAG, "start:"+start+",end:"+end+",FPS:" + fps);
                     fpsTextView.setText("FPS："+fps);
 
                     if (counter == (Integer.MAX_VALUE - 1000))

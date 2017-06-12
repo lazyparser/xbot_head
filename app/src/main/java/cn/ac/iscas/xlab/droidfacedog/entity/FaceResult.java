@@ -93,4 +93,16 @@ public class FaceResult extends Object {
     public void setTime(long time) {
         this.time = time;
     }
+
+    @Override
+    public String toString() {
+        return "FaceResult{" +
+                "midEye=" + midEye +
+                ", eyeDist=" + eyeDist +
+                ", confidence=" + confidence +
+                ", pose=" + pose +
+                ", id=" + id +
+                ", time=" + time +
+                '}';
+    }
 }
