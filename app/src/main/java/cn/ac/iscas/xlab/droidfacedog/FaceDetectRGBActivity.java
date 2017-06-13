@@ -586,7 +586,9 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                     //send face to FaceView to draw rect
                     mFaceView.setFaces(faces);
                     for (FaceResult f : faces) {
-                        Log.i(TAG, f.toString());
+                        if (f.eyesDistance()>0) {
+                            Log.i(TAG, f.toString());
+                        }
                     }
                     //calculate FPS
                     end = System.currentTimeMillis();
