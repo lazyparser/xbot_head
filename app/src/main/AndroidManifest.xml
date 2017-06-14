@@ -30,9 +30,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FaceDetectRGBActivity"
-            android:screenOrientation="fullSensor"/>
-        <activity
             android:name=".XBotFace"
             android:screenOrientation="fullSensor"/>
         <activity
@@ -46,6 +43,8 @@
             android:theme="@style/Theme.FullScreen"/>
 
         <service android:name=".RosConnectionService" />
+        <activity android:name=".FaceDetectActivity"
+            android:label="正在检测中"/>
     </application>
 
 </manifest>

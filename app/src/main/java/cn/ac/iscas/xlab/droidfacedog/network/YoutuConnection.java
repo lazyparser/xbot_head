@@ -86,12 +86,15 @@ public class YoutuConnection {
                     @Override
                     public void onErrorResponse(VolleyError volleyError) {
                         Log.i(TAG,"Recognition Error:"+volleyError.getMessage());
-                        Message msg = handler.obtainMessage();
-                        msg.what = XBotFace.HANDLER_PLAY_TTS;
-                        Bundle user = new Bundle();
-                        user.putString("userId", XBotFace.TTS_UNREGISTERED_USER);
-                        msg.setData(user);
-                        handler.sendMessage(msg);
+                        if (handler != null) {
+                            Message msg = handler.obtainMessage();
+                            msg.what = XBotFace.HANDLER_PLAY_TTS;
+                            Bundle user = new Bundle();
+                            user.putString("userId", XBotFace.TTS_UNREGISTERED_USER);
+                            msg.setData(user);
+                            handler.sendMessage(msg);
+                        }
+
                     }
                 };
 

@@ -2,10 +2,8 @@ package cn.ac.iscas.xlab.droidfacedog;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Binder;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -15,6 +13,7 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.PublishEvent;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
@@ -43,22 +42,25 @@ public class RosConnectionService extends Service{
 
         public void publishTtsStatus(TtsStatus status) {
 
-            JSONObject body = new JSONObject();
-            try {
-                JSONObject jsonMsg = new JSONObject();
-                jsonMsg.put("id", status.getId());
-                jsonMsg.put("isplaying", status.isplaying());
+            if (isConnected) {
+                JSONObject body = new JSONObject();
+                try {
+                    JSONObject jsonMsg = new JSONObject();
+                    jsonMsg.put("id", status.getId());
+                    jsonMsg.put("isplaying", status.isplaying());
 
-                body.put("op", "publish");
-                body.put("topic",PUBLISH_TOPIC);
-                body.put("msg", jsonMsg);
+                    body.put("op", "publish");
+                    body.put("topic",PUBLISH_TOPIC);
+                    body.put("msg", jsonMsg);
 
-                rosBridgeClient.send(body.toString());
+                    rosBridgeClient.send(body.toString());
 
-                Log.i(TAG, "Send To Ros Server:" + body.toString());
-            } catch (JSONException e) {
-                e.printStackTrace();
+                    Log.i(TAG, "Send To Ros Server:" + body.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
+            
         }
     }
 
@@ -108,33 +110,29 @@ public class RosConnectionService extends Service{
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i("tag", "RosConnectionService onBind()");
+        Log.i(TAG, "RosConnectionService onBind()");
         new Thread() {
             public void run() {
-                String rosIP ;
-                String rosPort = "9090";
-                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                rosIP = prefs.getString("rosserver_ip_address", "192.168.1.151");
-                String rosURL = "ws://" + rosIP + ":" + rosPort;
-                Log.d(TAG, "Connecting ROS " + rosURL);
+                String rosURL = "ws://" + Config.ROS_SERVER_IP + ":" + Config.ROS_SERVER_PORT;
+                Log.d(TAG, "Connecting to ROS : " + rosURL);
                 rosBridgeClient = new ROSBridgeClient(rosURL);
-                Log.i("tag", rosURL);
+                Log.i(TAG, rosURL);
                 boolean conneSucc = rosBridgeClient.connect(new ROSClient.ConnectionStatusListener() {
                     @Override
                     public void onConnect() {
                         rosBridgeClient.setDebug(true);
-                        Log.i("tag","ConnectionStatusListener--onConnect");
+                        Log.i(TAG,"ConnectionStatusListener--onConnect");
                     }
 
                     @Override
                     public void onDisconnect(boolean normal, String reason, int code) {
-                        Log.i("tag","ConnectionStatusListener--disconnect");
+                        Log.i(TAG,"ConnectionStatusListener--disconnect");
                     }
 
                     @Override
                     public void onError(Exception ex) {
                         ex.printStackTrace();
-                        Log.i("tag","ConnectionStatusListener--ROS communication error");
+                        Log.i(TAG,"ConnectionStatusListener--ROS communication error");
                     }
                 });
                 if (conneSucc) {
@@ -147,13 +145,14 @@ public class RosConnectionService extends Service{
                         e.printStackTrace();
                     }
                     rosBridgeClient.send(strSubscribe.toString());
-                    Log.i("tag", "RosConnectionService连接Ros成功");
+                    Log.i(TAG, "RosConnectionService连接Ros成功");
                 } else {
-                    Log.i("tag", "RosConnectionService连接Ros失败");
+                    Log.i(TAG, "RosConnectionService连接Ros失败");
                 }
                 isConnected = conneSucc;
+                Log.i(TAG, "connection Thread is Running in Thread:" + Thread.currentThread().getId());
             }
-        }.run();
+        }.start();
         return proxy;
     }
 }

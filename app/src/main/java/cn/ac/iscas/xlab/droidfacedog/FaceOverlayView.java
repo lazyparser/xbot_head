@@ -10,10 +10,12 @@ import android.graphics.Paint;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -85,7 +87,6 @@ public class FaceOverlayView extends View {
 
             float scaleX = (float) getWidth() / (float) previewWidth;
             float scaleY = (float) getHeight() / (float) previewHeight;
-
             switch (mDisplayOrientation) {
                 case 90:
                 case 270:
@@ -96,25 +97,14 @@ public class FaceOverlayView extends View {
 
             canvas.save();
             canvas.rotate(-mOrientation);
-            RectF rectF = new RectF();
+
             for (FaceResult face : mFaces) {
                 PointF mid = new PointF();
                 face.getMidPoint(mid);
-
                 if (mid.x != 0.0f && mid.y != 0.0f) {
                     float eyesDis = face.eyesDistance();
+                    RectF rectF = ImageUtils.getDrawFaceRectF(mid,eyesDis,scaleX,scaleY);
 
-                    rectF.set(new RectF(
-                            (mid.x - eyesDis * 1.1f) * scaleX,
-                            (mid.y - eyesDis * 1.3f) * scaleY,
-                            (mid.x + eyesDis * 1.1f) * scaleX,
-                            (mid.y + eyesDis * 1.7f) * scaleY));
-                    if (isFront) {
-                        float left = rectF.left;
-                        float right = rectF.right;
-                        rectF.left = getWidth() - right;
-                        rectF.right = getWidth() - left;
-                    }
                     canvas.drawRect(rectF, mPaint);
 //                    canvas.drawText("ID " + face.getId(), rectF.left, rectF.bottom + mTextPaint.getTextSize(), mTextPaint);
 //                    canvas.drawText("Confidence " + face.getConfidence(), rectF.left, rectF.bottom + mTextPaint.getTextSize() * 2, mTextPaint);

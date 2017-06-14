@@ -214,12 +214,6 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         faceImageView = (ImageView) findViewById(R.id.faceimageview);
         updateFaceState(IDLESTATE);
 
-        getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(R.string.xbotface_title);
-        getSupportActionBar().hide();
-
         if (icicle != null)
             cameraId = icicle.getInt(BUNDLE_CAMERA_ID, 0);
 
@@ -400,7 +394,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     protected void onDestroy() {
 
         Log.i(TAG, "onDestroy");
-        unbindService(serviceConnection);
+//        unbindService(serviceConnection);
         resetData();
 
         audioManager.releaseMemory();
@@ -613,7 +607,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
         if (userId.equals(TTS_UNREGISTERED_USER)) {
             text.append("游客。");
         } else {
-            String name = hexStringToString(userId);
+            String name = Util.hexStringToString(userId);
             text.append(name+"。");
         }
 
@@ -934,25 +928,5 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
             Log.e(TAG, "updateFace: STATE ERROR");
     }
 
-    public String hexStringToString(String s) {
-        if (s == null || s.equals("")) {
-            return null;
-        }
-        s = s.replace(" ", "");
-        byte[] baKeyword = new byte[s.length() / 2];
-        for (int i = 0; i < baKeyword.length; i++) {
-            try {
-                baKeyword[i] = (byte) (0xff & Integer.parseInt(
-                        s.substring(i * 2, i * 2 + 2), 16));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            s = new String(baKeyword, "utf-8");
-        } catch (Exception e1) {
-            e1.printStackTrace();
-        }
-        return s;
-    }
+
 }
