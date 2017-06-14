@@ -30,9 +30,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".FaceDetectRGBActivity"
-            android:screenOrientation="fullSensor"/>
-        <activity
             android:name=".XBotFace"
             android:screenOrientation="fullSensor"/>
         <activity
