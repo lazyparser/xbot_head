@@ -43,9 +43,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
                 if (rc == PackageManager.PERMISSION_GRANTED) {
-//                    Intent intent = new Intent(mContext, FaceDetectRGBActivity.class);
                     Intent intent = new Intent(mContext, FaceDetectActivity.class);
-
                     startActivity(intent);
                 } else {
                     requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
@@ -106,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
         Config.RECOGNITION_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_recognition_server_ip), "192.168.0.111");
 
-        Log.i("tag", "MainActivity启动时初始化：" + Config.string());
+        Log.i(TAG, "MainActivity启动时初始化：" + Config.string());
     }
 
     private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
@@ -121,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == RC_HANDLE_CAMERA_PERM_RGB) {
-            Intent intent = new Intent(mContext, FaceDetectRGBActivity.class);
+            Intent intent = new Intent(mContext, FaceDetectActivity.class);
             startActivity(intent);
             return;
         }

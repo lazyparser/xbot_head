@@ -510,10 +510,10 @@ public final class FaceDetectRGBActivity extends AppCompatActivity implements Su
                 } else {
                     PointF mid = new PointF();
                     fullResults[i].getMidPoint(mid);
-                    Log.i(TAG, "mid Point:" + mid.x + "," + mid.y);
 
                     mid.x *= xScale;
                     mid.y *= yScale;
+                    Log.i(TAG, "mid Point:" + mid.x + "," + mid.y);
                     Log.i(TAG, "xScale:" + xScale + ",yScale:" + yScale);
                     float eyesDis = fullResults[i].eyesDistance() * xScale;
                     float confidence = fullResults[i].confidence();

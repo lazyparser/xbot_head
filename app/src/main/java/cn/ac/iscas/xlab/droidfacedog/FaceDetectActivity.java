@@ -20,6 +20,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.FaceDetector;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -49,6 +50,8 @@ import java.util.TimerTask;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
+import cn.ac.iscas.xlab.droidfacedog.util.RegexCheckUtil;
+import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
 /**
  * Created by lisongting on 2017/6/11.
@@ -68,19 +71,21 @@ public class FaceDetectActivity extends AppCompatActivity {
     private FaceOverlayView mFaceOverlayView;
     private RecyclerView mRecyclerView;
     private TextView mFpsTextView;
-
     private ImagePreviewAdapter mImagePreviewAdapter;
     private Handler mainHandler;
     private Timer mDetectTimer;
-    private FaceDetector mFaceDetector;
 
     //用来存放检测到的人脸
     private FaceDetector.Face[] mDetectedFaces;
     private FaceResult[] mFaces;
     private FaceResult[] mPreviousFaces;
+    private FaceDetector mFaceDetector;
 
     //要发送给人脸识别服务器的人脸bitmap
     private Bitmap mFaceBitmap;
+    private YoutuConnection connection;
+    //这个boolean表示将人脸发送给服务器后，当前是否正在等待优图服务器返回识别结果
+    private boolean isWaitingResult = false;
 
     //识别到的人脸的id（不是注册在服务端的ID）,初始为0。
     private int mPersonId =0;
@@ -93,7 +98,7 @@ public class FaceDetectActivity extends AppCompatActivity {
     //比例因子，将检测到的原始人脸图像按此比例缩小，以此可以加快FaceDetect的检测速度
     private double mScale = 0.2;
 
-    long frameCount = 0;
+    long totalFrameCount = 0;
     long start,end;
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,14 +127,21 @@ public class FaceDetectActivity extends AppCompatActivity {
 
         mDetectTimer = new Timer();
         mainHandler = new Handler(){
-            public void handleMessage() {
-                
+            public void handleMessage(Message msg) {
+                Bundle data = msg.getData();
+                String hexNameStr = (String) data.get("userId");
+                String chineseName = Util.hexStringToString(hexNameStr);
+                if (RegexCheckUtil.isRightPersonName(chineseName)) {
+                    Toast.makeText(FaceDetectActivity.this, "用户：" + chineseName, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(FaceDetectActivity.this, "未知用户\n(请检查服务器配置或调低人脸检测阈值)" , Toast.LENGTH_LONG).show();
+                }
+
             }
         };
 
+        connection = new YoutuConnection(FaceDetectActivity.this,mainHandler);
         initView();
-        
-
     }
 
     @Override
@@ -160,19 +172,22 @@ public class FaceDetectActivity extends AppCompatActivity {
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+                //每过600帧数，将isWaitingResult置为false，这样可以避免频繁发送人脸给服务器
+                if (totalFrameCount % 400 == 0) {
+                    isWaitingResult = false;
+                }
                 //显示FPS
                 new Thread(){
                     public void run(){
                         end = System.currentTimeMillis();
-                        frameCount++;
+                        totalFrameCount++;
                         double t = (end - start) / 1000;
-                        final double fps = frameCount / t;
+                        final double fps = totalFrameCount / t;
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 DecimalFormat df = new DecimalFormat("#.00");
-
-                                mFpsTextView.setText("Frame Per Second:"+df.format(fps));
+                                mFpsTextView.setText("FPS:"+df.format(fps));
                             }
                         });
 
@@ -183,9 +198,7 @@ public class FaceDetectActivity extends AppCompatActivity {
         });
         initCamera();
         startDetectTask();
-
     }
-
 
     private CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -275,8 +288,8 @@ public class FaceDetectActivity extends AppCompatActivity {
                             mDetectedFaces[i].getMidPoint(mid);
 
                             //前面为了方便检测人脸将图片缩小，现在按比例还原
-                            mid.x *=1.0/mScale;
-                            mid.y *=1.0/mScale;
+                            mid.x *= 1.0/mScale;
+                            mid.y *= 1.0/mScale;
 
                             Log.i(TAG, "mid pointF:" + mid.x + "," + mid.y);
                             float eyeDistance = mDetectedFaces[i].eyesDistance()*(float)(1.0/mScale);
@@ -288,7 +301,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                             //预先创建一个人脸矩形区域
                             RectF rectF = ImageUtils.getPreviewFaceRectF(mid, eyeDistance);
 
-                            //如果人脸矩形区域大于一定区域，才采集图像
+                            //如果人脸矩形区域大于一定面积，才采集图像
                             if (rectF.width() * rectF.height() > 90 * 60) {
                                 for(int j=0;j<MAX_FACE_COUNT;j++) {
                                     //获取之前的Faces数据
@@ -306,17 +319,20 @@ public class FaceDetectActivity extends AppCompatActivity {
                                     }
                                 }
 
-                                if (mPersonId == personId) mPersonId++;
+                                if (mPersonId == personId) {
+                                    mPersonId++;
+                                }
+                                Log.i(TAG, "totalFrameCount:" + totalFrameCount);
                                 mFaces[i].setFace(personId, mid, eyeDistance, confidence, pose, System.currentTimeMillis());
                                 mPreviousFaces[i].set(mFaces[i].getId(), mFaces[i].getMidEye(), mFaces[i].eyesDistance(), mFaces[i].getConfidence(), mFaces[i].getPose(), mFaces[i].getTime());
                                 if (mFacesCountMap.get(personId) == null) {
                                     mFacesCountMap.put(personId, 0);
                                 }else {
-                                    int frameCount = mFacesCountMap.get(personId) + 1;
-                                    if (frameCount < 5) {
-                                        mFacesCountMap.put(personId, frameCount);
+                                    int tmpFrameCount = mFacesCountMap.get(personId) + 1;
+                                    if (tmpFrameCount < 5) {
+                                        mFacesCountMap.put(personId, tmpFrameCount);
                                     }
-                                    if (frameCount == 5) {
+                                    if (tmpFrameCount == 5) {
                                         mFaceBitmap = ImageUtils.cropFace(mFaces[i], RGBFace,rotate);
                                         if (mFaceBitmap != null) {
                                             mainHandler.post(new Runnable() {
@@ -331,12 +347,13 @@ public class FaceDetectActivity extends AppCompatActivity {
                                                     if (mImagePreviewAdapter.getItemCount() < 5) {
                                                         mImagePreviewAdapter.add(mFaceBitmap);
                                                         mRecyclerView.setAdapter(mImagePreviewAdapter);
-                                                    }else{
-                                                        YoutuConnection connection = new YoutuConnection(getApplicationContext(),mainHandler);
-                                                        connection.sendBitmap(mFaceBitmap);
                                                     }
                                                 }
                                             });
+                                            if(mFaceBitmap!=null && !isWaitingResult ){
+                                                connection.sendBitmap(mFaceBitmap);
+                                                isWaitingResult = true;
+                                            }
                                         }
                                     }
                                 }
@@ -361,10 +378,7 @@ public class FaceDetectActivity extends AppCompatActivity {
     }
 
     private void startPreview() {
-
         try {
-            SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
-            assert surfaceTexture != null : Log.i(TAG,"surfaceTexture is null");
             CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(mCameraID);
             StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
@@ -386,8 +400,8 @@ public class FaceDetectActivity extends AppCompatActivity {
             }
             Log.i(TAG, "mTextureView info:" + mTextureView.getWidth() + "x" + mTextureView.getHeight());
 
-            mFaceOverlayView.setPreviewWidth(mPreviewSize.getWidth());
-            mFaceOverlayView.setPreviewWidth(mPreviewSize.getHeight());
+            mFaceOverlayView.setPreviewWidth(mTextureView.getWidth());
+            mFaceOverlayView.setPreviewHeight(mTextureView.getHeight());
 
             mCameraDevice.createCaptureSession(Arrays.asList(surface),
                     new CameraCaptureSession.StateCallback() {
