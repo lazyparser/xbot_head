@@ -172,7 +172,7 @@ public class FaceDetectActivity extends AppCompatActivity {
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-                //每过600帧数，将isWaitingResult置为false，这样可以避免频繁发送人脸给服务器
+                //每过400帧数，将isWaitingResult置为false，这样可以避免频繁发送人脸给服务器
                 if (totalFrameCount % 400 == 0) {
                     isWaitingResult = false;
                 }
