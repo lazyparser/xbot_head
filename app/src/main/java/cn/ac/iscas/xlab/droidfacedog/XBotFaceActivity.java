@@ -1,6 +1,11 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -20,11 +25,11 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.FaceDetector;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.Size;
@@ -32,12 +37,20 @@ import android.view.MenuItem;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.TextView;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.SpeechError;
+import com.iflytek.cloud.SpeechSynthesizer;
+import com.iflytek.cloud.SpeechUtility;
+import com.iflytek.cloud.SynthesizerListener;
+import com.iflytek.cloud.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.text.DecimalFormat;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,33 +60,53 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
+import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
-import cn.ac.iscas.xlab.droidfacedog.util.RegexCheckUtil;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
+import de.greenrobot.event.EventBus;
+
+import static cn.ac.iscas.xlab.droidfacedog.XBotFace.IDENTIFIEDSTATE;
 
 /**
- * Created by lisongting on 2017/6/11.
+ * Created by lisongting on 2017/6/16.
  */
 
-public class FaceDetectActivity extends AppCompatActivity {
-
-    public static final String TAG = "FaceDetectActivity";
+public class XBotFaceActivity extends AppCompatActivity{
+    public static final String TAG = "XBotFaceActivity";
+    public static final int STATE_IDLE = 0;
+    public static final int STATE_DETECTED = 1;
+    public static final int STATE_IDENTIFIED = 2;
+    public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
+    public static final int CONN_ROS_SERVER_ERROR = 0x12;
+    public static final int HANDLER_UPDATE_FACE_STATE = 0x13;
+    public static final int HANDLER_PLAY_TTS = 0x14;
+    public static final String TTS_UNREGISTERED_USER = "0000000000";
     public static final int MAX_FACE_COUNT = 3;
+
     private String mCameraID;//摄像头Id：0代表手机背面的摄像头  1代表朝向用户的摄像头
     private CameraCaptureSession mCameraCaptureSession;
     private TextureView mTextureView;
+    private ImageView mStateImageView;
     private SurfaceTexture mSurfaceTexture;
     private CameraManager mCameraManager;
     private CameraDevice mCameraDevice;
     private Size mPreviewSize;
     private FaceOverlayView mFaceOverlayView;
     private RecyclerView mRecyclerView;
-    private TextView mFpsTextView;
+    private AlertDialog mWaitDialog;
     private ImagePreviewAdapter mImagePreviewAdapter;
-    private Handler mainHandler;
+    private Handler mMainHandler;
+
+    //用于定时识别人脸的Timer
     private Timer mDetectTimer;
+    //用于定时连接至Ros服务器的Timer
+    private Timer mRosConnectionTimer;
+    //用于定时发布TTS状态的Timer
+    private Timer mPublishTopicTimer;
 
     //用来存放检测到的人脸
     private FaceDetector.Face[] mDetectedFaces;
@@ -83,36 +116,41 @@ public class FaceDetectActivity extends AppCompatActivity {
 
     //要发送给人脸识别服务器的人脸bitmap
     private Bitmap mFaceBitmap;
-    private YoutuConnection connection;
+    private YoutuConnection youtuConnection;
     //这个boolean表示将人脸发送给服务器后，当前是否正在等待优图服务器返回识别结果
     private boolean isWaitingResult = false;
+    private boolean isEnableRos = true;
 
     //识别到的人脸的id（不是注册在服务端的ID）,初始为0。
     private int mPersonId =0;
+    private long mTotalFrameCount = 0;
+    //比例因子，将检测到的原始人脸图像按此比例缩小，以此可以加快FaceDetect的检测速度
+    private double mScale = 0.2;
+    private long mLastchangetime;
+    private int mFaceState;
+
     //用来标记每个人脸共有几张图像,key是人脸的id，value是当前采集到的图像张数
     private HashMap<Integer,Integer> mFacesCountMap;
 
     //RecyclerView中的人脸图像的List
     private ArrayList<Bitmap> mRecyclerViewBitmapList;
 
-    //比例因子，将检测到的原始人脸图像按此比例缩小，以此可以加快FaceDetect的检测速度
-    private double mScale = 0.2;
+    private RosConnectionService.ServiceBinder serviceProxy;
+    //ServiceConnection
+    private ServiceConnection serviceConnection;
 
-    long totalFrameCount = 0;
-    long start,end;
+    private AudioManager audioManager;
+    //科大讯飞的语音合成器[需要联网才能使用]
+    private SpeechSynthesizer ttsSynthesizer;
+    private SynthesizerListener synthesizerListener;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.face_detect_activity_layout);
-        mTextureView = (TextureView) findViewById(R.id.id_texture_view);
-        mFpsTextView = (TextView) findViewById(R.id.id_tv_fps);
-        mRecyclerView = (RecyclerView) findViewById(R.id.id_recycler_view);
-
-        getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(layoutManager);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        setContentView(R.layout.xbot_face_layout);
+        mTextureView = (TextureView) findViewById(R.id.id_small_texture_view);
+        mStateImageView = (ImageView) findViewById(R.id.id_iv_face_state);
 
         mFaces = new FaceResult[MAX_FACE_COUNT];
         mPreviousFaces = new FaceResult[MAX_FACE_COUNT];
@@ -124,25 +162,92 @@ public class FaceDetectActivity extends AppCompatActivity {
 
         mRecyclerViewBitmapList = new ArrayList<>();
         mFacesCountMap = new HashMap<>();
+        audioManager = new AudioManager(this);
+        audioManager.loadTts();
 
-        mDetectTimer = new Timer();
-        mainHandler = new Handler(){
+        //双用途Handler，一用来接收TimerTask中发回来的Ros连接状态，二用来接收优图的识别结果
+        mMainHandler = new Handler(){
             public void handleMessage(Message msg) {
-                Bundle data = msg.getData();
-                String hexNameStr = (String) data.get("userId");
-                String chineseName = Util.hexStringToString(hexNameStr);
-                if (RegexCheckUtil.isRightPersonName(chineseName)) {
-                    Toast.makeText(FaceDetectActivity.this, "用户：" + chineseName, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(FaceDetectActivity.this, "未知用户\n(请检查服务器配置或调低人脸检测阈值)" , Toast.LENGTH_LONG).show();
-                }
+                //如果连接成功
+                if (msg.what == CONN_ROS_SERVER_SUCCESS) {
+                    if (mWaitDialog.isShowing()) {
+                        mWaitDialog.dismiss();
+                        mRosConnectionTimer.cancel();
+                        Toast.makeText(XBotFaceActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
 
+                        startPreview();
+                    }
+                }else if(msg.what == CONN_ROS_SERVER_ERROR){
+                    //Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "连接失败，正在重试");
+                } else if (msg.what == HANDLER_UPDATE_FACE_STATE) {
+                    updateFaceState(IDENTIFIEDSTATE);
+                } else if (msg.what == HANDLER_PLAY_TTS) {
+                    Bundle data = msg.getData();
+                    String userName = (String) data.get("userId");
+                    speakOutUser(userName);
+                }
             }
         };
+        youtuConnection = new YoutuConnection(XBotFaceActivity.this,mMainHandler);
 
-        connection = new YoutuConnection(FaceDetectActivity.this,mainHandler);
+        showWaitingDialog();
+
+        initSynthesizer();
+
+        EventBus.getDefault().register(this);
+
+        //创建ServiceConnection对象
+        serviceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                Log.i(TAG, "ServiceConnection--onServiceConnected()");
+                serviceProxy = (RosConnectionService.ServiceBinder) service;
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                Log.i(TAG, "ServiceConnection--onServiceDisconnected()");
+            }
+        };
+        //绑定RosConnectionService
+        Intent intent = new Intent(this, RosConnectionService.class);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+        updateFaceState(STATE_IDLE);
         initView();
     }
+
+    private void showWaitingDialog() {
+        //启动一个对话框提示用户等待，然后连接至Ros服务器
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("请稍等")
+                .setMessage("正在连接至Ros服务端")
+                .setCancelable(false)
+                .setPositiveButton("直接识别人脸", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        isEnableRos = false;
+                        mRosConnectionTimer.cancel();
+                        Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
+
+                        if (serviceConnection != null) {
+                            unbindService(serviceConnection);
+                        }
+                        startPreview();
+                    }
+                })
+                .setNegativeButton("取消连接", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        XBotFaceActivity.this.onBackPressed();
+                        mRosConnectionTimer.cancel();
+                    }
+                });
+        mWaitDialog = builder.create();
+        mWaitDialog.show();
+    }
+
 
     @Override
     public void onResume() {
@@ -156,7 +261,6 @@ public class FaceDetectActivity extends AppCompatActivity {
                 mSurfaceTexture = surface;
                 //当TextureView可用后，调用startPreview开启预览
                 startPreview();
-                start = System.currentTimeMillis();
             }
 
             @Override
@@ -172,32 +276,16 @@ public class FaceDetectActivity extends AppCompatActivity {
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+                mTotalFrameCount++;
                 //每过400帧数，将isWaitingResult置为false，这样可以避免频繁发送人脸给服务器
-                if (totalFrameCount % 400 == 0) {
+                if (mTotalFrameCount % 400 == 0) {
                     isWaitingResult = false;
                 }
-                //显示FPS
-                new Thread(){
-                    public void run(){
-                        end = System.currentTimeMillis();
-                        totalFrameCount++;
-                        double t = (end - start) / 1000.0;
-                        final double fps = totalFrameCount / t;
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                DecimalFormat df = new DecimalFormat("#.00");
-                                mFpsTextView.setText("FPS:"+df.format(fps));
-                            }
-                        });
-
-                    }
-                }.start();
-
+                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
             }
         });
         initCamera();
-        startDetectTask();
+        startTimerTask();
     }
 
     private CameraDevice.StateCallback cameraStateCallback = new CameraDevice.StateCallback() {
@@ -233,22 +321,38 @@ public class FaceDetectActivity extends AppCompatActivity {
         mFaceOverlayView.setDisplayOrientation(getWindowManager().getDefaultDisplay().getRotation());
     }
 
-    private void initCamera() {
-        mCameraID = "" + CameraCharacteristics.LENS_FACING_BACK;
-        mCameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
-        try {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
-                    PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "没有权限", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            mCameraManager.openCamera(mCameraID, cameraStateCallback, null);
-        }catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
+    private void startTimerTask() {
+        //启动定时任务，每3秒种发起一次连接
+        //然后将结果发送给Handler，
+        mRosConnectionTimer = new Timer();
+        mRosConnectionTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (serviceProxy != null) {
+                    if (serviceProxy.connect()) {
+                        mMainHandler.sendEmptyMessage(CONN_ROS_SERVER_SUCCESS);
+                    } else {
+                        mMainHandler.sendEmptyMessage(CONN_ROS_SERVER_ERROR);
+                    }
+                }
 
-    private void startDetectTask() {
+            }
+        },0,3000);
+
+        mPublishTopicTimer = new Timer();
+        mPublishTopicTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (serviceProxy != null && audioManager !=null) {
+                    int id = audioManager.getCurrentId();
+                    boolean isPlaying = audioManager.isPlaying();
+                    TtsStatus status = new TtsStatus(id,isPlaying);
+                    serviceProxy.publishTtsStatus(status);
+                }
+            }
+        },1000,200);
+
+        mDetectTimer = new Timer();
         //在这个定时任务中，不断的检测界面中的人脸
         final TimerTask detectTask = new TimerTask() {
             @Override
@@ -320,7 +424,6 @@ public class FaceDetectActivity extends AppCompatActivity {
                                 if (mPersonId == personId) {
                                     mPersonId++;
                                 }
-                                Log.i(TAG, "totalFrameCount:" + totalFrameCount);
                                 mFaces[i].setFace(personId, mid, eyeDistance, confidence, pose, System.currentTimeMillis());
                                 mPreviousFaces[i].set(mFaces[i].getId(), mFaces[i].getMidEye(), mFaces[i].eyesDistance(), mFaces[i].getConfidence(), mFaces[i].getPose(), mFaces[i].getTime());
                                 if (mFacesCountMap.get(personId) == null) {
@@ -333,9 +436,9 @@ public class FaceDetectActivity extends AppCompatActivity {
                                     if (tmpFrameCount == 5) {
                                         mFaceBitmap = ImageUtils.cropFace(mFaces[i], RGBFace,rotate);
                                         if (mFaceBitmap != null) {
-                                            mainHandler.post(new Runnable() {
+                                            mMainHandler.post(new Runnable() {
                                                 public void run() {
-                                                    mImagePreviewAdapter = new ImagePreviewAdapter(FaceDetectActivity.this, mRecyclerViewBitmapList, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
+                                                    mImagePreviewAdapter = new ImagePreviewAdapter(XBotFaceActivity.this, mRecyclerViewBitmapList, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
                                                         @Override
                                                         public void onClick(View v, int position) {
                                                             mImagePreviewAdapter.setCheck(position);
@@ -349,7 +452,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                                                 }
                                             });
                                             if(!isWaitingResult ){
-                                                connection.sendBitmap(mFaceBitmap);
+                                                youtuConnection.sendBitmap(mFaceBitmap);
                                                 isWaitingResult = true;
                                             }
                                         }
@@ -358,7 +461,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                             }
                         }
                     }
-                    mainHandler.post(new Runnable() {
+                    mMainHandler.post(new Runnable() {
                         public void run() {
                             //调用mFaceOverlayView的setFaces()方法，绘制人脸区域的矩形
                             mFaceOverlayView.setFaces(mFaces);
@@ -372,7 +475,27 @@ public class FaceDetectActivity extends AppCompatActivity {
                 }
             }
         };
+
         mDetectTimer.schedule(detectTask, 0, 200);
+    }
+    private void initCamera() {
+        mCameraID = "" + CameraCharacteristics.LENS_FACING_BACK;
+        mCameraManager = (CameraManager) getSystemService(CAMERA_SERVICE);
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "没有权限", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            mCameraManager.openCamera(mCameraID, cameraStateCallback, null);
+        }catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void startDetectTask() {
+
+
     }
 
     private void startPreview() {
@@ -448,6 +571,117 @@ public class FaceDetectActivity extends AppCompatActivity {
         }
     }
 
+    public void speakOutUser(String userId){
+        if (audioManager.isPlaying())
+            return;
+
+        Log.i(TAG, "speakOutUser()");
+        StringBuilder text = new StringBuilder();
+        text.append("你好，");
+
+        if (userId.equals(TTS_UNREGISTERED_USER)) {
+            text.append("游客。");
+        } else {
+            String name = Util.hexStringToString(userId);
+            text.append(name+"。");
+        }
+
+        //创建一个监听器
+        synthesizerListener = new SynthesizerListener() {
+            @Override
+            public void onSpeakBegin() {
+                Log.i(TAG, "--TTS--onSpeakBegin()--");
+            }
+
+            @Override
+            public void onBufferProgress(int progress, int beginPos, int endPos,String info) {
+                Log.i(TAG, "--TTS--onBufferProgress()--");
+            }
+
+            @Override
+            public void onSpeakPaused() {
+                Log.i(TAG, "--TTS--onSpeakPaused()--");
+            }
+
+            @Override
+            public void onSpeakResumed() {
+                Log.i(TAG, "--TTS--onSpeakResumed()--");
+            }
+
+            @Override
+            public void onSpeakProgress(int progress,int beginPos,int endPos) {
+                Log.i(TAG, "--TTS--onSpeakProgress()--");
+            }
+
+            @Override
+            public void onCompleted(SpeechError speechError) {
+                Log.i(TAG, "--TTS--onCompleted()--");
+
+                //首先播放第0个音频
+                audioManager.play(0);
+            }
+
+            //扩展用接口，由具体业务进行约定。
+            @Override
+            public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+                Log.i(TAG, "--TTS--onEvent()--");
+            }
+        };
+
+        //设置声音文件的缓存。仅支持保存为 pcm 和 wav 格式
+        String cacheFileName = getExternalCacheDir() + "/" + userId + ".pcm";
+        //如果本地已经有离线缓存，则直接播放离线缓存文件
+        if (isCacheExist(cacheFileName)) {
+            ttsSynthesizer.setParameter(ResourceUtil.TTS_RES_PATH, cacheFileName);
+            ttsSynthesizer.startSpeaking(text.toString(),synthesizerListener);
+            Log.i(TAG, "播放离线缓存文件---");
+        } else {
+            //如果本地没有缓存，则播放在线数据的同时缓存到本地
+            ttsSynthesizer.setParameter(SpeechConstant.TTS_AUDIO_PATH, cacheFileName);
+            //开始播放
+            ttsSynthesizer.startSpeaking(text.toString(),synthesizerListener );
+            Log.i(TAG, "离线文件不存在,在线播放---");
+        }
+
+    }
+
+    public boolean isCacheExist(String cacheFileName) {
+        File f = new File(cacheFileName);
+        if (f.exists()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    //初始化语音合成器
+    public void initSynthesizer() {
+        //初始化讯飞TTS引擎
+        SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+ Config.APPID);
+
+        //创建 SpeechSynthesizer 对象, 第二个参数：本地合成时传 InitListener，可以为Null
+        ttsSynthesizer = SpeechSynthesizer.createSynthesizer(XBotFaceActivity.this, null);
+
+        ttsSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "xiaoyan"); //设置发音人
+        ttsSynthesizer.setParameter(SpeechConstant.SPEED, "50");//设置语速
+        ttsSynthesizer.setParameter(SpeechConstant.VOLUME, "80");//设置音量，范围 0~100
+        ttsSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD); //设置云端
+
+    }
+
+    //EventBus的回调，用来接收从Service中发回来的机器人状态
+    public void onEvent(RobotStatus status) {
+        int locationId = status.getLocationId();
+//        boolean isMoving = status.isMoving();
+        //如果到达了新的位置，并且audioManager并没有在播放音频，则开始播放指定id的音频
+        if (locationId != audioManager.getCurrentId() && !audioManager.isPlaying()) {
+            audioManager.play(locationId);
+        }
+    }
+    private void updateFaceState(int state) {
+        mFaceState = state;
+        mLastchangetime = System.currentTimeMillis();
+
+    }
     private Size getPreferredPreviewSize(Size[] sizes, int width, int height) {
         List<Size> collectorSizes = new ArrayList<>();
         for (Size option : sizes) {
@@ -488,7 +722,10 @@ public class FaceDetectActivity extends AppCompatActivity {
         if (mCameraCaptureSession != null) {
             mCameraCaptureSession.close();
         }
+        //取消所有运行中的Timer
         mDetectTimer.cancel();
+        mRosConnectionTimer.cancel();
+        mPublishTopicTimer.cancel();
     }
 
     @Override
@@ -503,6 +740,7 @@ public class FaceDetectActivity extends AppCompatActivity {
         if (mImagePreviewAdapter != null) {
             mImagePreviewAdapter.clearAll();
         }
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 }

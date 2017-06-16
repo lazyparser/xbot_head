@@ -179,7 +179,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
 
         isEnableRos = true;
 
-        //定义Handler，用来接收TimerTask中发回来的连接状态
+        //双用途Handler，一用来接收TimerTask中发回来的Ros连接状态，二用来接收优图的识别结果
         handler = new Handler(){
             public void handleMessage(Message msg) {
                 //如果连接成功
@@ -200,7 +200,7 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
                 } else if (msg.what == HANDLER_PLAY_TTS) {
                     Bundle data = msg.getData();
                     String userName = (String) data.get("userId");
-                    speekOutUser(userName);
+                    speakOutUser(userName);
                 }
             }
         };
@@ -596,11 +596,11 @@ public final class XBotFace extends AppCompatActivity implements SurfaceHolder.C
     int counter = 0;
     double fps;
 
-    public void speekOutUser(String userId){
+    public void speakOutUser(String userId){
         if (audioManager.isPlaying())
             return;
 
-        Log.i(TAG, "speeckOutUser()");
+        Log.i(TAG, "speakOutUser()");
         StringBuilder text = new StringBuilder();
         text.append("你好，");
 

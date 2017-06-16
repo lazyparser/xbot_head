@@ -57,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
                 if (rc == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(mContext, XBotFace.class);
+//                    Intent intent = new Intent(mContext, XBotFace.class);
+                    Intent intent = new Intent(mContext, XBotFaceActivity.class);
                     startActivity(intent);
                 } else {
                     requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);

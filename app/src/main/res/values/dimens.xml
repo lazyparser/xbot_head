@@ -20,4 +20,7 @@
     <dimen name="button_retry_right_margin">10dp</dimen>
     <dimen name="button_home_top_margin">15dp</dimen>
 
+    <dimen name="small_texture_view_width">240dp</dimen>
+    <dimen name="small_texture_view_Height">320dp</dimen>
+
 </resources>
