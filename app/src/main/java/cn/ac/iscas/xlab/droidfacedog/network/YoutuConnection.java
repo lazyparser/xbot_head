@@ -66,12 +66,14 @@ public class YoutuConnection {
                                 Log.i(TAG, "识别成功");
                                 user.putString("userId",userId);
                                 msg.setData(user);
+                                msg.arg1 = ret;
                                 handler.sendMessage(msg);
                             }else {
                                 Log.i(TAG, "人脸识别失败或阈值设置过高");
                                 //识别失败
                                 user.putString("userId", XBotFaceActivity.TTS_UNREGISTERED_USER);
                                 msg.setData(user);
+                                msg.arg1 = ret;
                                 handler.sendMessage(msg);
                             }
                         } catch (JSONException e) {
@@ -92,6 +94,7 @@ public class YoutuConnection {
                             Bundle user = new Bundle();
                             user.putString("userId", XBotFaceActivity.TTS_UNREGISTERED_USER);
                             msg.setData(user);
+                            msg.arg1 = -1;
                             handler.sendMessage(msg);
                         }
 

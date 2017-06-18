@@ -76,13 +76,12 @@ import de.greenrobot.event.EventBus;
 
 public class XBotFaceActivity extends AppCompatActivity{
     public static final String TAG = "XBotFaceActivity";
-    public static final int STATE_IDLE = 0;
-    public static final int STATE_DETECTED = 1;
-    public static final int STATE_IDENTIFIED = 2;
+    public static final int STATE_IDLE = 0;//待机状态
+    public static final int STATE_DETECTED = 1;//人脸检测完毕
+    public static final int STATE_IDENTIFIED = 2;//人脸识别成功
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
-    public static final int HANDLER_UPDATE_FACE_STATE = 0x13;
-    public static final int HANDLER_PLAY_TTS = 0x14;
+    public static final int HANDLER_PLAY_TTS = 0x13;
     public static final String TTS_UNREGISTERED_USER = "0000000000";
     public static final int MAX_FACE_COUNT = 3;
 
@@ -185,10 +184,11 @@ public class XBotFaceActivity extends AppCompatActivity{
                     }
                 }else if(msg.what == CONN_ROS_SERVER_ERROR){
                     //Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "连接失败，正在重试");
-                } else if (msg.what == HANDLER_UPDATE_FACE_STATE) {
-                    updateFaceState(STATE_IDENTIFIED);
+                    Log.i(TAG, "Ros连接失败，正在重试");
                 } else if (msg.what == HANDLER_PLAY_TTS) {
+                    if (msg.arg1 == 0) {
+                        updateFaceState(STATE_IDENTIFIED);
+                    }
                     Bundle data = msg.getData();
                     String userName = (String) data.get("userId");
                     if (!hasGreeted) {
@@ -284,10 +284,7 @@ public class XBotFaceActivity extends AppCompatActivity{
                 if (mTotalFrameCount % 400 == 0) {
                     isWaitingResult = false;
                 }
-                //如果已经超过10秒，则把faceState置为原来的IDLE状态
-                if (System.currentTimeMillis() - mLastChangeTime > 1000) {
-                    updateFaceState(STATE_IDLE);
-                }
+
                 Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
             }
         });
@@ -466,7 +463,10 @@ public class XBotFaceActivity extends AppCompatActivity{
                                                         mImagePreviewAdapter.add(mFaceBitmap);
                                                         mRecyclerView.setAdapter(mImagePreviewAdapter);
                                                     }
-                                                    updateFaceState(STATE_DETECTED);
+                                                    if (!hasGreeted) {
+                                                        updateFaceState(STATE_DETECTED);
+                                                    }
+
                                                 }
                                             });
                                             if (!isWaitingResult) {
@@ -479,6 +479,14 @@ public class XBotFaceActivity extends AppCompatActivity{
                             }
                         }
                     }
+                }
+                if (System.currentTimeMillis() - mLastChangeTime > 10000) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateFaceState(STATE_IDLE);
+                        }
+                    });
                 }
             }
         };
