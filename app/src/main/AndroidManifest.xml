@@ -30,9 +30,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".XBotFace"
-            android:screenOrientation="fullSensor"/>
-        <activity
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity"
             android:label="@string/title_activity_settings">
