@@ -71,7 +71,7 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.camera_layout);
+        setContentView(R.layout.activity_take_head_photo);
 
         linearLayout = (LinearLayout) findViewById(R.id.bottom_linear_layout);
         bt_ok = (Button) findViewById(R.id.id_bt_ok);

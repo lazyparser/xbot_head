@@ -148,7 +148,7 @@ public class XBotFaceActivity extends AppCompatActivity{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(R.layout.xbot_face_layout);
+        setContentView(R.layout.activity_xbot_face);
         getSupportActionBar().hide();
 
         mTextureView = (TextureView) findViewById(R.id.id_small_texture_view);

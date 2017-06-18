@@ -103,7 +103,7 @@ public class FaceDetectActivity extends AppCompatActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.face_detect_activity_layout);
+        setContentView(R.layout.activity_face_detect);
         mTextureView = (TextureView) findViewById(R.id.id_texture_view);
         mFpsTextView = (TextView) findViewById(R.id.id_tv_fps);
         mRecyclerView = (RecyclerView) findViewById(R.id.id_recycler_view);
