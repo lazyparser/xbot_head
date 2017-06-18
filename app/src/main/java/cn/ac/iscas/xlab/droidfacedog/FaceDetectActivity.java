@@ -339,6 +339,7 @@ public class FaceDetectActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onClick(View v, int position) {
                                                             mImagePreviewAdapter.setCheck(position);
+                                                            mRecyclerView.setAdapter(mImagePreviewAdapter);
                                                             mImagePreviewAdapter.notifyDataSetChanged();
                                                         }
                                                     });
