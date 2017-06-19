@@ -30,9 +30,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".XBotFace"
-            android:screenOrientation="fullSensor"/>
-        <activity
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity"
             android:label="@string/title_activity_settings">
@@ -45,6 +42,7 @@
         <service android:name=".RosConnectionService" />
         <activity android:name=".FaceDetectActivity"
             android:label="正在检测中"/>
+        <activity android:name=".XBotFaceActivity" />
     </application>
 
 </manifest>

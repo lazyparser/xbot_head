@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/xbotfacelayout"
+    android:id="@+id/id_xbotface_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:keepScreenOn="true">
 
-
     <ImageView
-        android:id="@+id/faceimageview"
+        android:id="@+id/id_iv_face_state"
         android:layout_width="800dp"
         android:layout_height="800dp"
         android:layout_alignParentBottom="true"
@@ -17,20 +16,23 @@
         android:scaleType="fitCenter"
         android:src="@drawable/idleface" />
 
-    <SurfaceView
-        android:id="@+id/xbotfaceview"
-        android:layout_width="200dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
-        android:layout_height="200dp" />
-
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/xbotfacerecyclerview"
-        android:layout_width="@dimen/image_preview_width"
-        android:layout_height="@dimen/image_preview_height"
+        android:id="@+id/id_face_recyclerview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:layout_margin="10dp"
-        android:scrollbars="vertical" />
+        />
+
+    <TextureView
+        android:id="@+id/id_small_texture_view"
+        android:layout_width="@dimen/small_texture_view_width"
+        android:layout_height="@dimen/small_texture_view_Height"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        />
+
+
 
 </RelativeLayout>

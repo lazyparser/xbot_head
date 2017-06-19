@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">优图人脸识别前端</string>
     <string name="detect_window_title">人脸检测中</string>
-    <string name="begin_preview_button">开始检测</string>
+    <string name="begin_preview_button">人脸检测</string>
     <string name="config_button_text">云端配置</string>
     <string name="title_activity_settings">配置选项</string>
 
@@ -15,7 +15,7 @@
     <string name="pref_title_new_message_notifications">新消息通知</string>
 
     <string name="begin_register_button">用户注册</string>
-    <string name="begin_xbotface_button">机器人脸</string>
+    <string name="begin_xbotface_button">语音解说</string>
     <string name="xbotface_title">XBotFace</string>
     <string name="pref_default_ros_ip">192.168.1.111</string>
     <string name="pref_title_ros_ip">ROS服务器IP地址</string>

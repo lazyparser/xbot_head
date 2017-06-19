@@ -20,7 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
 import cn.ac.iscas.xlab.droidfacedog.CameraActivity;
-import cn.ac.iscas.xlab.droidfacedog.XBotFace;
+import cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 
 import static cn.ac.iscas.xlab.droidfacedog.config.Config.RECOG_THRESHOLD;
@@ -59,19 +59,21 @@ public class YoutuConnection {
                             String userId = jsonObject.getString("Id");
                             int ret = jsonObject.getInt("Ret");
                             Message msg = handler.obtainMessage();
-                            msg.what = XBotFace.HANDLER_PLAY_TTS;
+                            msg.what = XBotFaceActivity.HANDLER_PLAY_TTS;
                             Bundle user = new Bundle();
                             //判断Ret字段是否是0,如果是0表示识别成功
                             if (ret == 0 && confidence>=RECOG_THRESHOLD) {
                                 Log.i(TAG, "识别成功");
                                 user.putString("userId",userId);
                                 msg.setData(user);
+                                msg.arg1 = ret;
                                 handler.sendMessage(msg);
                             }else {
                                 Log.i(TAG, "人脸识别失败或阈值设置过高");
                                 //识别失败
-                                user.putString("userId", XBotFace.TTS_UNREGISTERED_USER);
+                                user.putString("userId", XBotFaceActivity.TTS_UNREGISTERED_USER);
                                 msg.setData(user);
+                                msg.arg1 = ret;
                                 handler.sendMessage(msg);
                             }
                         } catch (JSONException e) {
@@ -88,10 +90,11 @@ public class YoutuConnection {
                         Log.i(TAG,"Recognition Error:"+volleyError.getMessage());
                         if (handler != null) {
                             Message msg = handler.obtainMessage();
-                            msg.what = XBotFace.HANDLER_PLAY_TTS;
+                            msg.what = XBotFaceActivity.HANDLER_PLAY_TTS;
                             Bundle user = new Bundle();
-                            user.putString("userId", XBotFace.TTS_UNREGISTERED_USER);
+                            user.putString("userId", XBotFaceActivity.TTS_UNREGISTERED_USER);
                             msg.setData(user);
+                            msg.arg1 = -1;
                             handler.sendMessage(msg);
                         }
 
