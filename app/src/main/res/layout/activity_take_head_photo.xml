@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <SurfaceView
-        android:id="@+id/id_surface_view"
+    <TextureView
+        android:id="@+id/id_texture_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

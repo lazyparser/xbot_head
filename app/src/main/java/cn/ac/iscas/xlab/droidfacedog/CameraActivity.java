@@ -7,12 +7,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
@@ -23,8 +25,9 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.util.Size;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -37,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
+import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
 import static android.view.View.GONE;
 
@@ -46,8 +50,8 @@ import static android.view.View.GONE;
 @TargetApi(21)
 public class CameraActivity extends AppCompatActivity {
 
-    private SurfaceView mSurfaceView;
-    private SurfaceHolder mSurfaceHolder;
+    private TextureView mTextureView;
+    private SurfaceTexture mSurfaceTexture;
     private ImageView iv_show;
     private CameraManager mCameraManager;//摄像头管理器
     private String mCameraID;//摄像头Id 0 为后  1 为前
@@ -60,6 +64,7 @@ public class CameraActivity extends AppCompatActivity {
     private Handler handler;
     public static final String TAG = "CameraActivity";
     private Bitmap faceBitmap;
+    private Size mPreviewSize;
 
     public static final int REGISTER_SUCCESS = 0x11;
     public static final int REGISTER_FAIL = 0x22;
@@ -79,9 +84,11 @@ public class CameraActivity extends AppCompatActivity {
         bt_home = (Button) findViewById(R.id.id_bt_home);
         tv_shoot = (TextView) findViewById(R.id.id_tv_oval);
         iv_show = (ImageView) findViewById(R.id.id_iv_show_picture);
-        mSurfaceView = (SurfaceView) findViewById(R.id.id_surface_view);
+        mTextureView = (TextureView) findViewById(R.id.id_texture_view);
 
         initView();
+
+        initCamera();
 
         initOnClickListener();
     }
@@ -124,31 +131,33 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     public void initView() {
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.setKeepScreenOn(true);
 
-        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
+        //为SurfaceView设置监听器
+        mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
             @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                Log.i(TAG, "---surfaceCreated---");
-                initCamera2();
-                Log.i(TAG, "SurfaceView  width:"+mSurfaceView.getWidth() + "， height:" + mSurfaceView.getHeight());
+            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureAvailable()");
+                mSurfaceTexture = surface;
+                takePreview();
             }
 
             @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                Log.i(TAG, "---surfaceChanged---");
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+                Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureSizeChanged()");
             }
 
             @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                Log.i(TAG, "---surfaceDestroyed---");
-                if (mCameraDevice != null) {
-                    mCameraDevice.close();
-                    mCameraDevice = null;
-                }
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureDestroyed()");
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
             }
         });
+
 
     }
 
@@ -156,9 +165,7 @@ public class CameraActivity extends AppCompatActivity {
         bt_ok.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 String userName = getIntent().getStringExtra("userName");
-
                 //传入handler来处理优图服务端返回的注册结果
                 YoutuConnection youtuConnection = new YoutuConnection(CameraActivity.this, handler);
                 //进行注册
@@ -192,27 +199,23 @@ public class CameraActivity extends AppCompatActivity {
     private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
+            Log.i(TAG, "CameraDevice.StateCallback -- onOpened()");
             mCameraDevice = camera;
-
-            takePreview();
         }
 
         @Override
         public void onDisconnected(@NonNull CameraDevice camera) {
-            if (mCameraDevice != null) {
-                mCameraDevice.close();
-                mCameraDevice = null;
-            }
+            Log.i(TAG, "CameraDevice.StateCallback -- onDisconnected()");
         }
 
         @Override
         public void onError(@NonNull CameraDevice camera,  int error) {
-            Toast.makeText(CameraActivity.this, "摄像头开启失败", Toast.LENGTH_SHORT).show();
+            Log.i(TAG, "CameraDevice.StateCallback -- onError()");
         }
     };
 
     //初始化摄像头
-    private void initCamera2() {
+    private void initCamera() {
         mCameraID = ""+CameraCharacteristics.LENS_FACING_BACK;
         WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         DisplayMetrics dm = new DisplayMetrics();
@@ -227,11 +230,11 @@ public class CameraActivity extends AppCompatActivity {
         mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                mCameraDevice.close();
-                mSurfaceView.setVisibility(GONE);
+                mTextureView.setVisibility(GONE);
                 tv_shoot.setVisibility(GONE);
                 iv_show.setVisibility(View.VISIBLE);
                 linearLayout.setVisibility(View.VISIBLE);
+
                 Image image = reader.acquireLatestImage();
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
@@ -252,6 +255,7 @@ public class CameraActivity extends AppCompatActivity {
                     }
                     faceBitmap = Bitmap.createBitmap(tmpBitmap, 0, 0, width, height, matrix, true);
                     iv_show.setImageBitmap(tmpBitmap);
+                    image.close();
                 }
             }
         },null);
@@ -269,19 +273,32 @@ public class CameraActivity extends AppCompatActivity {
         }
 
     }
-
+    CaptureRequest.Builder requestBuilder;
     private void takePreview() {
         try{
+            CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(mCameraID);
+            StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+            int width = mTextureView.getWidth();
+            int height = mTextureView.getHeight();
+            //获得最合适的预览尺寸
+            mPreviewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
+//            mPreviewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), width, height);
+            mSurfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(),mPreviewSize.getHeight());
+            Log.i(TAG, "mPreviewSize:" + mPreviewSize.getWidth() + "x" + mPreviewSize.getHeight());
+
+            final Surface surface = new Surface(mSurfaceTexture);
             //创建预览需要的CaptureRequest.Builder
-            final CaptureRequest.Builder requestbuilder =
+            requestBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 
-            requestbuilder.addTarget(mSurfaceHolder.getSurface());
-            Log.i(TAG, "surfaceHolder width:" + mSurfaceHolder.getSurfaceFrame().width() +
-                    ",height:" + mSurfaceHolder.getSurfaceFrame().height());
+            if (surface.isValid()) {
+                requestBuilder.addTarget(surface);
+            }
+            Log.i(TAG, "mTextureView info:" + mTextureView.getWidth() + "x" + mTextureView.getHeight());
 
             //创建CameraSession,该对象负责管理处理预览请求和拍照请求
-            mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(),mImageReader.getSurface()),
+            mCameraDevice.createCaptureSession(Arrays.asList(surface,mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
                 @Override
                 public void onConfigured(@NonNull CameraCaptureSession session) {
@@ -291,13 +308,13 @@ public class CameraActivity extends AppCompatActivity {
                     mCameraCaptureSession = session;
 
                     //设置自动对焦点
-                    requestbuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                    requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
                     //打开自动曝光
-                    requestbuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                    requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
 
                     //显示预览
-                    CaptureRequest previewRequest = requestbuilder.build();
+                    CaptureRequest previewRequest = requestBuilder.build();
 
                     try {
                         mCameraCaptureSession.setRepeatingRequest(previewRequest, null, null);
@@ -308,14 +325,13 @@ public class CameraActivity extends AppCompatActivity {
 
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                    Toast.makeText(CameraActivity.this, "配置失败", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "onConfigureFailed");
 
                 }
             },null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
-
 
     }
 
@@ -351,7 +367,7 @@ public class CameraActivity extends AppCompatActivity {
     public void reCapture() {
         iv_show.setVisibility(GONE);
         linearLayout.setVisibility(GONE);
-        mSurfaceView.setVisibility(View.VISIBLE);
+        mTextureView.setVisibility(View.VISIBLE);
         tv_shoot.setVisibility(View.VISIBLE);
     }
 
@@ -362,7 +378,9 @@ public class CameraActivity extends AppCompatActivity {
         if (faceBitmap != null) {
             faceBitmap.recycle();
         }
-        mSurfaceHolder.getSurface().release();
+        if (mSurfaceTexture != null) {
+            mSurfaceTexture.release();
+        }
         mImageReader.getSurface().release();
     }
 

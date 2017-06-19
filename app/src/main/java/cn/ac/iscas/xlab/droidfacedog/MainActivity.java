@@ -24,7 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = MainActivity.class.getSimpleName();
 
-    private static final int RC_HANDLE_CAMERA_PERM_RGB = 1;
+    public static final int REGISTER_ACTIVITY = 1;
+    public static final int XBOTFACE_ACTIVITY = 2;
 
     private Context mContext;
     Button btnXbotFace;
@@ -42,11 +43,10 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
                 if (rc == PackageManager.PERMISSION_GRANTED) {
-//                    Intent intent = new Intent(mContext, XBotFace.class);
                     Intent intent = new Intent(mContext, XBotFaceActivity.class);
                     startActivity(intent);
                 } else {
-                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
+                    requestCameraPermission(XBOTFACE_ACTIVITY);
                 }
             }
         });
@@ -55,8 +55,14 @@ public class MainActivity extends AppCompatActivity {
         btnRegisterUser.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, RegisterActivity.class);
-                startActivity(intent);
+                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+                if (rc == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(mContext, RegisterActivity.class);
+                    startActivity(intent);
+                } else {
+                    requestCameraPermission(REGISTER_ACTIVITY);
+                }
+
             }
         });
 
@@ -104,12 +110,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
-        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == RC_HANDLE_CAMERA_PERM_RGB) {
+        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == REGISTER_ACTIVITY) {
+            Intent intent = new Intent(mContext, RegisterActivity.class);
+            startActivity(intent);
+            return;
+        }
+        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == XBOTFACE_ACTIVITY) {
             Intent intent = new Intent(mContext, XBotFaceActivity.class);
             startActivity(intent);
             return;
         }
-
 
         Log.e(TAG, "Permission not granted: results len = " + grantResults.length +
                 " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));

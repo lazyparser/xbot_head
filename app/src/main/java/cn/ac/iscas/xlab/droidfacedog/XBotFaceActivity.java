@@ -54,10 +54,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -516,7 +513,7 @@ public class XBotFaceActivity extends AppCompatActivity{
 
             //设置一个合适的预览尺寸，防止图像拉伸
 //            mPreviewSize = getPreferredPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), width, height);
-            mPreviewSize = getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
+            mPreviewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
             mSurfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(),mPreviewSize.getHeight());
             Log.i(TAG, "mPreviewSize info:" + mPreviewSize.getWidth() + "x" + mPreviewSize.getHeight());
 
@@ -701,30 +698,6 @@ public class XBotFaceActivity extends AppCompatActivity{
 
     }
 
-    private Size getPreferredPreviewSize(Size[] sizes, int width, int height) {
-        List<Size> collectorSizes = new ArrayList<>();
-        for (Size option : sizes) {
-            //找到长宽都大于指定宽高的size，把这些size放在List中
-            if (width > height) {
-                if (option.getWidth() > width && option.getHeight() > height) {
-                    collectorSizes.add(option);
-                }
-            } else {
-                if (option.getHeight() > width && option.getWidth() > height) {
-                    collectorSizes.add(option);
-                }
-            }
-        }
-        if (collectorSizes.size() > 0) {
-            return Collections.min(collectorSizes, new Comparator<Size>() {
-                @Override
-                public int compare(Size s1, Size s2) {
-                    return Long.signum(s1.getWidth() * s1.getHeight() - s2.getWidth() * s2.getHeight());
-                }
-            });
-        }
-        return sizes[0];
-    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
