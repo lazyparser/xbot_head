@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int RC_HANDLE_CAMERA_PERM_RGB = 1;
 
     private Context mContext;
-    Button btnCameraRGB;
     Button btnXbotFace;
     Button btnRegisterUser;
     Button btnSetting;
@@ -36,20 +35,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = this;
-
-        btnCameraRGB = (Button) findViewById(R.id.button_detect);
-        btnCameraRGB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
-                if (rc == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(mContext, FaceDetectActivity.class);
-                    startActivity(intent);
-                } else {
-                    requestCameraPermission(RC_HANDLE_CAMERA_PERM_RGB);
-                }
-            }
-        });
 
         btnXbotFace = (Button) findViewById(R.id.button_xbotface);
         btnXbotFace.setOnClickListener(new View.OnClickListener() {
@@ -120,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
         if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == RC_HANDLE_CAMERA_PERM_RGB) {
-            Intent intent = new Intent(mContext, FaceDetectActivity.class);
+            Intent intent = new Intent(mContext, XBotFaceActivity.class);
             startActivity(intent);
             return;
         }
