@@ -9,6 +9,8 @@ There will be more funny functions ,which are in developing stage.
 
 Coming soon~~
 
+[点击这里下载最新的APK](http://fir.im/u4rz)
+
 ## Thanks
 [bytefish][bytefish] for a sample Face Detection with Android
 This Project is originally developed by Nguyen Minh Tri - <tri2991@gmail.com>
