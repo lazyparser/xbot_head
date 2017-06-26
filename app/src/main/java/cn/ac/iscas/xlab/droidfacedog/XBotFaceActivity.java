@@ -339,7 +339,7 @@ public class XBotFaceActivity extends AppCompatActivity{
             @Override
             public void run() {
                 if (mServiceProxy != null) {
-                    if (mServiceProxy.connect()) {
+                    if (mServiceProxy.isConnected()) {
                         mMainHandler.sendEmptyMessage(CONN_ROS_SERVER_SUCCESS);
                     } else {
                         mMainHandler.sendEmptyMessage(CONN_ROS_SERVER_ERROR);

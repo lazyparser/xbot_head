@@ -2,6 +2,7 @@
     <string name="app_name">优图人脸识别前端</string>
     <string name="detect_window_title">人脸检测中</string>
     <string name="config_button_text">云端配置</string>
+    <string name="control_button_text">控制模式</string>
     <string name="title_activity_settings">配置选项</string>
 
     <string name="pref_header_general">通用配置</string>

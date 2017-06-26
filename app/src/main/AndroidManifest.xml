@@ -41,6 +41,8 @@
 
         <service android:name=".RosConnectionService" />
         <activity android:name=".XBotFaceActivity" />
+        <activity android:name=".ControlActivity" />
+
     </application>
 
 </manifest>

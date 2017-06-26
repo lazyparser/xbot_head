@@ -28,6 +28,10 @@ public class RosConnectionService extends Service{
     public static final String TAG = "RosConnectionService";
     public static final String SUBSCRIBE_TOPIC = "/museum_position";
     public static final String PUBLISH_TOPIC = "/tts_status";
+    public static final int CTRL_FORWARD = 0x11;
+    public static final int CTRL_BACK = 0x12;
+    public static final int CTRL_LEFT = 0x13;
+    public static final int CTRL_RIGHT = 0x14;
 
 
     public Binder proxy = new ServiceBinder();
@@ -36,7 +40,7 @@ public class RosConnectionService extends Service{
     private boolean isConnected;
 
     public class ServiceBinder extends Binder {
-        public boolean connect(){
+        public boolean isConnected(){
             return isConnected;
         }
 
@@ -60,7 +64,33 @@ public class RosConnectionService extends Service{
                     e.printStackTrace();
                 }
             }
-            
+        }
+
+        public void publishMoveTopic(int command) {
+
+            //TODO:后续确定了topic之后，再进行具体实现
+            switch (command) {
+                case CTRL_FORWARD:
+                    //test
+                    Log.i(TAG, "点击了[前进]按钮");
+
+                    break;
+                case CTRL_BACK:
+                    Log.i(TAG, "点击了[后退]按钮");
+
+                    break;
+                case CTRL_LEFT:
+                    Log.i(TAG, "点击了[左转]按钮");
+
+                    break;
+                case CTRL_RIGHT:
+                    Log.i(TAG, "点击了[右转]按钮");
+
+                    break;
+                default:
+                    break;
+            }
+
         }
     }
 
@@ -76,35 +106,6 @@ public class RosConnectionService extends Service{
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "RosConnService--onStartCommand()");
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    //订阅某个topic后，接收到Ros服务器返回的message，回调此方法
-    public void onEvent(PublishEvent event) {
-        //topic的名称
-        String topicName = event.name;
-        Log.i(TAG, "onEvent:" + event.msg);
-        if (topicName.equals(SUBSCRIBE_TOPIC)) {
-            String msg = event.msg;
-            JSONObject msgInfo;
-            try {
-                msgInfo = new JSONObject(msg);
-                int id = msgInfo.getInt("id");
-                boolean isMoving = msgInfo.getBoolean("ismoving");
-                Log.i(TAG, "onEvent:" + event.msg);
-                RobotStatus robotStatus = new RobotStatus(id, isMoving);
-                EventBus.getDefault().post(robotStatus);
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "RosConnService--onDestroy()");
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
     }
 
     @Nullable
@@ -150,9 +151,38 @@ public class RosConnectionService extends Service{
                     Log.i(TAG, "RosConnectionService连接Ros失败");
                 }
                 isConnected = conneSucc;
-                Log.i(TAG, "connection Thread is Running in Thread:" + Thread.currentThread().getId());
+                Log.i(TAG, "RosConnection Thread is Running in Thread:" + Thread.currentThread().getId());
             }
         }.start();
         return proxy;
+    }
+
+    //订阅某个topic后，接收到Ros服务器返回的message，回调此方法
+    public void onEvent(PublishEvent event) {
+        //topic的名称
+        String topicName = event.name;
+        Log.i(TAG, "onEvent:" + event.msg);
+        if (topicName.equals(SUBSCRIBE_TOPIC)) {
+            String msg = event.msg;
+            JSONObject msgInfo;
+            try {
+                msgInfo = new JSONObject(msg);
+                int id = msgInfo.getInt("id");
+                boolean isMoving = msgInfo.getBoolean("ismoving");
+                Log.i(TAG, "onEvent:" + event.msg);
+                RobotStatus robotStatus = new RobotStatus(id, isMoving);
+                EventBus.getDefault().post(robotStatus);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "RosConnService--onDestroy()");
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
     }
 }
