@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     Button btnXbotFace;
     Button btnRegisterUser;
     Button btnSetting;
+    Button btnControl;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,6 +74,14 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(mContext, SettingsActivity.class);
                     // http://stackoverflow.com/questions/15172111/preferenceactivity-actionbar-home-icon-wont-return-home-unlike-et
                     startActivityForResult(intent, 1);
+            }
+        });
+
+        btnControl = (Button) findViewById(R.id.button_control);
+        btnControl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mContext,ControlActivity.class));
             }
         });
 
