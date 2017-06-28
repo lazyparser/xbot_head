@@ -98,6 +98,27 @@ public class AudioManager {
         currentId = CURRENT_NOT_PLAYING;
     }
 
+    public void pause() {
+        if (!isPlaying()) {
+            return;
+        }
+        MediaPlayer currentPlayer = audioMap.get(currentId);
+        if (currentPlayer.isPlaying()) {
+            currentPlayer.pause();
+        }
+    }
+
+    //继续播放
+    public void resume() {
+        if (isPlaying()) {
+            return;
+        }
+        MediaPlayer currentPlayer = audioMap.get(currentId);
+        if (!currentPlayer.isPlaying()) {
+            currentPlayer.start();
+        }
+    }
+
     public int getCurrentId() {
         return currentId;
     }

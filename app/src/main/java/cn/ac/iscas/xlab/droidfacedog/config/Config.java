@@ -18,6 +18,15 @@ public class Config {
 
     public static boolean ENABLE_MESSAGE_NOTIFICATION;
 
+    //科大讯飞命令词识别功能所需的语法文本
+    public static final String SPEECH_GRAMMAR = "#ABNF 1.0 UTF-8;\n" +
+            "language zh-CN;\n" +
+            "mode voice;\n" +
+            "root command;\n" +
+            "$command = $action [$speech];\n" +
+            "$action = 暂停|停止|继续|恢复|开始;\n" +
+            "$speech = 解说|播放;";
+
     //讯飞开放平台中获得的APPID
     public static final String APPID = "59198461";
 

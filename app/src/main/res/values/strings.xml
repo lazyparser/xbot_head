@@ -40,4 +40,7 @@
     <string name="button_retry">重拍</string>
     <string name="button_ok">确认注册</string>
     <string name="button_home">返回主界面</string>
+
+    <string name="snackbar_tip">"你可以按住上方的按钮说出语音指令词，" +
+                        "如：停止播放/解说、开始播放/解说等"</string>>
 </resources>
