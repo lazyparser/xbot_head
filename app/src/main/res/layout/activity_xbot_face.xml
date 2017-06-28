@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/id_xbotface_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:keepScreenOn="true">
+    android:keepScreenOn="true"
+    >
 
     <ImageView
         android:id="@+id/id_iv_face_state"
@@ -33,6 +35,25 @@
         android:layout_alignParentStart="true"
         />
 
+    <android.support.design.widget.CoordinatorLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        >
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floating_action_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_record"
+            android:clickable="true"
+            android:layout_margin="@dimen/fab_margin"
+            app:fabSize="normal"
+            app:borderWidth="@dimen/fab_border_width"
+            app:backgroundTint="@color/fab_background_color"
+            app:rippleColor="@color/fab_Ripple_color"
+            app:pressedTranslationZ="@dimen/fab_press_translation"/>
+    </android.support.design.widget.CoordinatorLayout>
 
 
 </RelativeLayout>
