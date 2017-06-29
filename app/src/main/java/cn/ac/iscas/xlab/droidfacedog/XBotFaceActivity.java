@@ -49,6 +49,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.GrammarListener;
 import com.iflytek.cloud.InitListener;
@@ -68,10 +69,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.entity.CommandRecogResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
@@ -297,7 +300,7 @@ public class XBotFaceActivity extends AppCompatActivity{
                     isWaitingResult = false;
                 }
 
-                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
+//                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
             }
         });
 
@@ -355,7 +358,7 @@ public class XBotFaceActivity extends AppCompatActivity{
             public boolean onTouch(View v, MotionEvent event) {
                 if (event.getAction() == MotionEvent.ACTION_DOWN) {
                     Toast.makeText(XBotFaceActivity.this, "正在采集语音指令，请说话", Toast.LENGTH_SHORT).show();
-//                    recognizer.startListening(recognizerListener);
+                    recognizer.startListening(recognizerListener);
                 } else if (event.getAction() == MotionEvent.ACTION_UP) {
 
                 }
@@ -736,7 +739,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         recognizerListener = new RecognizerListener() {
             @Override
             public void onVolumeChanged(int volume, byte[] data) {
-                Log.i(TAG, "RecognizerListener -- onVolumeChanged()");
+//                Log.i(TAG, "RecognizerListener -- onVolumeChanged()");
             }
 
             @Override
@@ -754,9 +757,7 @@ public class XBotFaceActivity extends AppCompatActivity{
             @Override
             public void onResult(RecognizerResult recognizerResult, boolean isLast) {
                 Log.i(TAG, "RecognizerListener -- onResult()");
-                Log.i(TAG, "isLast:" + isLast);
-                Log.i(TAG, "recognizerResult:" + recognizerResult.getResultString());
-
+                handleRecognizerResult(recognizerResult);
             }
 
             @Override
@@ -805,7 +806,51 @@ public class XBotFaceActivity extends AppCompatActivity{
 
         snackbar.show();
     }
+    private void handleRecognizerResult(RecognizerResult recognizerResult) {
+        String result = recognizerResult.getResultString();
 
+        Gson gson = new Gson();
+        CommandRecogResult resultEntity = gson.fromJson(result, CommandRecogResult.class);
+        Log.i(TAG, resultEntity.toString());
+
+        List<CommandRecogResult.WsBean> list = resultEntity.getWs();
+        if (list.size() == 1) {
+            List<CommandRecogResult.WsBean.CwBean> cwBeanList = list.get(0).getCw();
+            String word = cwBeanList.get(0).getW();
+            if (word.equals("开始") || word.equals("恢复") || word.equals("继续")) {
+                Log.i(TAG,"指令正确：" + word);
+                mAudioManager.resume();
+            }else if ( word.equals("暂停")||word.equals("停止")) {
+                Log.i(TAG,"指令正确：" + word);
+                mAudioManager.pause();
+            }else{
+                Log.i(TAG, "指令识别失败：" + result);
+            }
+        } else if (list.size() == 2) {
+            List<CommandRecogResult.WsBean.CwBean> cwBeanList1 = list.get(0).getCw();
+            String word1 = cwBeanList1.get(0).getW();
+            if (word1.equals("开始") || word1.equals("恢复") || word1.equals("继续")) {
+                List<CommandRecogResult.WsBean.CwBean> cwBeanList2 = list.get(1).getCw();
+                String word2 = cwBeanList2.get(0).getW();
+                if (word2.equals("播放")||word2.equals("解说") ) {
+                    Log.i(TAG,"指令正确：" + word1+word2);
+                    mAudioManager.resume();
+                }
+            } else if (word1.equals("暂停") || word1.equals("停止")) {
+                List<CommandRecogResult.WsBean.CwBean> cwBeanList2 = list.get(1).getCw();
+                String word2 = cwBeanList2.get(0).getW();
+                if (word2.equals("播放") || word2.equals("解说")) {
+                    Log.i(TAG,"指令正确：" + word1+word2);
+                    mAudioManager.pause();
+                }
+            } else {
+                Log.i(TAG, "指令识别失败：" + result);
+            }
+        } else {
+            Log.i(TAG, "指令识别失败：" + result);
+            Toast.makeText(this, "请说出正确的口令词", Toast.LENGTH_SHORT).show();
+        }
+    }
     private void updateFaceState(int state) {
         mFaceState = state;
         mLastChangeTime = System.currentTimeMillis();
