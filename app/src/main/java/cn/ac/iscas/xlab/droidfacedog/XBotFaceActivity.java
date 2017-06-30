@@ -7,8 +7,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.graphics.PointF;
 import android.graphics.RectF;
@@ -28,6 +30,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -35,15 +40,24 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.Size;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.GrammarListener;
+import com.iflytek.cloud.InitListener;
+import com.iflytek.cloud.RecognizerListener;
+import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
+import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechSynthesizer;
 import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.SynthesizerListener;
@@ -55,10 +69,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.entity.CommandRecogResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
@@ -140,6 +156,10 @@ public class XBotFaceActivity extends AppCompatActivity{
     //科大讯飞的语音合成器[需要联网才能使用]
     private SpeechSynthesizer ttsSynthesizer;
     private SynthesizerListener synthesizerListener;
+    private SpeechRecognizer recognizer;
+    private RecognizerListener recognizerListener;
+    private FloatingActionButton mFloatingActionButton;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -147,9 +167,6 @@ public class XBotFaceActivity extends AppCompatActivity{
         setContentView(R.layout.activity_xbot_face);
         getSupportActionBar().hide();
 
-        mTextureView = (TextureView) findViewById(R.id.id_small_texture_view);
-        mStateImageView = (ImageView) findViewById(R.id.id_iv_face_state);
-        mRecyclerView = (RecyclerView) findViewById(R.id.id_face_recyclerview);
 
         initView();
 
@@ -197,7 +214,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         };
         youtuConnection = new YoutuConnection(XBotFaceActivity.this,mMainHandler);
 
-        initSynthesizer();
+        initSpeechEngine();
 
         EventBus.getDefault().register(this);
 
@@ -237,6 +254,7 @@ public class XBotFaceActivity extends AppCompatActivity{
                         }
                         startPreview();
                         mDetectTimer.schedule(mDetectFaceTask, 0, 200);
+
                     }
                 })
                 .setNegativeButton("取消连接", new DialogInterface.OnClickListener() {
@@ -282,7 +300,7 @@ public class XBotFaceActivity extends AppCompatActivity{
                     isWaitingResult = false;
                 }
 
-                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
+//                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
             }
         });
 
@@ -317,6 +335,11 @@ public class XBotFaceActivity extends AppCompatActivity{
 
 
     private void initView() {
+        mTextureView = (TextureView) findViewById(R.id.id_small_texture_view);
+        mStateImageView = (ImageView) findViewById(R.id.id_iv_face_state);
+        mRecyclerView = (RecyclerView) findViewById(R.id.id_face_recyclerview);
+        mFloatingActionButton = (FloatingActionButton) findViewById(R.id.floating_action_bar);
+
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(layoutManager);
 
@@ -329,6 +352,20 @@ public class XBotFaceActivity extends AppCompatActivity{
         mFaceOverlayView.setDisplayOrientation(getWindowManager().getDefaultDisplay().getRotation());
 
         showWaitingDialog();
+
+        mFloatingActionButton.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    Toast.makeText(XBotFaceActivity.this, "正在采集语音指令，请说话", Toast.LENGTH_SHORT).show();
+                    recognizer.startListening(recognizerListener);
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+
+                }
+                return true;
+            }
+        });
+
     }
 
     private void startTimerTask() {
@@ -580,6 +617,8 @@ public class XBotFaceActivity extends AppCompatActivity{
         if (mAudioManager.isPlaying())
             return;
 
+        showVoiceCommandIntroduction();
+
         Log.i(TAG, "speakOutUser()");
         StringBuilder text = new StringBuilder();
         text.append("你好，");
@@ -624,6 +663,7 @@ public class XBotFaceActivity extends AppCompatActivity{
 
                 //首先播放第0个音频
                 mAudioManager.play(0);
+
             }
 
             //扩展用接口，由具体业务进行约定。
@@ -659,7 +699,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         }
     }
     //初始化语音合成器
-    public void initSynthesizer() {
+    public void initSpeechEngine() {
         //初始化讯飞TTS引擎
         SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+ Config.APPID);
 
@@ -670,6 +710,69 @@ public class XBotFaceActivity extends AppCompatActivity{
         ttsSynthesizer.setParameter(SpeechConstant.SPEED, "50");//设置语速
         ttsSynthesizer.setParameter(SpeechConstant.VOLUME, "80");//设置音量，范围 0~100
         ttsSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD); //设置云端
+
+        //创建语音识别器
+        recognizer = SpeechRecognizer.createRecognizer(this, new InitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == ErrorCode.SUCCESS) {
+                    Log.i(TAG, "SpeechRecognizer初始化成功");
+                } else {
+                    Log.i(TAG, "SpeechRecognizer初始化失败，错误码："+status);
+                }
+            }
+        });
+
+        recognizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
+        recognizer.buildGrammar("abnf", Config.SPEECH_GRAMMAR, new GrammarListener() {
+            @Override
+            public void onBuildFinish(String grammarId, SpeechError speechError) {
+                Log.i(TAG, "grammarId:" + grammarId);
+                if (speechError == null) {
+                    Log.i(TAG, "语法构建成功");
+                } else {
+                    Log.i(TAG, "speechError code:" + speechError.getErrorCode() + ",message" + speechError.getMessage());
+                }
+            }
+        });
+
+        recognizerListener = new RecognizerListener() {
+            @Override
+            public void onVolumeChanged(int volume, byte[] data) {
+//                Log.i(TAG, "RecognizerListener -- onVolumeChanged()");
+            }
+
+            @Override
+            public void onBeginOfSpeech() {
+                Log.i(TAG, "RecognizerListener -- onBeginOfSpeech()");
+
+            }
+
+            @Override
+            public void onEndOfSpeech() {
+                Log.i(TAG, "RecognizerListener -- onEndOfSpeech()");
+
+            }
+
+            @Override
+            public void onResult(RecognizerResult recognizerResult, boolean isLast) {
+                Log.i(TAG, "RecognizerListener -- onResult()");
+                handleRecognizerResult(recognizerResult);
+            }
+
+            @Override
+            public void onError(SpeechError speechError) {
+                Log.i(TAG, "RecognizerListener -- onError():["+speechError.getErrorCode()
+                        +"],"+speechError.getErrorDescription());
+                Toast.makeText(getBaseContext(), speechError.getErrorDescription(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onEvent(int eventType, int arg1, int arg2, Bundle bundle) {
+                Log.i(TAG, "RecognizerListener -- onEvent()");
+
+            }
+        };
 
     }
 
@@ -684,6 +787,70 @@ public class XBotFaceActivity extends AppCompatActivity{
         }
     }
 
+    private void showVoiceCommandIntroduction(){
+        Resources res = getResources();
+        CoordinatorLayout coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinatorLayout);
+
+        final Snackbar snackbar = Snackbar.make(coordinatorLayout,
+                 res.getString(R.string.snackbar_tip),
+                Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("知道了", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackbar.dismiss();
+            }
+        });
+        TextView textView = ((TextView) snackbar.getView().findViewById(R.id.snackbar_text));
+        snackbar.getView().setBackgroundColor(Color.parseColor("#8DEEEE"));
+        textView.setTextColor(Color.parseColor("#303F9F"));
+
+        snackbar.show();
+    }
+    private void handleRecognizerResult(RecognizerResult recognizerResult) {
+        String result = recognizerResult.getResultString();
+
+        Gson gson = new Gson();
+        CommandRecogResult resultEntity = gson.fromJson(result, CommandRecogResult.class);
+        Log.i(TAG, resultEntity.toString());
+
+        List<CommandRecogResult.WsBean> list = resultEntity.getWs();
+        if (list.size() == 1) {
+            List<CommandRecogResult.WsBean.CwBean> cwBeanList = list.get(0).getCw();
+            String word = cwBeanList.get(0).getW();
+            if (word.equals("开始") || word.equals("恢复") || word.equals("继续")) {
+                Log.i(TAG,"指令正确：" + word);
+                mAudioManager.resume();
+            }else if ( word.equals("暂停")||word.equals("停止")) {
+                Log.i(TAG,"指令正确：" + word);
+                mAudioManager.pause();
+            }else{
+                Log.i(TAG, "指令识别失败：" + result);
+            }
+        } else if (list.size() == 2) {
+            List<CommandRecogResult.WsBean.CwBean> cwBeanList1 = list.get(0).getCw();
+            String word1 = cwBeanList1.get(0).getW();
+            if (word1.equals("开始") || word1.equals("恢复") || word1.equals("继续")) {
+                List<CommandRecogResult.WsBean.CwBean> cwBeanList2 = list.get(1).getCw();
+                String word2 = cwBeanList2.get(0).getW();
+                if (word2.equals("播放")||word2.equals("解说") ) {
+                    Log.i(TAG,"指令正确：" + word1+word2);
+                    mAudioManager.resume();
+                }
+            } else if (word1.equals("暂停") || word1.equals("停止")) {
+                List<CommandRecogResult.WsBean.CwBean> cwBeanList2 = list.get(1).getCw();
+                String word2 = cwBeanList2.get(0).getW();
+                if (word2.equals("播放") || word2.equals("解说")) {
+                    Log.i(TAG,"指令正确：" + word1+word2);
+                    mAudioManager.pause();
+                }
+            } else {
+                Log.i(TAG, "指令识别失败：" + result);
+            }
+        } else {
+            Log.i(TAG, "指令识别失败：" + result);
+            Toast.makeText(this, "请说出正确的口令词", Toast.LENGTH_SHORT).show();
+        }
+    }
     private void updateFaceState(int state) {
         mFaceState = state;
         mLastChangeTime = System.currentTimeMillis();
@@ -736,6 +903,11 @@ public class XBotFaceActivity extends AppCompatActivity{
 
         ttsSynthesizer.stopSpeaking();
         ttsSynthesizer.destroy();
+
+        if (recognizer!= null) {
+            recognizer.cancel();
+            recognizer.destroy();
+        }
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }

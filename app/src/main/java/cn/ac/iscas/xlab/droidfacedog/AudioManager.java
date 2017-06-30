@@ -27,6 +27,8 @@ public class AudioManager {
     //使用Map来维护整个要播放的音频列表
     private Map<Integer,MediaPlayer> audioMap;
 
+    private MediaPlayer currentPlayer;
+
     String[] ttsFileList = {
             "tts/part0.mp3",
             "tts/part1.mp3",
@@ -79,8 +81,8 @@ public class AudioManager {
 
     public void play(int audioId) {
         Log.i(TAG, "AudioManager在播放：" + audioId + "号音频");
-        MediaPlayer player = audioMap.get(audioId);
-        player.start();
+        currentPlayer = audioMap.get(audioId);
+        currentPlayer.start();
         isPlaying = true;
         currentId = audioId;
     }
@@ -96,6 +98,25 @@ public class AudioManager {
         audioMap = null;
         isPlaying = false;
         currentId = CURRENT_NOT_PLAYING;
+    }
+
+    public void pause() {
+        if (!isPlaying) {
+            return;
+        }
+        if (currentPlayer.isPlaying()) {
+            currentPlayer.pause();
+        }
+        isPlaying = false;
+    }
+
+    //继续播放
+    public void resume() {
+        if (isPlaying) {
+            return;
+        }
+        currentPlayer.start();
+        isPlaying = true;
     }
 
     public int getCurrentId() {

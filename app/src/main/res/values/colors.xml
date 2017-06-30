@@ -9,4 +9,11 @@
     <color name="welcome_textColor">#333333</color>
 
     <color name="camera_shoot_color">#77ff77</color>
+
+    <color name="fab_Ripple_color">#7D26CD</color>
+    <color name="fab_background_color">#EE3A8C</color>
+
+    <color name="snack_bar_background">#8DEEEE</color>
+    <color name="snack_bar_tip_color">#303F9F</color>
+
 </resources>
