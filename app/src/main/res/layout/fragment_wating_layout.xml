@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <cn.ac.iscas.xlab.droidfacedog.CircleRotateView
+    android:id="@+id/loading_view"
+    android:layout_width="60dp"
+    android:layout_height="60dp"
+    app:firstColor="#dd00ff"
+    app:secondColor="#14cdf2"
+    app:strokeWidth="5dp"
+    android:layout_margin="20dp"
+    />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/startLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tip_cancel_ros_connect"
+            android:textColor="@color/colorPrimary"
+            />
+
+        <Button
+            android:id="@+id/stopLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="@string/tip_recog_without_ros"
+            android:textColor="@color/colorPrimary"/>
+
+    </LinearLayout>
+</LinearLayout>
