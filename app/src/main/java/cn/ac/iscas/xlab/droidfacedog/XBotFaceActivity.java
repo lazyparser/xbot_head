@@ -3,7 +3,6 @@ package cn.ac.iscas.xlab.droidfacedog;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ComponentName;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -34,6 +33,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -45,6 +45,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -111,7 +112,11 @@ public class XBotFaceActivity extends AppCompatActivity{
     private AlertDialog mWaitDialog;
     private ImagePreviewAdapter mImagePreviewAdapter;
     private Handler mMainHandler;
-
+    private Button btCancel;
+    private Button btRecogDirect;
+    private CircleRotateView circleRotateView;
+    private FragmentManager fragmentManager;
+    private WaitingDialogFragment waitingDialogFragment;
     //用于定时识别人脸的Timer
     private Timer mDetectTimer;
     //用于定时连接至Ros服务器的Timer
@@ -188,8 +193,8 @@ public class XBotFaceActivity extends AppCompatActivity{
             public void handleMessage(Message msg) {
                 //如果连接成功
                 if (msg.what == CONN_ROS_SERVER_SUCCESS) {
-                    if (mWaitDialog.isShowing()) {
-                        mWaitDialog.dismiss();
+                    if (waitingDialogFragment.isAdded()) {
+                        waitingDialogFragment.dismiss();
                         mRosConnectionTimer.cancel();
                         Toast.makeText(XBotFaceActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
                         Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
@@ -237,41 +242,45 @@ public class XBotFaceActivity extends AppCompatActivity{
     }
 
     private void showWaitingDialog() {
-        //启动一个对话框提示用户等待，然后连接至Ros服务器
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-                .setTitle("请稍等")
-                .setMessage("正在连接至Ros服务端")
-                .setCancelable(false)
-                .setPositiveButton("直接识别人脸", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        isEnableRos = false;
-                        mRosConnectionTimer.cancel();
-                        Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
-
-                        if (mServiceConnection != null) {
-                            unbindService(mServiceConnection);
-                        }
-                        startPreview();
-                        mDetectTimer.schedule(mDetectFaceTask, 0, 200);
-
-                    }
-                })
-                .setNegativeButton("取消连接", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        XBotFaceActivity.this.onBackPressed();
-                        mRosConnectionTimer.cancel();
-                    }
-                });
-        mWaitDialog = builder.create();
-        mWaitDialog.show();
+        //使用自定义FragmentDialog来显示等待界面
+        waitingDialogFragment = new WaitingDialogFragment();
+        fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .add(waitingDialogFragment, "waitingDialog")
+                .commit();
     }
 
 
     @Override
     public void onResume() {
         super.onResume();
+
+        btCancel = waitingDialogFragment.getBtCancel();
+        btRecogDirect = waitingDialogFragment.getBtRecogDirect();
+        circleRotateView = waitingDialogFragment.getCircleRotateView();
+        btCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                XBotFaceActivity.this.onBackPressed();
+                mRosConnectionTimer.cancel();
+                circleRotateView.endAnimation();
+            }
+        });
+        btRecogDirect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isEnableRos = false;
+                mRosConnectionTimer.cancel();
+                Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
+                if (mServiceConnection != null) {
+                    unbindService(mServiceConnection);
+                }
+                circleRotateView.endAnimation();
+                waitingDialogFragment.dismiss();
+                startPreview();
+                mDetectTimer.schedule(mDetectFaceTask, 0, 200);
+            }
+        });
 
         //为SurfaceView设置监听器
         mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
@@ -365,6 +374,7 @@ public class XBotFaceActivity extends AppCompatActivity{
                 return true;
             }
         });
+
 
     }
 

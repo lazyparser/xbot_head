@@ -109,8 +109,8 @@ public class CircleRotateView extends View {
         mPaint.setColor(wrapColor);
         canvas.drawArc(rectF, 50, 80, false, mPaint);
         canvas.drawArc(rectF, -130, 80, false, mPaint);
-
     }
+
 
     public void startAnimation() {
         radius = mHeight / 4;
@@ -154,6 +154,12 @@ public class CircleRotateView extends View {
         if (!hasWindowFocus) {
             endAnimation();
         }
+        startAnimation();
 
+    }
+
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
     }
 }
