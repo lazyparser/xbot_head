@@ -2,7 +2,9 @@
 <resources>
     <declare-styleable name="CircleRotateView">
         <attr name="circle_color" format="color|reference"/>
-        <attr name="wrap_color" format="color|reference" />
+        <attr name="circle_color2" format="color|reference" />
+        <attr name="out_color" format="color|reference" />
+        <attr name="out_color2" format="color|reference" />
         <attr name="stroke_width" format="dimension" />
     </declare-styleable>
 </resources>

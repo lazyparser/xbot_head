@@ -193,7 +193,7 @@ public class XBotFaceActivity extends AppCompatActivity{
             public void handleMessage(Message msg) {
                 //如果连接成功
                 if (msg.what == CONN_ROS_SERVER_SUCCESS) {
-                    if (waitingDialogFragment.isAdded()) {
+                    if (waitingDialogFragment.isVisible()) {
                         waitingDialogFragment.dismiss();
                         mRosConnectionTimer.cancel();
                         Toast.makeText(XBotFaceActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
@@ -918,6 +918,7 @@ public class XBotFaceActivity extends AppCompatActivity{
             recognizer.cancel();
             recognizer.destroy();
         }
+        unbindService(mServiceConnection);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }

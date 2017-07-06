@@ -19,12 +19,13 @@ import android.view.View;
 public class CircleRotateView extends View {
 
     public static final String TAG = "CircleRotateView";
-    private int circleColor,wrapColor;
+    private int circleColor,circleColor2,outColor,outColor2;
     private int mWidth,mHeight;
     private Paint mPaint;
     private ValueAnimator radiusAnimator,degreeAnimator;
     private float degree,radius;
     private int strokeWidth;
+    RectF rectF, outerRectF;
     
     public CircleRotateView(Context context) {
         this(context,null);
@@ -49,11 +50,19 @@ public class CircleRotateView extends View {
                     //如果获取不到，则为默认值黑色
                     circleColor = typedArray.getColor(attr, Color.BLUE);
                     break;
-                case R.styleable.CircleRotateView_wrap_color:
-                    wrapColor = typedArray.getColor(attr, Color.RED);
+                case R.styleable.CircleRotateView_out_color:
+                    outColor = typedArray.getColor(attr, Color.RED);
                     break;
                 case R.styleable.CircleRotateView_stroke_width:
                     strokeWidth = typedArray.getDimensionPixelSize(attr, 10);
+                    break;
+                case R.styleable.CircleRotateView_out_color2:
+                    outColor2 = typedArray.getColor(attr, Color.DKGRAY);
+                    break;
+                case R.styleable.CircleRotateView_circle_color2:
+                    circleColor2 = typedArray.getColor(attr, Color.CYAN);
+                    break;
+                default:
                     break;
             }
         }
@@ -98,34 +107,50 @@ public class CircleRotateView extends View {
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        canvas.save();
         canvas.translate(mWidth / 2, mHeight / 2);
         mPaint.setColor(circleColor);
         mPaint.setStyle(Paint.Style.FILL);
         canvas.drawCircle(0, 0, radius, mPaint);
+        mPaint.setColor(circleColor2);
+        canvas.drawCircle(0,0,radius*0.6F,mPaint);
         canvas.rotate(degree);
-        RectF rectF = new RectF(-radius * 5 / 3, -radius * 5 / 3, radius * 5 / 3, radius * 5 / 3);
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(strokeWidth);
-        mPaint.setColor(wrapColor);
+        mPaint.setColor(outColor);
         canvas.drawArc(rectF, 50, 80, false, mPaint);
         canvas.drawArc(rectF, -130, 80, false, mPaint);
+        //恢复为原来的位置
+        canvas.restore();
+
+        canvas.save();
+        canvas.translate(mWidth / 2, mHeight / 2);
+        canvas.rotate(-degree);
+        mPaint.setColor(outColor2);
+        mPaint.setStyle(Paint.Style.STROKE);
+
+        canvas.drawArc(outerRectF, -50, 100, false, mPaint);
+        canvas.drawArc(outerRectF,130,100,false,mPaint);
+        canvas.restore();
     }
 
 
     public void startAnimation() {
+
         radius = mHeight / 4;
         degree = 0;
-
         radiusAnimator = ValueAnimator.ofFloat(mHeight / 4, mHeight / 8, mHeight / 4);
         radiusAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 radius = (float) animation.getAnimatedValue();
-                invalidate();
+                rectF = new RectF(-radius * 4 / 3, -radius * 4 / 3, radius * 4 / 3, radius * 4 / 3);
+                outerRectF = new RectF(-radius * 5/ 3, -radius * 5 / 3, radius * 5 / 3, radius * 5 / 3);
+                postInvalidate();
             }
         });
         radiusAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        radiusAnimator.setDuration(1500);
+        radiusAnimator.setDuration(3000);
         radiusAnimator.start();
 
         degreeAnimator = ValueAnimator.ofFloat(0, 360);
@@ -133,12 +158,13 @@ public class CircleRotateView extends View {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 degree = (float) animation.getAnimatedValue();
-                invalidate();
+                postInvalidate();
             }
         });
         degreeAnimator.setRepeatCount(ValueAnimator.INFINITE);
         degreeAnimator.setDuration(1500);
         degreeAnimator.start();
+
 
     }
 

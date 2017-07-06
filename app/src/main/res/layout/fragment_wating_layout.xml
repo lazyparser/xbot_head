@@ -17,11 +17,13 @@
         />
     <cn.ac.iscas.xlab.droidfacedog.CircleRotateView
     android:id="@+id/id_loading_view"
-    android:layout_width="60dp"
-    android:layout_height="60dp"
-    app:circle_color="#dd00ff"
-    app:wrap_color="#14cdf2"
+    android:layout_width="70dp"
+    android:layout_height="70dp"
+    app:circle_color="#9A32CD"
+    app:circle_color2="#dd00ff"
+    app:out_color="#14cdf2"
     app:stroke_width="5dp"
+    app:out_color2="#1E90FF"
     android:layout_margin="20dp"
     />
     <LinearLayout
