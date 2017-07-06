@@ -16,6 +16,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/image_button_up"
+        android:layout_toLeftOf="@id/image_button_up"
         android:background="@drawable/ic_arrow_back_black_128dp"
         />
     <ImageButton
