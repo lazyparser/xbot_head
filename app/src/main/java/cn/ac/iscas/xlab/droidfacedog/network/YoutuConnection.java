@@ -127,7 +127,7 @@ public class YoutuConnection {
     public void registerFace(String userName,Bitmap face) {
 
         final String REGISTER_URL = "http://"+Config.RECOGNITION_SERVER_IP+":"+
-                Config.RECOGNITION_SERVER_PORT+"/management/register?method=normal";
+                Config.RECOGNITION_SERVER_PORT+"/management/register?method=force";
 
         final String userNameHex = makeUserNameToHex(userName);
 

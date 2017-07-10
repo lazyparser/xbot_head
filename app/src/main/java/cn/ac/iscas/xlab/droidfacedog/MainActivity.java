@@ -1,18 +1,24 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 
@@ -23,21 +29,79 @@ import cn.ac.iscas.xlab.droidfacedog.config.Config;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = MainActivity.class.getSimpleName();
+    public static final String ROS_RECEIVER_INTENTFILTER = "main_activity.receiver";
 
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
+    public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
+    public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
     private Context mContext;
-    Button btnXbotFace;
-    Button btnRegisterUser;
-    Button btnSetting;
-    Button btnControl;
+    private Handler hanlder;
+    private Button btnXbotFace;
+    private Button btnRegisterUser;
+    private Button btnSetting;
+    private Button btnControl;
+    private Button btnCancel;
+    private Button btnConnBackground;
+    private CircleRotateView circleRotateView;
+    private FragmentManager fragmentManager;
+    private WaitingDialogFragment waitingDialogFragment;
+    private RosBroadcastReceiver receiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG, "MainActivity -- onCreate()");
         setContentView(R.layout.activity_main);
         mContext = this;
 
+        initView();
+
+        initConfiguration();
+
+        showWaitingDialog();
+
+        hanlder = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+
+                if (msg.what == CONN_ROS_SERVER_SUCCESS) {
+                    if (waitingDialogFragment.isVisible()) {
+                        waitingDialogFragment.dismiss();
+                        Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
+                    }
+                }else if(msg.what == CONN_ROS_SERVER_ERROR){
+                    Log.i(TAG, "Ros连接失败");
+                }
+            }
+        };
+        initBroadcastReceiver();
+
+    }
+
+    private void initBroadcastReceiver() {
+        receiver = new RosBroadcastReceiver(new RosBroadcastReceiver.RosCallback() {
+            @Override
+            public void onSuccess() {
+                if (waitingDialogFragment.isVisible()) {
+                    circleRotateView.endAnimation();
+                    waitingDialogFragment.dismiss();
+                    Toast.makeText(mContext, "Ros服务器连接成功", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(mContext, "Ros服务器连接成功", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+            @Override
+            public void onFailure() {
+            }
+        });
+        IntentFilter filter = new IntentFilter(ROS_RECEIVER_INTENTFILTER);
+        registerReceiver(receiver,filter);
+
+    }
+
+    private void initView() {
         btnXbotFace = (Button) findViewById(R.id.button_xbotface);
         btnXbotFace.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -71,9 +135,8 @@ public class MainActivity extends AppCompatActivity {
         btnSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                    Intent intent = new Intent(mContext, SettingsActivity.class);
-                    // http://stackoverflow.com/questions/15172111/preferenceactivity-actionbar-home-icon-wont-return-home-unlike-et
-                    startActivityForResult(intent, 1);
+                Intent intent = new Intent(mContext, SettingsActivity.class);
+                startActivityForResult(intent, 1);
             }
         });
 
@@ -84,8 +147,24 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(mContext,ControlActivity.class));
             }
         });
+    }
 
-        initConfiguration();
+
+    @Override
+    protected void onResume() {
+        Log.i(TAG, "MainActivity -- onResume()");
+        super.onResume();
+
+        btnConnBackground = waitingDialogFragment.getBtConnectBackGround();
+        circleRotateView = waitingDialogFragment.getCircleRotateView();
+
+        btnConnBackground.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                circleRotateView.endAnimation();
+                waitingDialogFragment.dismiss();
+            }
+        });
 
     }
 
@@ -132,6 +211,48 @@ public class MainActivity extends AppCompatActivity {
 
         Log.e(TAG, "Permission not granted: results len = " + grantResults.length +
                 " Result code = " + (grantResults.length > 0 ? grantResults[0] : "(empty)"));
+    }
+
+    private void showWaitingDialog() {
+        //使用自定义FragmentDialog来显示等待界面
+        waitingDialogFragment = new WaitingDialogFragment();
+        fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction()
+                .add(waitingDialogFragment, "waitingDialog")
+                .commit();
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(receiver);
+        super.onDestroy();
+    }
+
+    public static class RosBroadcastReceiver extends BroadcastReceiver {
+
+        RosCallback callback;
+        interface RosCallback{
+            void onSuccess();
+            void onFailure();
+        }
+
+        public RosBroadcastReceiver() {
+
+        }
+        public RosBroadcastReceiver(RosCallback callback) {
+            this.callback = callback;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle data = intent.getExtras();
+            int rosStatus = data.getInt("ros_conn_status");
+            if (rosStatus == CONN_ROS_SERVER_SUCCESS) {
+                callback.onSuccess();
+            } else if (rosStatus == CONN_ROS_SERVER_ERROR) {
+                callback.onFailure();
+            }
+        }
     }
 
 }

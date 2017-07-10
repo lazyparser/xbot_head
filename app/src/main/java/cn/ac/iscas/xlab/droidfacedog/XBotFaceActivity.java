@@ -1,7 +1,6 @@
 package cn.ac.iscas.xlab.droidfacedog;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -33,7 +32,6 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -45,7 +43,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -93,8 +90,6 @@ public class XBotFaceActivity extends AppCompatActivity{
     public static final int STATE_IDLE = 0;//待机状态
     public static final int STATE_DETECTED = 1;//人脸检测完毕
     public static final int STATE_IDENTIFIED = 2;//人脸识别成功
-    public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
-    public static final int CONN_ROS_SERVER_ERROR = 0x12;
     public static final int HANDLER_PLAY_TTS = 0x13;
     public static final String TTS_UNREGISTERED_USER = "0000000000";
     public static final int MAX_FACE_COUNT = 3;
@@ -109,18 +104,10 @@ public class XBotFaceActivity extends AppCompatActivity{
     private Size mPreviewSize;
     private FaceOverlayView mFaceOverlayView;
     private RecyclerView mRecyclerView;
-    private AlertDialog mWaitDialog;
     private ImagePreviewAdapter mImagePreviewAdapter;
     private Handler mMainHandler;
-    private Button btCancel;
-    private Button btRecogDirect;
-    private CircleRotateView circleRotateView;
-    private FragmentManager fragmentManager;
-    private WaitingDialogFragment waitingDialogFragment;
     //用于定时识别人脸的Timer
     private Timer mDetectTimer;
-    //用于定时连接至Ros服务器的Timer
-    private Timer mRosConnectionTimer;
     //用于定时发布TTS状态的Timer
     private Timer mPublishTopicTimer;
     private TimerTask mDetectFaceTask;
@@ -136,7 +123,6 @@ public class XBotFaceActivity extends AppCompatActivity{
     private YoutuConnection youtuConnection;
     //这个boolean表示将人脸发送给服务器后，当前是否正在等待优图服务器返回识别结果
     private boolean isWaitingResult = false;
-    private boolean isEnableRos = true;
     private boolean hasGreeted = false;
 
     //识别到的人脸的id（不是注册在服务端的ID）,初始为0。
@@ -172,7 +158,6 @@ public class XBotFaceActivity extends AppCompatActivity{
         setContentView(R.layout.activity_xbot_face);
         getSupportActionBar().hide();
 
-
         initView();
 
         mFaces = new FaceResult[MAX_FACE_COUNT];
@@ -191,20 +176,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         //双用途Handler，一用来接收TimerTask中发回来的Ros连接状态，二用来接收优图的识别结果
         mMainHandler = new Handler(){
             public void handleMessage(Message msg) {
-                //如果连接成功
-                if (msg.what == CONN_ROS_SERVER_SUCCESS) {
-                    if (waitingDialogFragment.isVisible()) {
-                        waitingDialogFragment.dismiss();
-                        mRosConnectionTimer.cancel();
-                        Toast.makeText(XBotFaceActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
-                        Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
-                        startPreview();
-                        mDetectTimer.schedule(mDetectFaceTask, 0, 200);
-                    }
-                }else if(msg.what == CONN_ROS_SERVER_ERROR){
-                    //Toast.makeText(XBotFace.this, "连接失败，正在重试", Toast.LENGTH_SHORT).show();
-                    Log.i(TAG, "Ros连接失败，正在重试");
-                } else if (msg.what == HANDLER_PLAY_TTS) {
+                if (msg.what == HANDLER_PLAY_TTS) {
                     if (msg.arg1 == 0) {
                         updateFaceState(STATE_IDENTIFIED);
                     }
@@ -238,49 +210,12 @@ public class XBotFaceActivity extends AppCompatActivity{
         };
         //绑定RosConnectionService
         Intent intent = new Intent(this, RosConnectionService.class);
-        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+        bindService(intent, mServiceConnection, 0);
     }
-
-    private void showWaitingDialog() {
-        //使用自定义FragmentDialog来显示等待界面
-        waitingDialogFragment = new WaitingDialogFragment();
-        fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .add(waitingDialogFragment, "waitingDialog")
-                .commit();
-    }
-
 
     @Override
     public void onResume() {
         super.onResume();
-
-        btCancel = waitingDialogFragment.getBtCancel();
-        btRecogDirect = waitingDialogFragment.getBtRecogDirect();
-        circleRotateView = waitingDialogFragment.getCircleRotateView();
-        btCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                XBotFaceActivity.this.onBackPressed();
-                mRosConnectionTimer.cancel();
-                circleRotateView.endAnimation();
-            }
-        });
-        btRecogDirect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isEnableRos = false;
-                mRosConnectionTimer.cancel();
-                Toast.makeText(XBotFaceActivity.this, "正在进行人脸识别，请稍等", Toast.LENGTH_LONG).show();
-                if (mServiceConnection != null) {
-                    unbindService(mServiceConnection);
-                }
-                circleRotateView.endAnimation();
-                waitingDialogFragment.dismiss();
-                startPreview();
-                mDetectTimer.schedule(mDetectFaceTask, 0, 200);
-            }
-        });
 
         //为SurfaceView设置监听器
         mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
@@ -288,6 +223,7 @@ public class XBotFaceActivity extends AppCompatActivity{
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
                 Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureAvailable()");
                 mSurfaceTexture = surface;
+                startPreview();
             }
 
             @Override
@@ -308,7 +244,6 @@ public class XBotFaceActivity extends AppCompatActivity{
                 if (mTotalFrameCount % 400 == 0) {
                     isWaitingResult = false;
                 }
-
 //                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
             }
         });
@@ -316,6 +251,8 @@ public class XBotFaceActivity extends AppCompatActivity{
         initCamera();
         //开启三个定时任务
         startTimerTask();
+
+        mDetectTimer.schedule(mDetectFaceTask, 0, 200);
 
     }
 
@@ -360,7 +297,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         mFaceOverlayView.setFront(true);
         mFaceOverlayView.setDisplayOrientation(getWindowManager().getDefaultDisplay().getRotation());
 
-        showWaitingDialog();
+//        showWaitingDialog();
 
         mFloatingActionButton.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -379,22 +316,6 @@ public class XBotFaceActivity extends AppCompatActivity{
     }
 
     private void startTimerTask() {
-        //启动定时任务，每3秒种发起一次连接
-        //然后将结果发送给Handler，
-        mRosConnectionTimer = new Timer();
-        mRosConnectionTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (mServiceProxy != null) {
-                    if (mServiceProxy.isConnected()) {
-                        mMainHandler.sendEmptyMessage(CONN_ROS_SERVER_SUCCESS);
-                    } else {
-                        mMainHandler.sendEmptyMessage(CONN_ROS_SERVER_ERROR);
-                    }
-                }
-
-            }
-        },0,3000);
 
         mPublishTopicTimer = new Timer();
         mPublishTopicTimer.schedule(new TimerTask() {
@@ -893,7 +814,6 @@ public class XBotFaceActivity extends AppCompatActivity{
         }
         //取消所有运行中的Timer
         mDetectTimer.cancel();
-        mRosConnectionTimer.cancel();
         mPublishTopicTimer.cancel();
     }
 
