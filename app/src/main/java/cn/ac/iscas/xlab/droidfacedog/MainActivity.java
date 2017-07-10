@@ -47,8 +47,6 @@ public class MainActivity extends AppCompatActivity {
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
-    private RosConnectionService.ServiceBinder serviceBinder;
-    private XbotApplication XbotApplication;
     private RosBroadcastReceiver receiver;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,7 +154,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         Log.i(TAG, "MainActivity -- onResume()");
         super.onResume();
-        XbotApplication = (XbotApplication)getApplication();
 
         btnConnBackground = waitingDialogFragment.getBtConnectBackGround();
         circleRotateView = waitingDialogFragment.getCircleRotateView();

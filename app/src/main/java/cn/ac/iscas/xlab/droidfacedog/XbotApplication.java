@@ -17,7 +17,6 @@ public class XbotApplication extends Application {
     public ServiceConnection mServiceConnection;
     public RosConnectionService.ServiceBinder mServiceProxy;
     private Intent intent;
-    private boolean isConnected;
 
     public XbotApplication() {
         super();
@@ -62,26 +61,5 @@ public class XbotApplication extends Application {
         return null;
     }
 
-//    public void startPollRosConnStatus() {
-//        Timer pollTimer = new Timer();
-//
-//        pollTimer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                Looper l = Looper.getMainLooper();
-//                l.prepare();
-//                l.loop();
-//                Log.i(TAG, "XbotApplication handler is polling ");
-//                if (mServiceProxy != null) {
-//                    isConnected = mServiceProxy.isConnected();
-//                }
-//                if (isConnected) {
-//                    Toast.makeText(getApplicationContext(), "Ros服务器连接成功", Toast.LENGTH_SHORT).show();
-//                    cancel();
-//                }
-//                l.quitSafely();
-//            }
-//        },2000,1000);
-//    }
 
 }
