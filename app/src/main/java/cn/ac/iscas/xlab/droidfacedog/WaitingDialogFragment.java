@@ -17,8 +17,8 @@ import android.widget.Button;
 public class WaitingDialogFragment extends DialogFragment {
 
     public static final String TAG = "WaitingDialogFragment";
-    private Button btCancel;
-    private Button btRecogDirect;
+//    private Button btCancel;
+    private Button btConnectBackGround;
     private CircleRotateView circleRotateView;
 
     public WaitingDialogFragment() {
@@ -37,17 +37,17 @@ public class WaitingDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         Log.i(TAG, "WaitingDialogFragment -- onCreateView()");
         View view = inflater.inflate(R.layout.fragment_wating_layout, container, false);
-        btCancel = (Button) view.findViewById(R.id.id_bt_cancel);
-        btRecogDirect = (Button) view.findViewById(R.id.id_bt_recog_direct);
+//        btCancel = (Button) view.findViewById(R.id.id_bt_cancel);
+        btConnectBackGround = (Button) view.findViewById(R.id.id_bt_connect_back);
         circleRotateView = (CircleRotateView) view.findViewById(R.id.id_loading_view);
         return view;
     }
-    public Button getBtCancel() {
-        return btCancel;
-    }
+//    public Button getBtCancel() {
+//        return btCancel;
+//   }
 
-    public Button getBtRecogDirect() {
-        return btRecogDirect;
+    public Button getBtConnectBackGround() {
+        return btConnectBackGround;
     }
 
     public CircleRotateView getCircleRotateView() {
@@ -76,7 +76,6 @@ public class WaitingDialogFragment extends DialogFragment {
     public void onResume() {
         Log.i(TAG, "WaitingDialogFragment -- onResume()");
         super.onResume();
-//        circleRotateView.startAnimation();
 
     }
 

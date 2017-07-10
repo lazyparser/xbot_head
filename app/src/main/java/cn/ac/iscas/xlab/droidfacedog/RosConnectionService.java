@@ -3,6 +3,7 @@ package cn.ac.iscas.xlab.droidfacedog;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -12,6 +13,9 @@ import com.jilk.ros.rosbridge.ROSBridgeClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.PublishEvent;
@@ -33,11 +37,13 @@ public class RosConnectionService extends Service{
     public static final int CTRL_LEFT = 0x13;
     public static final int CTRL_RIGHT = 0x14;
 
-
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
 
-    private boolean isConnected;
+    private boolean isConnected = false;
+    private Timer rosConnectionTimer;
+    private TimerTask connectionTask;
+
 
     public class ServiceBinder extends Binder {
         public boolean isConnected(){
@@ -90,14 +96,79 @@ public class RosConnectionService extends Service{
                 default:
                     break;
             }
+        }
 
+        public void cancelRosConnection() {
+            connectionTask.cancel();
         }
     }
 
+    //onCreate()会自动触发Ros服务器的连接
     @Override
     public void onCreate() {
         super.onCreate();
         Log.i(TAG, "RosConnService--onCreate()");
+        rosConnectionTimer = new Timer();
+        connectionTask = new TimerTask() {
+            @Override
+            public void run() {
+                if (!isConnected) {
+                    String rosURL = "ws://" + Config.ROS_SERVER_IP + ":" + Config.ROS_SERVER_PORT;
+                    Log.d(TAG, "Connecting to ROS : " + rosURL);
+                    rosBridgeClient = new ROSBridgeClient(rosURL);
+                    Log.i(TAG, rosURL);
+                    boolean conneSucc = rosBridgeClient.connect(new ROSClient.ConnectionStatusListener() {
+                        @Override
+                        public void onConnect() {
+                            rosBridgeClient.setDebug(true);
+                            Log.i(TAG, "ConnectionStatusListener--onConnect");
+                        }
+
+                        @Override
+                        public void onDisconnect(boolean normal, String reason, int code) {
+                            Log.i(TAG, "ConnectionStatusListener--disconnect");
+                        }
+
+                        @Override
+                        public void onError(Exception ex) {
+                            ex.printStackTrace();
+                            Log.i(TAG, "ConnectionStatusListener--ROS communication error");
+                        }
+                    });
+                    if (conneSucc) {
+                        // 订阅Ros即将发布的topic
+                        JSONObject strSubscribe = new JSONObject();
+                        try {
+                            strSubscribe.put("op", "subscribe");
+                            strSubscribe.put("topic", SUBSCRIBE_TOPIC);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        rosBridgeClient.send(strSubscribe.toString());
+                        Log.i(TAG, "RosConnectionService连接Ros成功");
+                    } else {
+                        Log.i(TAG, "RosConnectionService连接Ros失败");
+                    }
+                    isConnected = conneSucc;
+                    Intent broadcastIntent = new Intent(MainActivity.ROS_RECEIVER_INTENTFILTER);
+                    Bundle data = new Bundle();
+                    if (!isConnected) {
+                        data.putInt("ros_conn_status", MainActivity.CONN_ROS_SERVER_ERROR);
+                        broadcastIntent.putExtras(data);
+                        sendBroadcast(broadcastIntent);
+                    } else{
+                        data.putInt("ros_conn_status", MainActivity.CONN_ROS_SERVER_SUCCESS);
+                        broadcastIntent.putExtras(data);
+                        sendBroadcast(broadcastIntent);
+                    }
+                } else {
+                    //如果连接成功则取消该定时任务
+                    cancel();
+                }
+            }
+        };
+
+        startRosConnectionTimer();
         //注册Eventbus
         EventBus.getDefault().register(this);
     }
@@ -112,48 +183,6 @@ public class RosConnectionService extends Service{
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "RosConnectionService onBind()");
-        new Thread() {
-            public void run() {
-                String rosURL = "ws://" + Config.ROS_SERVER_IP + ":" + Config.ROS_SERVER_PORT;
-                Log.d(TAG, "Connecting to ROS : " + rosURL);
-                rosBridgeClient = new ROSBridgeClient(rosURL);
-                Log.i(TAG, rosURL);
-                boolean conneSucc = rosBridgeClient.connect(new ROSClient.ConnectionStatusListener() {
-                    @Override
-                    public void onConnect() {
-                        rosBridgeClient.setDebug(true);
-                        Log.i(TAG,"ConnectionStatusListener--onConnect");
-                    }
-
-                    @Override
-                    public void onDisconnect(boolean normal, String reason, int code) {
-                        Log.i(TAG,"ConnectionStatusListener--disconnect");
-                    }
-
-                    @Override
-                    public void onError(Exception ex) {
-                        ex.printStackTrace();
-                        Log.i(TAG,"ConnectionStatusListener--ROS communication error");
-                    }
-                });
-                if (conneSucc) {
-                    // 订阅Ros即将发布的topic
-                    JSONObject strSubscribe = new JSONObject();
-                    try {
-                        strSubscribe.put("op", "subscribe");
-                        strSubscribe.put("topic", SUBSCRIBE_TOPIC);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    rosBridgeClient.send(strSubscribe.toString());
-                    Log.i(TAG, "RosConnectionService连接Ros成功");
-                } else {
-                    Log.i(TAG, "RosConnectionService连接Ros失败");
-                }
-                isConnected = conneSucc;
-                Log.i(TAG, "RosConnection Thread is Running in Thread:" + Thread.currentThread().getId());
-            }
-        }.start();
         return proxy;
     }
 
@@ -185,4 +214,13 @@ public class RosConnectionService extends Service{
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
+
+    public void startRosConnectionTimer() {
+        if (isConnected) {
+            return;
+        } else {
+            rosConnectionTimer.schedule(connectionTask,0,3000);
+        }
+    }
+
 }

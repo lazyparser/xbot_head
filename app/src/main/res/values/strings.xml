@@ -43,7 +43,7 @@
 
     <string name="snackbar_tip">"你可以按住上方的按钮说出语音指令词。如：停止播放/解说、开始播放/解说等"</string>>
 
-    <string name="tip_cancel_ros_connect">取消连接</string>
-    <string name="tip_recog_without_ros" >直接识别人脸</string>
+    <string name="tip_cancel_ros_connect">不连接Ros</string>
+    <string name="tip_connect_ros_backGround" >跳过</string>
     <string name="fragment_dialog_title">正在连接至Ros服务端，请稍候..</string>
 </resources>
