@@ -2,6 +2,7 @@ package cn.ac.iscas.xlab.droidfacedog.util;
 
 import android.util.Size;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class Util {
 
+    //将十六进制的字符串还原为utf-8中文名
     public static String hexStringToString(String s) {
         if (s == null || s.equals("")) {
             return null;
@@ -35,6 +37,7 @@ public class Util {
         return s;
     }
 
+    //sizes是支持的size集合，width和height是期望展示的图像宽高
     public static Size getPreferredPreviewSize(Size[] sizes, int width, int height) {
         List<Size> collectorSizes = new ArrayList<>();
         for (Size option : sizes) {
@@ -58,5 +61,28 @@ public class Util {
             });
         }
         return sizes[0];
+    }
+
+    //将中文用户名转换为十六进制字符串形式
+    public static String makeUserNameToHex(String userName) {
+        byte[] src = new byte[0];
+        try {
+            src = userName.getBytes("utf-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (int i = 0; i < src.length; i++) {
+            int v = src[i] & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
     }
 }
