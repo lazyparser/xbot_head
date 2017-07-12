@@ -7,6 +7,7 @@ import android.os.Handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import cn.ac.iscas.xlab.droidfacedog.entity.UserInfo;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 
 /**
@@ -15,7 +16,7 @@ import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 
 public class UserListPresenter implements UserListContract.Presenter {
 
-    private List<String> userIds ;
+    public static final String TAG = "UserListPresenter";
     private Context context;
     private UserListContract.View view;
     private YoutuConnection youtuConnection;
@@ -32,30 +33,29 @@ public class UserListPresenter implements UserListContract.Presenter {
 
     @Override
     public void start() {
-        userIds = new ArrayList<>();
         youtuConnection = new YoutuConnection(context, handler);
 
     }
 
     @Override
-    public List<Bitmap> requestUsersBitmap() {
-        if (userIds.size() <= 0) {
-            return null;
-        }
-        List<Bitmap> bitmaps = new ArrayList<>();
-        for (String s : userIds) {
+    public void requestUserData() {
+        youtuConnection.getUserInfoList(new YoutuConnection.UserListCallback() {
+            @Override
+            public void onUserInfoReady(UserInfo userInfo) {
+                view.showUserInList(userInfo);
+            }
 
+            @Override
+            public void onBitmapReady(Bitmap bitmap) {
 
-        }
-        return bitmaps;
+            }
 
-    }
+            @Override
+            public void onError() {
+                view.showError();
+            }
 
-    @Override
-    public List<String> requestUsersName() {
-        List<String> names = new ArrayList<>();
-
-        return names;
+        });
     }
 
 }

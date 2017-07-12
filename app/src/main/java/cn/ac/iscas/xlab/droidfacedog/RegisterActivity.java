@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import cn.ac.iscas.xlab.droidfacedog.mvp.userlist.UserListActivity;
 import cn.ac.iscas.xlab.droidfacedog.util.RegexCheckUtil;
 
 /**
@@ -19,6 +20,7 @@ public class RegisterActivity extends AppCompatActivity {
     private TextInputLayout textInputLayout;
     private EditText editText ;
     private Button btStartCamera;
+    private Button btUserList;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,6 +29,7 @@ public class RegisterActivity extends AppCompatActivity {
         textInputLayout = (TextInputLayout) findViewById(R.id.id_text_input_layout);
         editText = (EditText) findViewById(R.id.id_textView);
         btStartCamera = (Button) findViewById(R.id.id_bt_camera);
+        btUserList = (Button) findViewById(R.id.id_bt_user_list);
 
         btStartCamera.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -39,6 +42,13 @@ public class RegisterActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(RegisterActivity.this, "请输入正确的姓名", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        btUserList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(RegisterActivity.this, UserListActivity.class));
             }
         });
     }

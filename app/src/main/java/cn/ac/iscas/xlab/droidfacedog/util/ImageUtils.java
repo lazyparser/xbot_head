@@ -13,7 +13,6 @@ import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Base64;
-import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -207,14 +206,11 @@ public class ImageUtils {
         //获取到来自服务器的原始图像的宽高
         int width = options.outWidth;
         int height = options.outHeight;
-        Log.i("tag", "original userImage from server:" + width + "X" + height);
+//        options.inSampleSize = calculateInSampleSize(options,width/3,height/3);
         options.inSampleSize = 2;
         options.inJustDecodeBounds = false;
 
-        Bitmap userImg = BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length,options);
-        Log.i("tag", "changed size userImage:" + userImg.getWidth() + "X" + userImg.getHeight());
-
-        return userImg;
+        return BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length,options);
     }
 
 }

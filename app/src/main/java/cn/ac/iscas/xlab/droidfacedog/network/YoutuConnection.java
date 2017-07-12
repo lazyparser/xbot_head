@@ -12,6 +12,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,6 +22,7 @@ import java.util.List;
 import cn.ac.iscas.xlab.droidfacedog.CameraActivity;
 import cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.entity.UserInfo;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
@@ -35,7 +37,10 @@ public class YoutuConnection {
     public static final String TAG = "YoutuConnection";
     private Context context;
     private Handler handler;
-    private static Bitmap userFace;
+    private Bitmap userFace;
+    private List<String> idList ;
+    private List<UserInfo> userInfoList;
+    private UserInfo info;
 
     public YoutuConnection(Context context,Handler handler) {
         this.context = context;
@@ -126,6 +131,7 @@ public class YoutuConnection {
 
     }
 
+    //注册用户
     public void registerFace(String userName,Bitmap face) {
 
         final String REGISTER_URL = "http://"+Config.RECOGNITION_SERVER_IP+":"+
@@ -141,7 +147,6 @@ public class YoutuConnection {
                 Response.Listener<JSONObject> rightListener = new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject jsonObject) {
-                        Log.i(TAG, "Register  right response:" + jsonObject);
                         Message msg = handler.obtainMessage();
                         try {
                             int ret = jsonObject.getInt("Ret");
@@ -200,12 +205,62 @@ public class YoutuConnection {
 
     }
 
-    public List<String> getUserIdList(){
+    //获取某个已注册用户的人脸图像
+    public Bitmap getUserFaceBitmap(String userId, final UserListCallback callback) {
+        final String GET_USER_FACE_URL = "http://" + Config.RECOGNITION_SERVER_IP +
+                ":" + Config.RECOGNITION_SERVER_PORT +
+                "/face?userid=" + userId;
+
+                Response.Listener<JSONObject> rightListener = new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject object) {
+                        try {
+                            int ret = object.getInt("Ret");
+                            String strFace = object.optString("Image");
+                            if (ret == 0) {
+                                //将base64的String 转换为合适大小的Bitmap
+                                userFace = ImageUtils.decodeBase64ToBitmap(strFace);
+                                callback.onBitmapReady(userFace);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                };
+                Response.ErrorListener errorListener = new Response.ErrorListener(){
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        Log.i(TAG, "getUserFaceBitmap()--Error:"+volleyError.getMessage());
+                    }
+                };
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                        Request.Method.GET,
+                        GET_USER_FACE_URL,
+                        null,
+                        rightListener,
+                        errorListener);
+                VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
+        return userFace;
+    }
+
+    public interface UserListCallback{
+
+        void onUserInfoReady(UserInfo userInfo);
+
+        void onBitmapReady(Bitmap bitmap);
+
+        void onError();
+    }
+
+    public void getUserInfoList(final UserListCallback callback) {
+        //获取所有注册用户的id
         final String GET_USER_ID_URL = "http://" + Config.RECOGNITION_SERVER_IP +
                 ":" + Config.RECOGNITION_SERVER_PORT +
                 "/management/userids";
 
-        List<String> idList = new ArrayList<>();
+        idList = new ArrayList<>();
+        userInfoList = new ArrayList<>();
 
         new Thread(new Runnable() {
             @Override
@@ -213,6 +268,30 @@ public class YoutuConnection {
                 Response.Listener<JSONObject> rightListener = new Response.Listener<JSONObject>(){
                     @Override
                     public void onResponse(JSONObject jsonObject) {
+                        int ret = jsonObject.optInt("Ret");
+                        if (ret == 0) {
+                            JSONArray array = jsonObject.optJSONArray("Userids");
+                            for(int i=0;i<array.length();i++) {
+                                final String id = array.optString(i);
+                                //嵌套的网络请求，先拿到用户id，再去请求头像数据
+                                getUserFaceBitmap(id, new UserListCallback() {
+                                    @Override
+                                    public void onUserInfoReady(UserInfo userInfo) {
+
+                                    }
+                                    @Override
+                                    public void onBitmapReady(Bitmap bitmap) {
+                                        info = new UserInfo(Util.hexStringToString(id),bitmap);
+                                        callback.onUserInfoReady(info);
+                                    }
+                                    @Override
+                                    public void onError() {
+
+                                    }
+                                });
+
+                            }
+                        }
 
                     }
                 } ;
@@ -220,7 +299,8 @@ public class YoutuConnection {
                 Response.ErrorListener errorListener = new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError volleyError) {
-
+                        Log.i(TAG, "getUserInfoList()--Error"+volleyError.getMessage());
+                        callback.onError();
                     }
                 };
 
@@ -233,58 +313,10 @@ public class YoutuConnection {
                 );
 
                 VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
-
             }
         }).start();
 
-
-        return idList;
     }
-
-    public Bitmap getUserFaceBitmap(String userId) {
-        String GET_USER_FACE_URL = "http://" + Config.RECOGNITION_SERVER_IP +
-                ":" + Config.RECOGNITION_SERVER_PORT +
-                "/face?userid=" + userId;
-        Response.Listener<JSONObject> rightListener = new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject object) {
-                try {
-                    int ret = object.getInt("Ret");
-                    String strFace = object.optString("Image");
-                    //将base64的String 转换为合适大小的Bitmap
-                    userFace = ImageUtils.decodeBase64ToBitmap(strFace);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        };
-
-        Response.ErrorListener errorListener = new Response.ErrorListener(){
-
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-
-            }
-        };
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                Request.Method.GET,
-                GET_USER_FACE_URL,
-                null,
-                rightListener,
-                errorListener);
-        VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
-
-        if (userFace != null) {
-            return userFace;
-        } else {
-            return null;
-        }
-
-    }
-
 
 
 

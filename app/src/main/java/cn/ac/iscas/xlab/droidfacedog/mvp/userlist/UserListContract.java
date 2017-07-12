@@ -1,9 +1,6 @@
 package cn.ac.iscas.xlab.droidfacedog.mvp.userlist;
 
-import android.graphics.Bitmap;
-
-import java.util.List;
-
+import cn.ac.iscas.xlab.droidfacedog.entity.UserInfo;
 import cn.ac.iscas.xlab.droidfacedog.mvp.BasePresenter;
 import cn.ac.iscas.xlab.droidfacedog.mvp.BaseView;
 
@@ -16,17 +13,14 @@ public interface UserListContract {
 
     interface View extends BaseView<Presenter> {
 
-        void showUserList();
+        void showUserInList(UserInfo info);
 
-
+        void showError();
     }
 
     interface Presenter extends BasePresenter {
 
-        List<Bitmap> requestUsersBitmap();
-
-        List<String> requestUsersName();
-
+        void requestUserData();
     }
 
 }
