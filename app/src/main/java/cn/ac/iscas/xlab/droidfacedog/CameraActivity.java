@@ -381,6 +381,10 @@ public class CameraActivity extends AppCompatActivity {
         if (mSurfaceTexture != null) {
             mSurfaceTexture.release();
         }
+        if (mCameraCaptureSession != null) {
+            mCameraCaptureSession.close();
+        }
+        mCameraDevice.close();
         mImageReader.getSurface().release();
     }
 

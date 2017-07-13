@@ -48,7 +48,15 @@
             android:id="@+id/id_bt_camera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/register_captureImage"/>
+            android:textSize="20sp"
+            android:text="@string/register_capture_image"/>
     </android.support.design.widget.TextInputLayout>
 
+    <Button
+        android:id="@+id/id_bt_user_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/register_look_user_list"
+        android:textSize="20sp"
+        />
 </LinearLayout>

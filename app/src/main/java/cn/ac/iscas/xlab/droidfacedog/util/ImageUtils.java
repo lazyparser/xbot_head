@@ -12,7 +12,9 @@ import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.util.Base64;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
@@ -160,6 +162,7 @@ public class ImageUtils {
         return bmp;
     }
 
+
     public static RectF getPreviewFaceRectF(PointF pointF,float eyeDistance) {
         return new RectF(
                 (int) (pointF.x - eyeDistance * 1.20f),
@@ -185,5 +188,29 @@ public class ImageUtils {
 
     }
 
+    //将人脸Bitmap转为Base64编码，以发送给优图服务器
+    public static String encodeBitmapToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality)
+    {
+        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
+        image.compress(compressFormat, quality, byteArrayOS);
+        return Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT);
+    }
+
+    //将从优图服务器获取到的base64 String解码为Bitmap
+    public static Bitmap decodeBase64ToBitmap(String base64Str){
+        byte[] bitmapBytes = Base64.decode(base64Str, Base64.DEFAULT);
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length, options);
+
+        //获取到来自服务器的原始图像的宽高
+        int width = options.outWidth;
+        int height = options.outHeight;
+//        options.inSampleSize = calculateInSampleSize(options,width/3,height/3);
+        options.inSampleSize = 2;
+        options.inJustDecodeBounds = false;
+
+        return BitmapFactory.decodeByteArray(bitmapBytes, 0, bitmapBytes.length,options);
+    }
 
 }

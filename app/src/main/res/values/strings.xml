@@ -35,7 +35,8 @@
 
     <string name="register_welcome">Welcome!</string>
     <string name="register_hint">请输入你的姓名</string>
-    <string name="register_captureImage">开始采集头像</string>
+    <string name="register_capture_image">开始采集头像</string>
+    <string name="register_look_user_list">查看用户列表</string>
     <string name="camera_shoot">拍照</string>
     <string name="button_retry">重拍</string>
     <string name="button_ok">确认注册</string>
