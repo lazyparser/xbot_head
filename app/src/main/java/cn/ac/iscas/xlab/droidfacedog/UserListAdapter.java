@@ -3,7 +3,6 @@ package cn.ac.iscas.xlab.droidfacedog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,24 +66,24 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserIt
     }
 
     public void addUser(UserInfo user) {
-        Log.i(TAG, "size:" + userInfoList.size());
-        Log.i(TAG, "userInfoList:"+userInfoList.toString());
-        //先检查列表中是否已经有相同的用户，如果有，则不添加了
-        if (userInfoList.size() == 0) {
+        int size = userInfoList.size();
+
+        if (size == 0) {
             userInfoList.add(user);
             notifyDataSetChanged();
         }else  {
-            int size = userInfoList.size();
+            //先检查列表中是否已经有相同的用户，如果有，则不添加了
             for(int i=0;i<size;i++) {
                 UserInfo tmp = userInfoList.get(i);
                 if (user.getName().equals(tmp.getName())) {
-                    continue;
-                }else if(i==userInfoList.size()-1){
+                    break;
+                }else if(i==size-1){
                     userInfoList.add(user);
                     notifyDataSetChanged();
                 }
             }
         }
+//        Log.i(TAG, "userInfoList:"+userInfoList.toString());
 
 
     }

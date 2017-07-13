@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity {
     private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
         Log.w(TAG, "Camera permission is not granted. Requesting permission");
 
-        final String[] permissions = new String[]{Manifest.permission.CAMERA};
+        final String[] permissions = new String[]{Manifest.permission.CAMERA,Manifest.permission.RECORD_AUDIO};
 
         ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
     }

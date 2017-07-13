@@ -30,7 +30,7 @@ public class UserListActivity extends AppCompatActivity implements UserListContr
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_list);
 
-        getSupportActionBar().setTitle("已注册用户列表");
+        getSupportActionBar().setTitle("用户列表");
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         presenter = new UserListPresenter(getBaseContext(),this);
