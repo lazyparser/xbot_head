@@ -19,6 +19,8 @@ Xbot Head communicates with the Xbot by [Rosbridge_suite Protocal](https://githu
 
 ## [Click here to download Xbot Head Application](http://fir.im/u4rz) 
 
+(This is download link: http://fir.im/u4rz )
+
 ## Prerequisite
 
 * Before using this application, please make sure the  Ros Server and the Recognition Server have been started correctly.
