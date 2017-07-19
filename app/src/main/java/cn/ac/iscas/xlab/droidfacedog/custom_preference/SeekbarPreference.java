@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog;
+package cn.ac.iscas.xlab.droidfacedog.custom_preference;
 
 import android.content.Context;
 import android.os.Parcel;
@@ -12,12 +12,15 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import cn.ac.iscas.xlab.droidfacedog.R;
+
 /**
  * Created by lisongting on 2017/5/10.
  */
 
 public class SeekbarPreference extends Preference implements SeekBar.OnSeekBarChangeListener{
 
+    public static final String TAG = "SeekbarPreference";
     private int maxValue = 100;
     private static int progress;
     private SeekBar seekBar;
@@ -40,13 +43,13 @@ public class SeekbarPreference extends Preference implements SeekBar.OnSeekBarCh
 
     public SeekbarPreference(Context context)  {
         super(context,null);
-        Log.i("tag", "SeekbarPreference(Context context) ");
+        Log.i(TAG, "SeekbarPreference(Context context) ");
     }
 
     @Override
     protected View onCreateView(ViewGroup parent) {
         super.onCreateView(parent);
-        Log.i("tag", "SeekbarPreference----onCreateView");
+        Log.i(TAG, "SeekbarPreference----onCreateView");
         View v = LayoutInflater.from(getContext()).inflate(R.layout.preference_seekbar, parent,false);
         setPersistent(true);
         return v;
@@ -54,7 +57,7 @@ public class SeekbarPreference extends Preference implements SeekBar.OnSeekBarCh
 
     @Override
     protected void onBindView(View view) {
-        Log.i("tag", "SeekbarPreference----onBindView");
+        Log.i(TAG, "SeekbarPreference----onBindView");
         super.onBindView(view);
 
         progress = getPersistedInt(60);
@@ -90,7 +93,7 @@ public class SeekbarPreference extends Preference implements SeekBar.OnSeekBarCh
             seekBar = new SeekBar(getContext());
         }
         seekBar.setProgress(restoreValue ?getPersistedInt(60) : (Integer) defaultValue);
-        Log.i("tag", "---------onSetInitialValue");
+        Log.i(TAG, "---------onSetInitialValue");
     }
 
 

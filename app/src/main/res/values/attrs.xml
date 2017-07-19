@@ -7,4 +7,6 @@
         <attr name="out_color2" format="color|reference" />
         <attr name="stroke_width" format="dimension" />
     </declare-styleable>
+
+
 </resources>

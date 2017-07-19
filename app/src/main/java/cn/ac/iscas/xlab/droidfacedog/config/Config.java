@@ -32,7 +32,7 @@ public class Config {
 
     public static String string() {
         StringBuffer sb = new StringBuffer();
-        sb.append("人脸识别服务端：" + RECOGNITION_SERVER_IP + ":" + RECOGNITION_SERVER_PORT);
+        sb.append("\n人脸识别服务端：" + RECOGNITION_SERVER_IP + ":" + RECOGNITION_SERVER_PORT);
         sb.append("\nROS服务端：" + ROS_SERVER_IP + ":" + ROS_SERVER_PORT);
         sb.append("\n阈值:" + RECOG_THRESHOLD);
         sb.append("\n开启通知：" + ENABLE_MESSAGE_NOTIFICATION);

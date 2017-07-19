@@ -21,6 +21,7 @@ import android.widget.Toast;
 import java.util.List;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.custom_preference.SeekbarPreference;
 import cn.ac.iscas.xlab.droidfacedog.util.RegexCheckUtil;
 
 
@@ -65,7 +66,7 @@ public class SettingsActivity extends AppCompatPreferenceActivity {
             } else if (key.equals(res.getString(R.string.key_enable_notification))) {
                 Config.ENABLE_MESSAGE_NOTIFICATION = (Boolean) value;
             }
-            Log.i("tag", Config.string());
+            Log.i("SettingsActivity", Config.string());
 
             return true;
         }
