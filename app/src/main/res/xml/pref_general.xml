@@ -1,28 +1,14 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <EditTextPreference
-        android:capitalize="words"
-        android:summary="@string/pref_default_display_name"
-        android:defaultValue="@string/pref_default_display_name"
-        android:inputType="textCapWords"
-        android:key="@string/key_recognition_server_ip"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_display_name"/>
+    <cn.ac.iscas.xlab.droidfacedog.custom_preference.RosIpPreference
+        android:key="@string/key_ros_server_ip" />
 
-    <EditTextPreference
-        android:capitalize="words"
-        android:summary="@string/pref_default_ros_ip"
-        android:defaultValue="@string/pref_default_ros_ip"
-        android:inputType="textCapWords"
-        android:key="@string/key_ros_server_ip"
-        android:maxLines="1"
-        android:selectAllOnFocus="true"
-        android:singleLine="true"
-        android:title="@string/pref_title_ros_ip"/>
 
-    <cn.ac.iscas.xlab.droidfacedog.SeekbarPreference
+    <cn.ac.iscas.xlab.droidfacedog.custom_preference.YoutuIpPreference
+        android:key="@string/key_recognition_server_ip" />
+
+
+    <cn.ac.iscas.xlab.droidfacedog.custom_preference.SeekbarPreference
         android:key="@string/key_recog_threshold"
         android:summary="@string/pref_default_recog_threshold"
         android:defaultValue="@string/pref_default_recog_threshold" />
