@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
@@ -38,12 +39,11 @@ public class MainActivity extends AppCompatActivity {
 
     private Context mContext;
     private Handler hanlder;
-    private Button btnXbotFace;
-    private Button btnRegisterUser;
-    private Button btnSetting;
-    private Button btnControl;
-    private Button btnCancel;
     private Button btnConnBackground;
+    private RelativeLayout funRegister;
+    private RelativeLayout funCommentary;
+    private RelativeLayout funControl;
+    private RelativeLayout funSettings;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
@@ -102,8 +102,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initView() {
-        btnXbotFace = (Button) findViewById(R.id.button_xbotface);
-        btnXbotFace.setOnClickListener(new View.OnClickListener() {
+
+        funRegister = (RelativeLayout) findViewById(R.id.function_register);
+        funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
+        funControl = (RelativeLayout) findViewById(R.id.function_control);
+        funSettings = (RelativeLayout) findViewById(R.id.function_settings);
+
+        funRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+                if (rc == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(mContext, RegisterActivity.class);
+                    startActivity(intent);
+                } else {
+                    requestCameraPermission(REGISTER_ACTIVITY);
+                }
+            }
+        });
+
+        funCommentary.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
@@ -116,35 +134,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnRegisterUser = (Button) findViewById(R.id.button_register);
-        btnRegisterUser.setOnClickListener(new View.OnClickListener(){
+        funControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
-                if (rc == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(mContext, RegisterActivity.class);
-                    startActivity(intent);
-                } else {
-                    requestCameraPermission(REGISTER_ACTIVITY);
-                }
-
+                startActivity(new Intent(mContext,ControlActivity.class));
             }
         });
 
-        btnSetting = (Button) findViewById(R.id.button_config);
-        btnSetting.setOnClickListener(new View.OnClickListener() {
+        funSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, SettingsActivity.class);
                 startActivityForResult(intent, 1);
-            }
-        });
-
-        btnControl = (Button) findViewById(R.id.button_control);
-        btnControl.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(mContext,ControlActivity.class));
             }
         });
     }

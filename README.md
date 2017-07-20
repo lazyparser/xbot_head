@@ -79,6 +79,8 @@ There are two kinds of  **topic**  :
 
 [rosbridge_suite](https://github.com/RobotWebTools/rosbridge_suite/blob/develop/ROSBRIDGE_PROTOCOL.md) : RosBridge Protocal.
 
+[icons8.com](https://icons8.com) : Provide support of Icons.  [The License](https://icons8.com/license/) .
+
 This Project is originally developed by Nguyen Minh Tri - <tri2991@gmail.com>
 
 Original contributors:

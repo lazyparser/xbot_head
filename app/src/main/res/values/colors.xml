@@ -16,4 +16,7 @@
     <color name="snack_bar_background">#8DEEEE</color>
     <color name="snack_bar_tip_color">#303F9F</color>
 
+    <color name="main_button_selector2">#22cc77ff</color>
+    <color name="main_button_selector">#11483D8B</color>
+
 </resources>
