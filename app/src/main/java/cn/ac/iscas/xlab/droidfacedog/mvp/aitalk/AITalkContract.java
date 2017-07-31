@@ -15,9 +15,15 @@ public interface AITalkContract {
 
         void stopAiTalk();
 
+        void releaseMemory();
+
     }
 
     interface View extends BaseView<Presenter>{
+        void showResultInTextView(String str);
 
+        void startAnim();
+
+        void stopAnim();
     }
 }

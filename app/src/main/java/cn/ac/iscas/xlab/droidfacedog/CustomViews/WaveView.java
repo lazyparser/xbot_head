@@ -124,7 +124,7 @@ public class WaveView extends View {
         mPaint.setShader(shader);
         canvas.drawCircle(mWidth / 2, mHeight / 2, mRadius, mPaint);
         mPaint.setColor(Color.GRAY);
-        mPaint.setTextSize(30);
+        mPaint.setTextSize(40);
         mPaint.setShader(null);
         if (!isWorking) {
             canvas.drawText(START_TALK, centerX - mPaint.measureText(START_TALK) / 2, centerY + textHeight / 2, mPaint);
@@ -143,6 +143,7 @@ public class WaveView extends View {
 
 
     public void startAnimation(){
+        isWorking = true;
         radiusAnimator = ValueAnimator.ofFloat(mRadius, mRadius * 1.2F);
         radiusAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -187,11 +188,8 @@ public class WaveView extends View {
     public void endAnimation(){
         radiusAnimator.end();
         alphaAnimator.end();
+        isWorking = false;
         invalidate();
-    }
-
-    public void setInWorkingState(boolean b) {
-        isWorking = b;
     }
 
     public boolean isWorking() {

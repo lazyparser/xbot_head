@@ -7,6 +7,11 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.iflytek.cloud.SpeechConstant;
+import com.iflytek.cloud.SpeechUtility;
+
+import cn.ac.iscas.xlab.droidfacedog.config.Config;
+
 /**
  * Created by lisongting on 2017/7/10.
  */
@@ -44,6 +49,9 @@ public class XbotApplication extends Application {
         intent = new Intent(this, RosConnectionService.class);
         startService(intent);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
+
+        //初始化讯飞TTS引擎
+        SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+ Config.APPID);
 
     }
 

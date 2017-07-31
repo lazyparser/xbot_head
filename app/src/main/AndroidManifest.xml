@@ -34,18 +34,25 @@
         <activity
             android:name=".SettingsActivity"
             android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_settings">
         </activity>
         <activity android:name=".RegisterActivity"
-            android:theme="@style/NoTitleTheme"/>
+            android:theme="@style/NoTitleTheme"
+            android:screenOrientation="portrait"/>
         <activity android:name=".CameraActivity"
-            android:theme="@style/Theme.FullScreen"/>
+            android:theme="@style/Theme.FullScreen"
+            android:screenOrientation="portrait"/>
 
         <service android:name=".RosConnectionService" />
-        <activity android:name=".XBotFaceActivity" />
-        <activity android:name=".ControlActivity" />
-        <activity android:name=".mvp.userlist.UserListActivity" />
-        <activity android:name=".mvp.aitalk.AITalkActivity" />
+        <activity android:name=".XBotFaceActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".ControlActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".mvp.userlist.UserListActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".mvp.aitalk.AITalkActivity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>
