@@ -45,6 +45,7 @@
         <activity android:name=".XBotFaceActivity" />
         <activity android:name=".ControlActivity" />
         <activity android:name=".mvp.userlist.UserListActivity" />
+        <activity android:name=".mvp.aitalk.AITalkActivity" />
     </application>
 
 </manifest>

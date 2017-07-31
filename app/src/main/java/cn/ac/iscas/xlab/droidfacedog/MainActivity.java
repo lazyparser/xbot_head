@@ -21,7 +21,9 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import cn.ac.iscas.xlab.droidfacedog.CustomViews.CircleRotateView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.mvp.aitalk.AITalkActivity;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout funCommentary;
     private RelativeLayout funControl;
     private RelativeLayout funSettings;
+    private RelativeLayout funAiTalk;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
@@ -107,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
         funControl = (RelativeLayout) findViewById(R.id.function_control);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
+        funAiTalk = (RelativeLayout) findViewById(R.id.function_aitalk);
 
         funRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,6 +142,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(mContext,ControlActivity.class));
+            }
+        });
+
+        funAiTalk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(mContext, AITalkActivity.class));
             }
         });
 

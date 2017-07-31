@@ -29,7 +29,7 @@
 
         <TextView
             android:textSize="25sp"
-            android:text="@string/begin_register_button"
+            android:text="@string/function_register"
             android:paddingTop="40dp"
             android:paddingStart="20dp"
             android:layout_toEndOf="@id/id_iv_register"
@@ -66,7 +66,7 @@
             android:paddingTop="40dp"
             android:paddingStart="20dp"
             android:layout_toEndOf="@id/id_iv_commentary"
-            android:text="@string/begin_xbotface_button"
+            android:text="@string/function_commentary"
             android:textStyle="bold"
             android:textSize="25sp"
             />
@@ -100,7 +100,41 @@
             android:paddingTop="40dp"
             android:paddingStart="20dp"
             android:layout_toEndOf="@id/id_iv_control"
-            android:text="@string/control_button_text"
+            android:text="@string/function_control"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            />
+    </RelativeLayout>
+
+    <View
+        android:background="#ddd"
+        android:layout_width="match_parent"
+        android:layout_height="1dp" />
+
+    <RelativeLayout
+        android:id="@+id/function_aitalk"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/main_button_selector"
+        >
+
+        <ImageView
+            android:id="@+id/id_iv_aitalk"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="32dp"
+            android:scaleX="2.1"
+            android:scaleY="2.2"
+            android:src="@drawable/setting_96x96" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingTop="40dp"
+            android:paddingStart="20dp"
+            android:layout_toEndOf="@id/id_iv_aitalk"
+            android:text="@string/function_ai_talk"
             android:textStyle="bold"
             android:textSize="25sp"
             />
@@ -134,7 +168,7 @@
             android:paddingTop="40dp"
             android:paddingStart="20dp"
             android:layout_toEndOf="@id/id_iv_settings"
-            android:text="@string/config_button_text"
+            android:text="@string/function_config"
             android:textStyle="bold"
             android:textSize="25sp"
             />

@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.CustomViews.FaceOverlayView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.CommandRecogResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
