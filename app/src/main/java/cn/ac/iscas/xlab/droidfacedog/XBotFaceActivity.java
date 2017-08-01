@@ -57,7 +57,6 @@ import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechSynthesizer;
-import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.SynthesizerListener;
 import com.iflytek.cloud.util.ResourceUtil;
 
@@ -71,6 +70,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import cn.ac.iscas.xlab.droidfacedog.CustomViews.FaceOverlayView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.CommandRecogResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
@@ -631,8 +631,6 @@ public class XBotFaceActivity extends AppCompatActivity{
     }
     //初始化语音合成器
     public void initSpeechEngine() {
-        //初始化讯飞TTS引擎
-        SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+ Config.APPID);
 
         //创建 SpeechSynthesizer 对象, 第二个参数：本地合成时传 InitListener，可以为Null
         ttsSynthesizer = SpeechSynthesizer.createSynthesizer(XBotFaceActivity.this, null);

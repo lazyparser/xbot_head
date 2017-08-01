@@ -21,7 +21,9 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import cn.ac.iscas.xlab.droidfacedog.CustomViews.CircleRotateView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.mvp.aitalk.AITalkActivity;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
+    public static final int AITALK_ACTIVITY = 3;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout funCommentary;
     private RelativeLayout funControl;
     private RelativeLayout funSettings;
+    private RelativeLayout funAiTalk;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
@@ -107,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
         funControl = (RelativeLayout) findViewById(R.id.function_control);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
+        funAiTalk = (RelativeLayout) findViewById(R.id.function_aitalk);
 
         funRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -138,6 +143,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(mContext,ControlActivity.class));
+            }
+        });
+
+        funAiTalk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.RECORD_AUDIO);
+                if (rc == PackageManager.PERMISSION_GRANTED) {
+                    startActivity(new Intent(mContext, AITalkActivity.class));
+                } else {
+                    requestCameraPermission(AITALK_ACTIVITY);
+                }
+
             }
         });
 
@@ -188,26 +206,34 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "MainActivity启动时初始化：" + Config.string());
     }
 
-    private void requestCameraPermission(final int RC_HANDLE_CAMERA_PERM) {
+    private void requestCameraPermission(final int requestCode) {
         Log.w(TAG, "Camera permission is not granted. Requesting permission");
 
         final String[] permissions = new String[]{Manifest.permission.CAMERA,Manifest.permission.RECORD_AUDIO};
 
-        ActivityCompat.requestPermissions(this, permissions, RC_HANDLE_CAMERA_PERM);
+        ActivityCompat.requestPermissions(this, permissions, requestCode);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-
-        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == REGISTER_ACTIVITY) {
-            Intent intent = new Intent(mContext, RegisterActivity.class);
-            startActivity(intent);
-            return;
-        }
-        if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == XBOTFACE_ACTIVITY) {
-            Intent intent = new Intent(mContext, XBotFaceActivity.class);
-            startActivity(intent);
-            return;
+        Intent intent = null;
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            switch (requestCode) {
+                case REGISTER_ACTIVITY:
+                    intent = new Intent(mContext, RegisterActivity.class);
+                    break;
+                case XBOTFACE_ACTIVITY:
+                    intent = new Intent(mContext, XBotFaceActivity.class);
+                    break;
+                case AITALK_ACTIVITY:
+                    intent = new Intent(mContext, AITalkActivity.class);
+                    break;
+                default:
+                    break;
+            }
+            if (intent != null) {
+                startActivity(intent);
+            }
         }
 
         Log.e(TAG, "Permission not granted: results len = " + grantResults.length +

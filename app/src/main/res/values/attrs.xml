@@ -8,5 +8,8 @@
         <attr name="stroke_width" format="dimension" />
     </declare-styleable>
 
+    <declare-styleable name="WaveView" >
+        <attr name="inner_color" format="color|reference" />
+    </declare-styleable>
 
 </resources>

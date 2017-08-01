@@ -10,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import cn.ac.iscas.xlab.droidfacedog.CustomViews.CircleRotateView;
+
 /**
  * Created by lisongting on 2017/7/5.
  */

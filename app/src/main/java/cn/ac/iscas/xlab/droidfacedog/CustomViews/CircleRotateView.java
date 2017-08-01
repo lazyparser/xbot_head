@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog;
+package cn.ac.iscas.xlab.droidfacedog.CustomViews;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -11,6 +11,8 @@ import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+
+import cn.ac.iscas.xlab.droidfacedog.R;
 
 /**
  * Created by lisongting on 2017/7/4.
@@ -87,6 +89,7 @@ public class CircleRotateView extends View {
         if (widthMode == MeasureSpec.EXACTLY) {
             width = widthSize;
         } else {
+            //如果不是EXACTLY,就是AT_MOST。widthSize就是父容器限定的最大尺寸
             width = widthSize / 2;
         }
         if (heightMode == MeasureSpec.EXACTLY) {

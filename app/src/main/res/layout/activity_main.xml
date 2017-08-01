@@ -1,146 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--THANKS:-->
 <!--https://icons8.com-->
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="cn.ac.iscas.xlab.droidfacedog.MainActivity">
-
-    <RelativeLayout
-        android:id="@+id/function_register"
-        android:background="@drawable/main_button_selector"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/id_iv_register"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+        <RelativeLayout
+            android:id="@+id/function_register"
+            android:background="@drawable/main_button_selector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/id_iv_register"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:scaleX="2"
+                android:scaleY="2"
+                android:src="@drawable/user_100x100" />
+
+            <TextView
+                android:textSize="25sp"
+                android:text="@string/function_register"
+                android:paddingTop="40dp"
+                android:paddingStart="20dp"
+                android:layout_toEndOf="@id/id_iv_register"
+                android:textStyle="bold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+
+        <View
+            android:background="#ddd"
+            android:layout_width="match_parent"
+            android:layout_height="1dp" />
+
+        <RelativeLayout
+            android:id="@+id/function_commentary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="32dp"
-            android:scaleX="2"
-            android:scaleY="2"
-            android:src="@drawable/user_100x100" />
+            android:background="@drawable/main_button_selector">
 
-        <TextView
-            android:textSize="25sp"
-            android:text="@string/begin_register_button"
-            android:paddingTop="40dp"
-            android:paddingStart="20dp"
-            android:layout_toEndOf="@id/id_iv_register"
-            android:textStyle="bold"
+            <ImageView
+                android:id="@+id/id_iv_commentary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:scaleX="2.1"
+                android:scaleY="2.2"
+                android:src="@drawable/audio_96x96" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingTop="40dp"
+                android:paddingStart="20dp"
+                android:layout_toEndOf="@id/id_iv_commentary"
+                android:text="@string/function_commentary"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                />
+        </RelativeLayout>
+        <View
+            android:background="#ddd"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </RelativeLayout>
+            android:layout_height="1dp" />
 
-    <View
-        android:background="#ddd"
-        android:layout_width="match_parent"
-        android:layout_height="1dp" />
-
-    <RelativeLayout
-        android:id="@+id/function_commentary"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/main_button_selector"
-        >
-
-        <ImageView
-            android:id="@+id/id_iv_commentary"
+        <RelativeLayout
+            android:id="@+id/function_control"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="32dp"
-            android:scaleX="2.1"
-            android:scaleY="2.2"
-            android:src="@drawable/audio_96x96" />
+            android:background="@drawable/main_button_selector"
+            >
 
-        <TextView
+            <ImageView
+                android:id="@+id/id_iv_control"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:lineSpacingExtra="6sp"
+                android:scaleX="2.1"
+                android:scaleY="2.2"
+                android:src="@drawable/move_96x96" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingTop="40dp"
+                android:paddingStart="20dp"
+                android:layout_toEndOf="@id/id_iv_control"
+                android:text="@string/function_control"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                />
+        </RelativeLayout>
+
+        <View
+            android:background="#ddd"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:paddingTop="40dp"
-            android:paddingStart="20dp"
-            android:layout_toEndOf="@id/id_iv_commentary"
-            android:text="@string/begin_xbotface_button"
-            android:textStyle="bold"
-            android:textSize="25sp"
-            />
-    </RelativeLayout>
-    <View
-        android:background="#ddd"
-        android:layout_width="match_parent"
-        android:layout_height="1dp" />
+            android:layout_height="1dp" />
 
-    <RelativeLayout
-        android:id="@+id/function_control"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/main_button_selector"
-        >
-
-        <ImageView
-            android:id="@+id/id_iv_control"
+        <RelativeLayout
+            android:id="@+id/function_aitalk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="32dp"
-            android:lineSpacingExtra="6sp"
-            android:scaleX="2.1"
-            android:scaleY="2.2"
-            android:src="@drawable/move_96x96" />
+            android:background="@drawable/main_button_selector"
+            >
 
-        <TextView
+            <ImageView
+                android:id="@+id/id_iv_aitalk"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:scaleX="2.1"
+                android:scaleY="2.2"
+                android:src="@drawable/talk_96x96" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingTop="40dp"
+                android:paddingStart="20dp"
+                android:layout_toEndOf="@id/id_iv_aitalk"
+                android:text="@string/function_ai_talk"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                />
+        </RelativeLayout>
+
+        <View
+            android:background="#ddd"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:paddingTop="40dp"
-            android:paddingStart="20dp"
-            android:layout_toEndOf="@id/id_iv_control"
-            android:text="@string/control_button_text"
-            android:textStyle="bold"
-            android:textSize="25sp"
-            />
-    </RelativeLayout>
+            android:layout_height="1dp" />
 
-    <View
-        android:background="#ddd"
-        android:layout_width="match_parent"
-        android:layout_height="1dp" />
-
-    <RelativeLayout
-        android:id="@+id/function_settings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/main_button_selector"
-        >
-
-        <ImageView
-            android:id="@+id/id_iv_settings"
+        <RelativeLayout
+            android:id="@+id/function_settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="32dp"
-            android:scaleX="2.1"
-            android:scaleY="2.2"
-            android:src="@drawable/setting_96x96" />
+            android:background="@drawable/main_button_selector"
+            >
 
-        <TextView
+            <ImageView
+                android:id="@+id/id_iv_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:scaleX="2.1"
+                android:scaleY="2.2"
+                android:src="@drawable/setting_96x96" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingTop="40dp"
+                android:paddingStart="20dp"
+                android:layout_toEndOf="@id/id_iv_settings"
+                android:text="@string/function_config"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                />
+        </RelativeLayout>
+        <View
+            android:background="#ddd"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:paddingTop="40dp"
-            android:paddingStart="20dp"
-            android:layout_toEndOf="@id/id_iv_settings"
-            android:text="@string/config_button_text"
-            android:textStyle="bold"
-            android:textSize="25sp"
-            />
-    </RelativeLayout>
-    <View
-        android:background="#ddd"
-        android:layout_width="match_parent"
-        android:layout_height="1dp" />
-</LinearLayout>
+            android:layout_height="1dp" />
+    </LinearLayout>
+</ScrollView>
