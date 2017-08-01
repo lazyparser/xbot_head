@@ -49,7 +49,9 @@ public class AITalkPresenter implements AITalkContract.Presenter {
     private Timer timer;
 
     private int mAIUIState = AIUIConstant.STATE_IDLE;
-
+    private TimerTask task;
+    private boolean isRecording ;
+    final Handler h = new Handler(Looper.getMainLooper());
     //构造器
     public AITalkPresenter(Context context,AITalkContract.View view) {
         this.context = context;
@@ -60,6 +62,7 @@ public class AITalkPresenter implements AITalkContract.Presenter {
     //初始化
     @Override
     public void start() {
+        isRecording = false;
         //创建 SpeechSynthesizer 对象, 第二个参数：本地合成时传 InitListener，可以为Null
         ttsSynthesizer = SpeechSynthesizer.createSynthesizer(context, null);
 
@@ -95,17 +98,18 @@ public class AITalkPresenter implements AITalkContract.Presenter {
                                 AIMessage aiMessage;
                                 Gson gson = new Gson();
                                 aiMessage = gson.fromJson(cntJson.toString(), AIMessage.class);
-                                AIMessage.IntentBean.AnswerBean answerBean = aiMessage.getIntent().getAnswer();
-                                String str = "";
-//                                    str = answerBean.getText();
-                            if (answerBean != null) {
-                                str = answerBean.getText();
-                                speakOutResult(str);
+                                if (aiMessage.getIntent() != null) {
+                                    AIMessage.IntentBean.AnswerBean answerBean = aiMessage.getIntent().getAnswer();
+                                    String str = "";
+                                    //str = answerBean.getText();
+                                    if (answerBean != null) {
+                                        str = answerBean.getText();
+                                        speakOutResult(str);
 
-                            } else {
-//                                    str = "这个问题太难了，换一个吧";
-                            }
-
+                                    } else {
+                                        //str = "这个问题太难了，换一个吧";
+                                    }
+                                }
                             } else {
                                 log("cnt_id字段为null");
                             }
@@ -197,13 +201,14 @@ public class AITalkPresenter implements AITalkContract.Presenter {
         };
         agent = AIUIAgent.createAgent(context, AIAGENT_PARAMS, aiuiListener);
 
+        timer = new Timer();
 
     }
 
     private void startAutoCloseTask() {
-        timer = new Timer();
-        final Handler h = new Handler(Looper.getMainLooper());
-        timer.schedule(new TimerTask() {
+
+        //timerTask不能取消后再重用，只能使用一次便需要再次new
+        task = new TimerTask() {
             @Override
             public void run() {
                 long currentTime = System.currentTimeMillis();
@@ -215,12 +220,17 @@ public class AITalkPresenter implements AITalkContract.Presenter {
                             view.stopAnim();
                         }
                     });
+                    isRecording = false;
                     this.cancel();
                 }else{
+                    isRecording = true;
 //                    log("agent is awake");
                 }
             }
-        },10000,10000);//延迟10秒启动，每10秒查询一次状态
+        };
+        if (!isRecording) {
+            timer.schedule(task,10000,10000);//延迟10秒启动，每10秒查询一次状态
+        }
 
     }
 
@@ -244,16 +254,20 @@ public class AITalkPresenter implements AITalkContract.Presenter {
 
         lastWakeUpTime = System.currentTimeMillis();
         startAutoCloseTask();
+        isRecording = true;
     }
 
     @Override
     public void stopAiTalk() {
+        if (isRecording) {
+            isRecording = false;
+        }
         // 停止录音
         String params = "sample_rate=16000,data_type=audio";
         AIUIMessage stopWriteMsg = new AIUIMessage(AIUIConstant.CMD_STOP_RECORD, 0, 0, params, null);
 
         agent.sendMessage(stopWriteMsg);
-        timer.cancel();
+
     }
 
     @Override
@@ -267,7 +281,6 @@ public class AITalkPresenter implements AITalkContract.Presenter {
             ttsSynthesizer.stopSpeaking();
             ttsSynthesizer.destroy();
         }
-
     }
 
     private void log(String str){
