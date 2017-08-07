@@ -38,9 +38,9 @@ public interface InteractionContract {
 
     interface View extends BaseView<Presenter>{
 
-        void startAitalkAnimation();
+        void startAnimation();
 
-        void stopAitalkAnimation();
+        void stopAnimation();
 
         void startCamera();
 

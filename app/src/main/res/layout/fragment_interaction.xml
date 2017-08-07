@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <cn.ac.iscas.xlab.droidfacedog.CustomViews.WaveView
+        android:id="@+id/id_wave_view"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_centerHorizontal="true"
+        android:padding="30dp"
+        app:inner_color="@android:color/holo_blue_light"/>
+
+    <TextureView
+        android:id="@+id/texture_view"
+        android:layout_width="512dp"
+        android:layout_height="682dp"
+        android:layout_below="@id/id_wave_view"
+        android:layout_centerHorizontal="true"
+        />
+
+
+</RelativeLayout>
