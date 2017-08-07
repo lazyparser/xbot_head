@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
     private Button btnConnBackground;
     private RelativeLayout funRegister;
     private RelativeLayout funCommentary;
-    private RelativeLayout funControl;
     private RelativeLayout funSettings;
     private RelativeLayout funAiTalk;
     private CircleRotateView circleRotateView;
@@ -109,7 +108,6 @@ public class MainActivity extends AppCompatActivity {
 
         funRegister = (RelativeLayout) findViewById(R.id.function_register);
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
-        funControl = (RelativeLayout) findViewById(R.id.function_control);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
         funAiTalk = (RelativeLayout) findViewById(R.id.function_aitalk);
 
@@ -139,12 +137,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        funControl.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(mContext,ControlActivity.class));
-            }
-        });
 
         funAiTalk.setOnClickListener(new View.OnClickListener() {
             @Override
