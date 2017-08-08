@@ -240,7 +240,7 @@ public class AiTalkModel {
 
     }
 
-    //使用TTS引擎将语音播放出来
+    //使用TTS引擎将AI对话的结果以语音形式播放出来
     private void speakOutResult(String str) {
         log("Speak Out:" + str);
         ttsSynthesizer.startSpeaking(str,synthesizerListener );
@@ -293,6 +293,7 @@ public class AiTalkModel {
     private void log(String str){
         Log.i(TAG, str);
     }
+
 
 
 }

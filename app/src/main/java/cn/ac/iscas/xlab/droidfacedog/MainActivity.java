@@ -21,9 +21,10 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import cn.ac.iscas.xlab.droidfacedog.CustomViews.CircleRotateView;
+import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.mvp.aitalk.AITalkActivity;
+import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
     public static final int AITALK_ACTIVITY = 3;
+    public static final int INTERACTION_ACTIVITY = 4;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout funCommentary;
     private RelativeLayout funSettings;
     private RelativeLayout funAiTalk;
+    private RelativeLayout funInteraction;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
@@ -110,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
         funAiTalk = (RelativeLayout) findViewById(R.id.function_aitalk);
-
+        funInteraction = (RelativeLayout) findViewById(R.id.function_interaction);
         funRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(mContext, RegisterActivity.class);
                     startActivity(intent);
                 } else {
-                    requestCameraPermission(REGISTER_ACTIVITY);
+                    requestPermissions(REGISTER_ACTIVITY);
                 }
             }
         });
@@ -132,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(mContext, XBotFaceActivity.class);
                     startActivity(intent);
                 } else {
-                    requestCameraPermission(XBOTFACE_ACTIVITY);
+                    requestPermissions(XBOTFACE_ACTIVITY);
                 }
             }
         });
@@ -145,9 +148,22 @@ public class MainActivity extends AppCompatActivity {
                 if (rc == PackageManager.PERMISSION_GRANTED) {
                     startActivity(new Intent(mContext, AITalkActivity.class));
                 } else {
-                    requestCameraPermission(AITALK_ACTIVITY);
+                    requestPermissions(AITALK_ACTIVITY);
                 }
 
+            }
+        });
+        funInteraction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int rc1 = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+                int rc2 = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.RECORD_AUDIO);
+                
+                if (rc1 == PackageManager.PERMISSION_GRANTED && rc2 == PackageManager.PERMISSION_GRANTED) {
+                    startActivity(new Intent(mContext, InteractionActivity.class));
+                } else {
+                    requestPermissions(INTERACTION_ACTIVITY);
+                }
             }
         });
 
@@ -198,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "MainActivity启动时初始化：" + Config.string());
     }
 
-    private void requestCameraPermission(final int requestCode) {
+    private void requestPermissions(final int requestCode) {
         Log.w(TAG, "Camera permission is not granted. Requesting permission");
 
         final String[] permissions = new String[]{Manifest.permission.CAMERA,Manifest.permission.RECORD_AUDIO};
@@ -220,6 +236,8 @@ public class MainActivity extends AppCompatActivity {
                 case AITALK_ACTIVITY:
                     intent = new Intent(mContext, AITalkActivity.class);
                     break;
+                case INTERACTION_ACTIVITY:
+                    intent = new Intent(mContext, InteractionActivity.class);
                 default:
                     break;
             }

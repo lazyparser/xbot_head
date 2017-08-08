@@ -112,7 +112,7 @@
         </RelativeLayout>
 
         <RelativeLayout
-            android:id="@+id/function_control"
+            android:id="@+id/function_interaction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/main_button_selector"

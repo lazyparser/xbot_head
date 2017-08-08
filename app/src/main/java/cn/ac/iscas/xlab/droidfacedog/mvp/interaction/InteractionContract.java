@@ -1,6 +1,8 @@
 package cn.ac.iscas.xlab.droidfacedog.mvp.interaction;
 
 import android.graphics.Bitmap;
+import android.os.Binder;
+import android.support.annotation.NonNull;
 
 import cn.ac.iscas.xlab.droidfacedog.mvp.BasePresenter;
 import cn.ac.iscas.xlab.droidfacedog.mvp.BaseView;
@@ -14,7 +16,7 @@ public interface InteractionContract {
     interface Presenter extends BasePresenter{
 
         //说出用户名字，进行问候
-        void greetToUser(String userName);
+        void greetToUser(String userId);
 
         //开始解说
         void startCommentary();
@@ -33,6 +35,7 @@ public interface InteractionContract {
         //进行人脸识别
         String recognizeUserFace(Bitmap bitmap);
 
+        void setServiceProxy(@NonNull Binder binder);
     }
 
 

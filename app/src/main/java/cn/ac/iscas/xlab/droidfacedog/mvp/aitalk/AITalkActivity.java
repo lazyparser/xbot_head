@@ -8,7 +8,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import cn.ac.iscas.xlab.droidfacedog.CustomViews.WaveView;
+import cn.ac.iscas.xlab.droidfacedog.custom_views.WaveView;
 import cn.ac.iscas.xlab.droidfacedog.R;
 
 /**

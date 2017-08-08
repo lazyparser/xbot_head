@@ -32,10 +32,6 @@ public class RosConnectionService extends Service{
     public static final String TAG = "RosConnectionService";
     public static final String SUBSCRIBE_TOPIC = "/museum_position";
     public static final String PUBLISH_TOPIC = "/tts_status";
-    public static final int CTRL_FORWARD = 0x11;
-    public static final int CTRL_BACK = 0x12;
-    public static final int CTRL_LEFT = 0x13;
-    public static final int CTRL_RIGHT = 0x14;
 
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
@@ -69,32 +65,6 @@ public class RosConnectionService extends Service{
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
-        }
-
-        public void publishMoveTopic(int command) {
-
-            //TODO:后续确定了topic之后，再进行具体实现
-            switch (command) {
-                case CTRL_FORWARD:
-                    //test
-                    Log.i(TAG, "点击了[前进]按钮");
-
-                    break;
-                case CTRL_BACK:
-                    Log.i(TAG, "点击了[后退]按钮");
-
-                    break;
-                case CTRL_LEFT:
-                    Log.i(TAG, "点击了[左转]按钮");
-
-                    break;
-                case CTRL_RIGHT:
-                    Log.i(TAG, "点击了[右转]按钮");
-
-                    break;
-                default:
-                    break;
             }
         }
 

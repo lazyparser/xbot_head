@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog.CustomViews;
+package cn.ac.iscas.xlab.droidfacedog.custom_views;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
