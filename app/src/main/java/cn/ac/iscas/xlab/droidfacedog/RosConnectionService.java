@@ -61,7 +61,7 @@ public class RosConnectionService extends Service{
 
                     rosBridgeClient.send(body.toString());
 
-                    Log.i(TAG, "Send To Ros Server:" + body.toString());
+                    Log.v(TAG, "publish 'tts_status' To Ros Server:" + body.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -84,9 +84,8 @@ public class RosConnectionService extends Service{
             public void run() {
                 if (!isConnected) {
                     String rosURL = "ws://" + Config.ROS_SERVER_IP + ":" + Config.ROS_SERVER_PORT;
-                    Log.d(TAG, "Connecting to ROS : " + rosURL);
+                    Log.v(TAG, "Connecting to ROS Server: " + rosURL);
                     rosBridgeClient = new ROSBridgeClient(rosURL);
-                    Log.i(TAG, rosURL);
                     boolean conneSucc = rosBridgeClient.connect(new ROSClient.ConnectionStatusListener() {
                         @Override
                         public void onConnect() {
@@ -96,7 +95,7 @@ public class RosConnectionService extends Service{
 
                         @Override
                         public void onDisconnect(boolean normal, String reason, int code) {
-                            Log.i(TAG, "ConnectionStatusListener--disconnect");
+                            Log.v(TAG, "ConnectionStatusListener--disconnect");
                         }
 
                         @Override
@@ -117,7 +116,7 @@ public class RosConnectionService extends Service{
                         rosBridgeClient.send(strSubscribe.toString());
                         Log.i(TAG, "RosConnectionService连接Ros成功");
                     } else {
-                        Log.i(TAG, "RosConnectionService连接Ros失败");
+                        Log.v(TAG, "RosConnectionService连接Ros失败");
                     }
                     isConnected = conneSucc;
                     Intent broadcastIntent = new Intent(MainActivity.ROS_RECEIVER_INTENTFILTER);

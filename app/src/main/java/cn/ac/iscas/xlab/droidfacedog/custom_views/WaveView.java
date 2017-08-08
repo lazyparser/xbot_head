@@ -28,7 +28,7 @@ public class WaveView extends View {
     public static final String START_TALK = "开启语音对话";
     public static final String STOP_TALK = "关闭语音对话";
     private boolean isWorking = false;
-    private int mColor;
+    private int mColor,mLastColor;
     private float mRadius;
     private int mWidth,mHeight;
     private float centerX,centerY;
@@ -60,6 +60,8 @@ public class WaveView extends View {
             switch (attr) {
                 case R.styleable.WaveView_inner_color:
                     mColor = typedArray.getColor(attr, Color.BLUE);
+                    //mLastColor保存在XML文件中定义好的颜色
+                    mLastColor = mColor;
                     break;
                 default:
                     break;
@@ -194,6 +196,21 @@ public class WaveView extends View {
 
     public boolean isWorking() {
         return isWorking;
+    }
+
+    public void setEnable(boolean enable) {
+        if (enable) {
+            setClickable(true);
+            mColor = mLastColor;
+            invalidate();
+        } else {
+            setClickable(false);
+            mColor = Color.GRAY;
+//            if (isWorking) {
+//                endAnimation();
+//            }
+            invalidate();
+        }
     }
 
 }

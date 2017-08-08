@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="#D9DDDC">
 
     <cn.ac.iscas.xlab.droidfacedog.custom_views.WaveView
         android:id="@+id/id_wave_view"
@@ -22,6 +23,14 @@
         android:layout_below="@id/id_wave_view"
         android:layout_centerHorizontal="true"
         />
+
+    <ImageView
+        android:id="@+id/talker_img"
+        android:layout_width="512dp"
+        android:layout_height="682dp"
+        android:visibility="gone"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/id_wave_view"/>
 
 
 </RelativeLayout>

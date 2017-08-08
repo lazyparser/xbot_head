@@ -86,7 +86,7 @@ public class AITalkPresenter implements AITalkContract.Presenter {
                     try {
                         JSONObject bizParamJson = new JSONObject(event.info);
                         JSONObject data = bizParamJson.getJSONArray("data").getJSONObject(0);
-                        JSONObject params = data.getJSONObject("params");
+//                        JSONObject params = data.getJSONObject("params");
                         JSONObject content = data.getJSONArray("content").getJSONObject(0);
 
                         if (content.has("cnt_id")) {

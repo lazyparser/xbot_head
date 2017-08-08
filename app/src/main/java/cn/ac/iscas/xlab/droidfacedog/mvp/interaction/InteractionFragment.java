@@ -19,8 +19,8 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.FaceDetector;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -31,11 +31,13 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -58,13 +60,13 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     public static final String TAG = "InteractionFragment";
     private WaveView waveView;
+    private ImageView imageView;
     private TextureView textureView;
     private SurfaceTexture surfaceTexture;
     private Surface surface;
 
     private InteractionContract.Presenter presenter;
 
-    private Handler handler;
     //与拍摄图像相关的成员变量
     private String cameraID;
     private Size previewSize;
@@ -77,8 +79,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     //用于定时识别人脸的Timer
     private Timer mDetectTimer;
-    //用于定时发布TTS状态的Timer
-    private Timer mPublishTopicTimer;
     private TimerTask mDetectFaceTask;
 
     //用来存放检测到的人脸
@@ -91,19 +91,14 @@ public class InteractionFragment extends Fragment implements InteractionContract
     private Bitmap mFaceBitmap;
     //这个boolean表示将人脸发送给服务器后，当前是否正在等待优图服务器返回识别结果
     private boolean isWaitingRecogResult = false;
-    private boolean hasGreeted = false;
 
     //识别到的人脸的id（不是注册在服务端的ID）,初始为0。
     private int mPersonId =0;
     private long mTotalFrameCount = 0;
     //比例因子，将检测到的原始人脸图像按此比例缩小，以此可以加快FaceDetect的检测速度
     private double mScale = 0.2;
-    private long mLastChangeTime;
     //用来标记每个人脸共有几张图像,key是人脸的id，value是当前采集到的图像张数
     private SparseIntArray mFacesCountMap;
-
-    //RecyclerView中的人脸图像的List
-    private ArrayList<Bitmap> mRecyclerViewBitmapList;
 
     public InteractionFragment() {}
 
@@ -116,6 +111,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
         View view = inflater.inflate(R.layout.fragment_interaction, container, false);
         waveView = (WaveView) view.findViewById(R.id.id_wave_view);
         textureView = (TextureView) view.findViewById(R.id.texture_view);
+        imageView = (ImageView) view.findViewById(R.id.talker_img);
 
         return view;
     }
@@ -147,6 +143,8 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
         initCallbackAndListeners();
 
+        setWaveViewEnable(false);
+
         initCamera();
         //开启三个定时任务
         startTimerTask();
@@ -155,15 +153,16 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     }
 
+    //创建回调接口，初始化监听器
     private void initCallbackAndListeners() {
         waveView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (waveView.isWorking()) {
-//                    presenter.stopAiTalk();
+                    presenter.stopAiTalk();
                     waveView.endAnimation();
                 } else {
-//                    presenter.startAiTalk();
+                    presenter.startAiTalk();
                     waveView.startAnimation();
                 }
             }
@@ -175,7 +174,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
                 Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureAvailable()");
                 surfaceTexture = surface;
-//                startPreview();
                 startCamera();
             }
 
@@ -192,6 +190,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+                Log.v(TAG, "TextureView -- onSurfaceTextureUpdated");
                 mTotalFrameCount++;
                 //每过400帧数，将isWaitingRecogResult置为false，这样可以避免频繁发送人脸给服务器
                 if (mTotalFrameCount % 400 == 0) {
@@ -243,18 +242,21 @@ public class InteractionFragment extends Fragment implements InteractionContract
                         @Override
                         public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request,
                                                      long timestamp, long frameNumber) {
+                            Log.v(TAG, "CameraCaptureSession -- onCaptureStarted");
                             super.onCaptureStarted(session, request, timestamp, frameNumber);
                         }
 
                         @Override
                         public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request,
                                                         @NonNull CaptureResult partialResult) {
+                            Log.v(TAG, "CameraCaptureSession -- onCaptureProgressed");
                             super.onCaptureProgressed(session, request, partialResult);
                         }
 
                         @Override
                         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request,
                                                        @NonNull TotalCaptureResult result) {
+                            Log.v(TAG, "CameraCaptureSession -- onCaptureCompleted");
                             super.onCaptureCompleted(session, request, result);
                         }
                     }, null);
@@ -287,19 +289,12 @@ public class InteractionFragment extends Fragment implements InteractionContract
         }
     }
 
+    @Override
+    public void stopFaceDetectTask() {
+        mDetectTimer.cancel();
+    }
+
     private void startTimerTask(){
-//        mPublishTopicTimer = new Timer();
-//        mPublishTopicTimer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                if (mServiceProxy != null && mAudioManager !=null) {
-//                    int id = mAudioManager.getCurrentId();
-//                    boolean isPlaying = mAudioManager.isPlaying();
-//                    TtsStatus status = new TtsStatus(id,isPlaying);
-//                    mServiceProxy.publishTtsStatus(status);
-//                }
-//            }
-//        },1000,200);
 
         mDetectTimer = new Timer();
         //在这个定时任务中，不断的检测界面中的人脸
@@ -308,7 +303,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
             public void run() {
                 Bitmap face = textureView.getBitmap();
                 if (face != null) {
-                    Log.i(TAG, "Bitmap in mTextureView :" + face.getWidth() +
+                    Log.v(TAG, "Bitmap in mTextureView :" + face.getWidth() +
                             "x" + face.getHeight()+",Config:"+face.getConfig());
 
                     //原先的bitmap格式是ARGB_8888，以下的步骤是把格式转换为RGB_565
@@ -326,10 +321,10 @@ public class InteractionFragment extends Fragment implements InteractionContract
                     //findFaces中传入的bitmap格式必须为RGB_565
                     int found = mFaceDetector.findFaces(smallRGBFace, mDetectedFaces);
 
-                    Log.i(TAG, "RGBFace:" + RGBFace.getWidth() + "x" + RGBFace.getHeight() + "," + RGBFace.getConfig());
-                    Log.i(TAG, "smallRGBFace:" + smallRGBFace.getWidth() + "x" + smallRGBFace.getHeight() + ","
+                    Log.v(TAG, "RGBFace:" + RGBFace.getWidth() + "x" + RGBFace.getHeight() + "," + RGBFace.getConfig());
+                    Log.v(TAG, "smallRGBFace:" + smallRGBFace.getWidth() + "x" + smallRGBFace.getHeight() + ","
                             + smallRGBFace.getConfig());
-                    Log.i(TAG, "found:" + found+" face(s)");
+                    Log.v(TAG, "found:" + found+" face(s)");
 
                     for(int i=0;i<MAX_FACE_COUNT;i++) {
                         if (mDetectedFaces[i] == null) {
@@ -341,8 +336,8 @@ public class InteractionFragment extends Fragment implements InteractionContract
                             //前面为了方便检测人脸将图片缩小，现在按比例还原
                             mid.x *= 1.0/mScale;
                             mid.y *= 1.0/mScale;
-                            Log.i(TAG, textureView.getWidth() + "x" + textureView.getHeight());
-                            Log.i(TAG, "mid pointF:" + mid.x + "," + mid.y);
+                            Log.v(TAG, textureView.getWidth() + "x" + textureView.getHeight());
+                            Log.v(TAG, "mid pointF:" + mid.x + "," + mid.y);
                             float eyeDistance = mDetectedFaces[i].eyesDistance()*(float)(1.0/mScale);
                             float confidence = mDetectedFaces[i].confidence();
                             float pose = mDetectedFaces[i].pose(FaceDetector.Face.EULER_Y);
@@ -430,7 +425,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 //            previewSize = getPreferredPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), width, height);
             previewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
             surfaceTexture.setDefaultBufferSize(previewSize.getWidth(),previewSize.getHeight());
-            Log.i(TAG, "previewSize info:" + previewSize.getWidth() + "x" + previewSize.getHeight());
+            Log.v(TAG, "previewSize info:" + previewSize.getWidth() + "x" + previewSize.getHeight());
 
             surface = new Surface(surfaceTexture);
 
@@ -439,7 +434,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
             if (surface.isValid()) {
                 builder.addTarget(surface);
             }
-            Log.i(TAG, "mTextureView info:" + textureView.getWidth() + "x" + textureView.getHeight());
+            Log.v(TAG, "mTextureView info:" + textureView.getWidth() + "x" + textureView.getHeight());
 
             cameraDevice.createCaptureSession(Arrays.asList(surface),sessionStateCallback,null);
 
@@ -452,14 +447,43 @@ public class InteractionFragment extends Fragment implements InteractionContract
     public void stopCamera() {
         try {
             cameraCaptureSession.abortCaptures();
+            cameraDevice.close();
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+        textureView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void showRobotImg() {
+        imageView.setVisibility(View.VISIBLE);
+
+        Glide.with(getContext())
+                .load(R.drawable.talker_img)
+                .into(imageView);
+    }
+
+    //设置按钮是否可点击
+    @Override
+    public void setWaveViewEnable(boolean b) {
+        waveView.setEnable(b);
+    }
+
+    @Override
+    public void showTip() {
+        final Snackbar snackbar = Snackbar.make(imageView, "在解说模式，Ai对话模式将被关闭", Snackbar.LENGTH_SHORT);
+        snackbar.setAction("知道了", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                snackbar.dismiss();
+            }
+        });
     }
 
     public void setRosServiceBinder(RosConnectionService.ServiceBinder binder){
         presenter.setServiceProxy(binder);
     }
+
 
     @Override
     public void onDestroy() {

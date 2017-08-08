@@ -110,6 +110,10 @@
                 android:textSize="25sp"
                 />
         </RelativeLayout>
+        <View
+            android:background="#ddd"
+            android:layout_width="match_parent"
+            android:layout_height="1dp" />
 
         <RelativeLayout
             android:id="@+id/function_interaction"

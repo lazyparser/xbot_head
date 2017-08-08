@@ -174,7 +174,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         mAudioManager = new AudioManager(this);
         mAudioManager.loadTts();
 
-        //双用途Handler，一用来接收TimerTask中发回来的Ros连接状态，二用来接收优图的识别结果
+        //用来接收优图的识别结果
         mMainHandler = new Handler(){
             public void handleMessage(Message msg) {
                 if (msg.what == HANDLER_PLAY_TTS) {

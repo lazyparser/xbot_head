@@ -51,8 +51,13 @@ public class AiTalkModel {
     final Handler h = new Handler(Looper.getMainLooper());
 
     OnAiTalkerTimeout timeoutCallback;
+    OnAiTalkerResult talkerCallback;
+    //当AI机器人返回即将要说的话
+    public interface OnAiTalkerResult{
+        void onAiTalkerSpeak(String words);
+    }
 
-    //ai对话超时回调接口。如果用户超过一定时间不说话，则自动关闭
+    //AI对话超时回调接口。如果用户超过一定时间不说话，则自动关闭
     public interface OnAiTalkerTimeout{
         void onTimeOut ();
     }
@@ -105,13 +110,18 @@ public class AiTalkModel {
                                     aiMessage = gson.fromJson(cntJson.toString(), AIMessage.class);
                                     if (aiMessage.getIntent() != null) {
                                         AIMessage.IntentBean.AnswerBean answerBean = aiMessage.getIntent().getAnswer();
-                                        String str = "";
+                                        String str;
                                         //str = answerBean.getText();
                                         if (answerBean != null) {
                                             str = answerBean.getText();
+                                            //回调
+                                            if (talkerCallback != null) {
+                                                talkerCallback.onAiTalkerSpeak(str);
+                                            }
                                             speakOutResult(str);
 
                                         } else {
+                                            //TODO:这里可能要加上
                                             //str = "这个问题太难了，换一个吧";
                                         }
                                     }
@@ -196,7 +206,7 @@ public class AiTalkModel {
             //对话播放完后会停止录音，这里再次启动录音。
             @Override
             public void onCompleted(SpeechError speechError) {
-                startAiTalk(timeoutCallback);
+                startAiTalk(talkerCallback,timeoutCallback);
             }
 
             @Override
@@ -247,7 +257,10 @@ public class AiTalkModel {
 //        view.showResultInTextView(str);
     }
 
-    public void startAiTalk(OnAiTalkerTimeout callback) {
+    public void startAiTalk(OnAiTalkerResult callbackMessage,OnAiTalkerTimeout callback) {
+        if (callbackMessage!=null) {
+            this.talkerCallback = callbackMessage;
+        }
         if (callback != null) {
             this.timeoutCallback = callback;
         }

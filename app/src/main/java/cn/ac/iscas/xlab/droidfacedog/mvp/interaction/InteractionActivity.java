@@ -9,6 +9,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import cn.ac.iscas.xlab.droidfacedog.R;
 import cn.ac.iscas.xlab.droidfacedog.RosConnectionService;
@@ -64,7 +65,7 @@ public class InteractionActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-
+        Toast.makeText(this, "正在进行人脸识别，请稍后", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -73,5 +74,11 @@ public class InteractionActivity extends AppCompatActivity {
             onBackPressed();
         }
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(rosServiceConnection);
     }
 }

@@ -33,7 +33,7 @@ public interface InteractionContract {
         void releaseMemory();
 
         //进行人脸识别
-        String recognizeUserFace(Bitmap bitmap);
+        void recognizeUserFace(Bitmap bitmap);
 
         void setServiceProxy(@NonNull Binder binder);
     }
@@ -49,6 +49,13 @@ public interface InteractionContract {
 
         void stopCamera();
 
+        void showRobotImg();
+
+        void showTip();
+
+        void setWaveViewEnable(boolean enable);
+
+        void stopFaceDetectTask();
     }
 
 }

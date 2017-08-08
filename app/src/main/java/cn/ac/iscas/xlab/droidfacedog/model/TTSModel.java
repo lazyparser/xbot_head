@@ -106,7 +106,7 @@ public class TTSModel {
             text.append(name+"。");
         }
 
-
+        text.append("我是语音机器人，你有什么想对我说的吗");
         //设置声音文件的缓存。仅支持保存为 pcm 和 wav 格式
         String cacheFileName = context.getExternalCacheDir() + "/" + userId + ".pcm";
         //如果本地已经有离线缓存，则直接播放离线缓存文件
@@ -122,6 +122,7 @@ public class TTSModel {
             Log.i(TAG, "离线文件不存在,在线播放");
         }
 
+
         Log.i(TAG, "greetToUser:" + text.toString());
     }
 
@@ -132,6 +133,11 @@ public class TTSModel {
         } else {
             return false;
         }
+    }
+
+    public void releaseMemory() {
+        ttsSynthesizer.stopSpeaking();
+        ttsSynthesizer.destroy();
     }
 
 
