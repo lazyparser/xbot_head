@@ -68,8 +68,10 @@ public class RosConnectionService extends Service{
             }
         }
 
-        public void cancelRosConnection() {
+        public void disConnect() {
             connectionTask.cancel();
+            rosBridgeClient.disconnect();
+//            onDestroy();
         }
     }
 
@@ -114,9 +116,9 @@ public class RosConnectionService extends Service{
                             e.printStackTrace();
                         }
                         rosBridgeClient.send(strSubscribe.toString());
-                        Log.i(TAG, "RosConnectionService连接Ros成功");
+                        Log.i(TAG, TAG+" -- 连接Ros Server成功");
                     } else {
-                        Log.v(TAG, "RosConnectionService连接Ros失败");
+                        Log.v(TAG, TAG+" -- 连接Ros Server失败");
                     }
                     isConnected = conneSucc;
                     Intent broadcastIntent = new Intent(MainActivity.ROS_RECEIVER_INTENTFILTER);
@@ -141,6 +143,13 @@ public class RosConnectionService extends Service{
         //注册Eventbus
         EventBus.getDefault().register(this);
     }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.i(TAG, TAG + " -- onRebind()");
+        super.onRebind(intent);
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

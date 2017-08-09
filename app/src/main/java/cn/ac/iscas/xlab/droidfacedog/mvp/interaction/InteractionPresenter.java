@@ -110,6 +110,7 @@ public class InteractionPresenter implements InteractionContract.Presenter {
 
     @Override
     public void startCommentary() {
+
         audioManager.play(0);
         publishTtsStatus();
         //给出提示，当进入解说模式的时候，会关闭AI对话功能
@@ -127,9 +128,18 @@ public class InteractionPresenter implements InteractionContract.Presenter {
         aiTalkModel.startAiTalk(new AiTalkModel.OnAiTalkerResult() {
             @Override
             public void onAiTalkerSpeak(String words) {
-                //如果用户说了“带我参观博物馆”，AI机器人会回答"好的"
-                if (words.equals("好的")) {
+                //如果用户说了“带我参观博物馆”，AI机器人会回答"好的，接下来开始播放解说词"
+                if (words.equals("好的，接下来开始播放解说词")) {
+                    log("startAiTalk()");
                     startCommentary();
+                    stopAiTalk();
+//                    youtuHandler.post(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            view.setWaveViewEnable(false);
+//
+//                        }
+//                    });
                 }
             }
         }, new AiTalkModel.OnAiTalkerTimeout() {

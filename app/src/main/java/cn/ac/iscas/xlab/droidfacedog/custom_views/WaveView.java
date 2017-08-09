@@ -125,7 +125,7 @@ public class WaveView extends View {
         mPaint.setAlpha(255);
         mPaint.setShader(shader);
         canvas.drawCircle(mWidth / 2, mHeight / 2, mRadius, mPaint);
-        mPaint.setColor(Color.GRAY);
+        mPaint.setColor(Color.WHITE);
         mPaint.setTextSize(40);
         mPaint.setShader(null);
         if (!isWorking) {
@@ -205,10 +205,8 @@ public class WaveView extends View {
             invalidate();
         } else {
             setClickable(false);
-            mColor = Color.GRAY;
-//            if (isWorking) {
-//                endAnimation();
-//            }
+            mColor = Color.DKGRAY;
+
             invalidate();
         }
     }

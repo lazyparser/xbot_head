@@ -16,13 +16,14 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
 import cn.ac.iscas.xlab.droidfacedog.mvp.aitalk.AITalkActivity;
 import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
+    private long exitTime = 0;
     private Context mContext;
     private Handler hanlder;
     private Button btnConnBackground;
@@ -261,10 +263,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        XbotApplication app = (XbotApplication) getApplication();
+        app.getServiceProxy().disConnect();
         unregisterReceiver(receiver);
         super.onDestroy();
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+            if ((System.currentTimeMillis() - exitTime) > 2000) {
+                Toast.makeText(getApplicationContext(), "在按一次返回键退出程序", Toast.LENGTH_SHORT).show();
+                exitTime = System.currentTimeMillis();
+            } else {
+                finish();
+
+            }
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, keyEvent);
+    }
     public static class RosBroadcastReceiver extends BroadcastReceiver {
 
         RosCallback callback;

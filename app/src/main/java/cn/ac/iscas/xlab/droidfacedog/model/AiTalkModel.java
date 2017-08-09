@@ -114,12 +114,11 @@ public class AiTalkModel {
                                         //str = answerBean.getText();
                                         if (answerBean != null) {
                                             str = answerBean.getText();
+                                            speakOutResult(str);
                                             //回调
                                             if (talkerCallback != null) {
                                                 talkerCallback.onAiTalkerSpeak(str);
                                             }
-                                            speakOutResult(str);
-
                                         } else {
                                             //TODO:这里可能要加上
                                             //str = "这个问题太难了，换一个吧";
@@ -253,8 +252,17 @@ public class AiTalkModel {
     //使用TTS引擎将AI对话的结果以语音形式播放出来
     private void speakOutResult(String str) {
         log("Speak Out:" + str);
-        ttsSynthesizer.startSpeaking(str,synthesizerListener );
-//        view.showResultInTextView(str);
+        if (str.equals("好的，接下来开始播放解说词")) {
+            ttsSynthesizer.startSpeaking(str,synthesizerListener );
+            try {
+                Thread.sleep(4200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }else{
+            ttsSynthesizer.startSpeaking(str,synthesizerListener );
+        }
+
     }
 
     public void startAiTalk(OnAiTalkerResult callbackMessage,OnAiTalkerTimeout callback) {

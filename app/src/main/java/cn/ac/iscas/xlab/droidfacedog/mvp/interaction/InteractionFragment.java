@@ -20,7 +20,6 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.FaceDetector;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -471,13 +470,14 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     @Override
     public void showTip() {
-        final Snackbar snackbar = Snackbar.make(imageView, "在解说模式，Ai对话模式将被关闭", Snackbar.LENGTH_SHORT);
-        snackbar.setAction("知道了", new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                snackbar.dismiss();
-            }
-        });
+        Toast.makeText(getContext(), "Tip:在解说模式，Ai对话功能将被关闭", Toast.LENGTH_SHORT).show();
+//        final Snackbar snackbar = Snackbar.make(getView(), "在解说模式，Ai对话功能将被关闭", Snackbar.LENGTH_SHORT);
+//        snackbar.setAction("知道了", new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                snackbar.dismiss();
+//            }
+//        });
     }
 
     public void setRosServiceBinder(RosConnectionService.ServiceBinder binder){
@@ -487,9 +487,10 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     @Override
     public void onDestroy() {
+        stopCamera();
+        presenter.releaseMemory();
         super.onDestroy();
 
-        presenter.releaseMemory();
     }
 
     public void log(String string) {

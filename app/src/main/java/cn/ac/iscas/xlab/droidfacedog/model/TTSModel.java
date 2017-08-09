@@ -135,6 +135,11 @@ public class TTSModel {
         }
     }
 
+    public void textToSpeech(String text,OnTTSFinishListener listener) {
+        this.onTTSFinishListener = listener;
+        ttsSynthesizer.startSpeaking(text,synthesizerListener );
+    }
+
     public void releaseMemory() {
         ttsSynthesizer.stopSpeaking();
         ttsSynthesizer.destroy();
