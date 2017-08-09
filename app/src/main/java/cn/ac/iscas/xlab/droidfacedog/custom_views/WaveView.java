@@ -198,16 +198,20 @@ public class WaveView extends View {
         return isWorking;
     }
 
+    //将WaveView设置为是否可点击
     public void setEnable(boolean enable) {
         if (enable) {
-            setClickable(true);
             mColor = mLastColor;
             invalidate();
+            setClickable(true);
         } else {
-            setClickable(false);
             mColor = Color.DKGRAY;
-
-            invalidate();
+            if (isWorking()) {
+                endAnimation();
+            } else {
+                invalidate();
+            }
+            setClickable(false);
         }
     }
 

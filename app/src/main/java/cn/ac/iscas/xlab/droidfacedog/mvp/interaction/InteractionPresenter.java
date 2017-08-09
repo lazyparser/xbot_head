@@ -70,13 +70,12 @@ public class InteractionPresenter implements InteractionContract.Presenter {
                     //当识别人脸成功后，说出问候语，当问候语说完后，进入AI对话模式
                     if (!hasGreeted) {
                         greetToUser(userId);
+                        hasGreeted = true;
                     }
-                    hasGreeted = true;
                 }
             }
         };
 
-        view.setWaveViewEnable(false);
 
         youtuConnection = new YoutuConnection(mContext,youtuHandler);
 
@@ -86,25 +85,24 @@ public class InteractionPresenter implements InteractionContract.Presenter {
 
     @Override
     public void greetToUser(String userId) {
-        if (!audioManager.isPlaying()) {
-            //当用户问候完之后，进入AI对话模式
-            ttsModel.speakUserName(userId, new TTSModel.OnTTSFinishListener() {
-                @Override
-                public void onTTSFinish(SpeechError speechError) {
-                    if (speechError != null) {
-                        log(speechError.getErrorCode() + ":" + speechError.getErrorDescription());
-                    }
 
-                    //当进入AI对话模式之后，停止一系列与照相头相关的工作
-                    view.stopCamera();
-                    view.stopFaceDetectTask();
-                    view.showRobotImg();
-                    view.startAnimation();
-                    startAiTalk();
-                    view.setWaveViewEnable(true);
+        ttsModel.speakUserName(userId, new TTSModel.OnTTSFinishListener() {
+            @Override
+            public void onTTSFinish(SpeechError speechError) {
+                if (speechError != null) {
+                    log(speechError.getErrorCode() + ":" + speechError.getErrorDescription());
                 }
-            });
-        }
+
+                view.setWaveViewEnable(true);
+                view.startAnimation();
+                //当进入AI对话模式之后，停止一系列与照相头相关的工作
+                view.stopCamera();
+                view.stopFaceDetectTask();
+                view.showRobotImg();
+                startAiTalk();
+            }
+        });
+
 
     }
 
@@ -133,6 +131,7 @@ public class InteractionPresenter implements InteractionContract.Presenter {
                     log("startAiTalk()");
                     startCommentary();
                     stopAiTalk();
+                    view.setWaveViewEnable(false);
 //                    youtuHandler.post(new Runnable() {
 //                        @Override
 //                        public void run() {

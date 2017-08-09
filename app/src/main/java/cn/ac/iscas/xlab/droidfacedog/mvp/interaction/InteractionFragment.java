@@ -31,6 +31,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -60,6 +61,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
     public static final String TAG = "InteractionFragment";
     private WaveView waveView;
     private ImageView imageView;
+    private TextView textCommentary;
     private TextureView textureView;
     private SurfaceTexture surfaceTexture;
     private Surface surface;
@@ -111,6 +113,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
         waveView = (WaveView) view.findViewById(R.id.id_wave_view);
         textureView = (TextureView) view.findViewById(R.id.texture_view);
         imageView = (ImageView) view.findViewById(R.id.talker_img);
+        textCommentary = (TextView) view.findViewById(R.id.text_commentary);
 
         return view;
     }
@@ -137,11 +140,11 @@ public class InteractionFragment extends Fragment implements InteractionContract
     @Override
     public void onResume() {
         super.onResume();
+
         presenter = new InteractionPresenter(this,getContext());
         presenter.start();
 
         initCallbackAndListeners();
-
         setWaveViewEnable(false);
 
         initCamera();
@@ -154,6 +157,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     //创建回调接口，初始化监听器
     private void initCallbackAndListeners() {
+        //每次setOnClickListener会再次将View的clickable设置为true!
         waveView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -164,6 +168,14 @@ public class InteractionFragment extends Fragment implements InteractionContract
                     presenter.startAiTalk();
                     waveView.startAnimation();
                 }
+            }
+        });
+        textCommentary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                presenter.stopAiTalk();
+                presenter.startCommentary();
+                setWaveViewEnable(false);
             }
         });
 
@@ -465,6 +477,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
     //设置按钮是否可点击
     @Override
     public void setWaveViewEnable(boolean b) {
+        log("WaveView -- setClickable:" + b);
         waveView.setEnable(b);
     }
 
