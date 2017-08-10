@@ -9,8 +9,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
@@ -24,7 +22,6 @@ import android.widget.Toast;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
-import cn.ac.iscas.xlab.droidfacedog.mvp.aitalk.AITalkActivity;
 import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 
 /**
@@ -38,19 +35,16 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
-    public static final int AITALK_ACTIVITY = 3;
     public static final int INTERACTION_ACTIVITY = 4;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
     private long exitTime = 0;
     private Context mContext;
-    private Handler hanlder;
     private Button btnConnBackground;
     private RelativeLayout funRegister;
     private RelativeLayout funCommentary;
     private RelativeLayout funSettings;
-    private RelativeLayout funAiTalk;
     private RelativeLayout funInteraction;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
@@ -69,20 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
         showWaitingDialog();
 
-        hanlder = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-
-                if (msg.what == CONN_ROS_SERVER_SUCCESS) {
-                    if (waitingDialogFragment.isVisible()) {
-                        waitingDialogFragment.dismiss();
-                        Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
-                    }
-                }else if(msg.what == CONN_ROS_SERVER_ERROR){
-                    Log.i(TAG, "Ros连接失败");
-                }
-            }
-        };
         initBroadcastReceiver();
 
     }
@@ -114,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
         funRegister = (RelativeLayout) findViewById(R.id.function_register);
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
-        funAiTalk = (RelativeLayout) findViewById(R.id.function_aitalk);
         funInteraction = (RelativeLayout) findViewById(R.id.function_interaction);
         funRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,18 +122,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        funAiTalk.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.RECORD_AUDIO);
-                if (rc == PackageManager.PERMISSION_GRANTED) {
-                    startActivity(new Intent(mContext, AITalkActivity.class));
-                } else {
-                    requestPermissions(AITALK_ACTIVITY);
-                }
-
-            }
-        });
         funInteraction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -234,9 +201,6 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case XBOTFACE_ACTIVITY:
                     intent = new Intent(mContext, XBotFaceActivity.class);
-                    break;
-                case AITALK_ACTIVITY:
-                    intent = new Intent(mContext, AITalkActivity.class);
                     break;
                 case INTERACTION_ACTIVITY:
                     intent = new Intent(mContext, InteractionActivity.class);

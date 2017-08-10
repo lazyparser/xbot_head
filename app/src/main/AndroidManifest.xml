@@ -49,8 +49,6 @@
             android:screenOrientation="portrait"/>
         <activity android:name=".mvp.userlist.UserListActivity"
             android:screenOrientation="portrait"/>
-        <activity android:name=".mvp.aitalk.AITalkActivity"
-            android:screenOrientation="portrait"/>
         <activity
             android:name=".mvp.interaction.InteractionActivity"
             android:screenOrientation="portrait" />
