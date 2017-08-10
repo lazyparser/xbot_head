@@ -46,6 +46,7 @@ public class YoutuConnection {
         this.context = context;
         this.handler = handler;
     }
+    //发送人脸bitmap给服务端进行人脸识别
     public void sendBitmap(Bitmap faceBitmap) {
 
         final String RECOG_SERVER_URL = "http://" + Config.RECOGNITION_SERVER_IP + ":" +
@@ -60,7 +61,6 @@ public class YoutuConnection {
                     @Override
                     public void onResponse(JSONObject jsonObject) {
                         Log.i(TAG,"Recognition Right Response:"+jsonObject);
-                       //Toast.makeText(context, jsonObject.toString(), Toast.LENGTH_SHORT).show();
                         try {
                             double confidence = jsonObject.getDouble("Confidence");
                             String userId = jsonObject.getString("Id");

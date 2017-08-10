@@ -32,10 +32,6 @@ public class RosConnectionService extends Service{
     public static final String TAG = "RosConnectionService";
     public static final String SUBSCRIBE_TOPIC = "/museum_position";
     public static final String PUBLISH_TOPIC = "/tts_status";
-    public static final int CTRL_FORWARD = 0x11;
-    public static final int CTRL_BACK = 0x12;
-    public static final int CTRL_LEFT = 0x13;
-    public static final int CTRL_RIGHT = 0x14;
 
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
@@ -65,41 +61,17 @@ public class RosConnectionService extends Service{
 
                     rosBridgeClient.send(body.toString());
 
-                    Log.i(TAG, "Send To Ros Server:" + body.toString());
+                    Log.v(TAG, "publish 'tts_status' To Ros Server:" + body.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }
 
-        public void publishMoveTopic(int command) {
-
-            //TODO:后续确定了topic之后，再进行具体实现
-            switch (command) {
-                case CTRL_FORWARD:
-                    //test
-                    Log.i(TAG, "点击了[前进]按钮");
-
-                    break;
-                case CTRL_BACK:
-                    Log.i(TAG, "点击了[后退]按钮");
-
-                    break;
-                case CTRL_LEFT:
-                    Log.i(TAG, "点击了[左转]按钮");
-
-                    break;
-                case CTRL_RIGHT:
-                    Log.i(TAG, "点击了[右转]按钮");
-
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        public void cancelRosConnection() {
+        public void disConnect() {
             connectionTask.cancel();
+            rosBridgeClient.disconnect();
+//            onDestroy();
         }
     }
 
@@ -114,9 +86,8 @@ public class RosConnectionService extends Service{
             public void run() {
                 if (!isConnected) {
                     String rosURL = "ws://" + Config.ROS_SERVER_IP + ":" + Config.ROS_SERVER_PORT;
-                    Log.d(TAG, "Connecting to ROS : " + rosURL);
+                    Log.v(TAG, "Connecting to ROS Server: " + rosURL);
                     rosBridgeClient = new ROSBridgeClient(rosURL);
-                    Log.i(TAG, rosURL);
                     boolean conneSucc = rosBridgeClient.connect(new ROSClient.ConnectionStatusListener() {
                         @Override
                         public void onConnect() {
@@ -126,7 +97,7 @@ public class RosConnectionService extends Service{
 
                         @Override
                         public void onDisconnect(boolean normal, String reason, int code) {
-                            Log.i(TAG, "ConnectionStatusListener--disconnect");
+                            Log.v(TAG, "ConnectionStatusListener--disconnect");
                         }
 
                         @Override
@@ -145,9 +116,9 @@ public class RosConnectionService extends Service{
                             e.printStackTrace();
                         }
                         rosBridgeClient.send(strSubscribe.toString());
-                        Log.i(TAG, "RosConnectionService连接Ros成功");
+                        Log.i(TAG, TAG+" -- 连接Ros Server成功");
                     } else {
-                        Log.i(TAG, "RosConnectionService连接Ros失败");
+                        Log.v(TAG, TAG+" -- 连接Ros Server失败");
                     }
                     isConnected = conneSucc;
                     Intent broadcastIntent = new Intent(MainActivity.ROS_RECEIVER_INTENTFILTER);
@@ -172,6 +143,13 @@ public class RosConnectionService extends Service{
         //注册Eventbus
         EventBus.getDefault().register(this);
     }
+
+    @Override
+    public void onRebind(Intent intent) {
+        Log.i(TAG, TAG + " -- onRebind()");
+        super.onRebind(intent);
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

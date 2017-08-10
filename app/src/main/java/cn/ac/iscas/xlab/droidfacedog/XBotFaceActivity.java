@@ -70,12 +70,13 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import cn.ac.iscas.xlab.droidfacedog.CustomViews.FaceOverlayView;
+import cn.ac.iscas.xlab.droidfacedog.custom_views.FaceOverlayView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.CommandRecogResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
+import cn.ac.iscas.xlab.droidfacedog.model.AudioManager;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
@@ -173,7 +174,7 @@ public class XBotFaceActivity extends AppCompatActivity{
         mAudioManager = new AudioManager(this);
         mAudioManager.loadTts();
 
-        //双用途Handler，一用来接收TimerTask中发回来的Ros连接状态，二用来接收优图的识别结果
+        //用来接收优图的识别结果
         mMainHandler = new Handler(){
             public void handleMessage(Message msg) {
                 if (msg.what == HANDLER_PLAY_TTS) {

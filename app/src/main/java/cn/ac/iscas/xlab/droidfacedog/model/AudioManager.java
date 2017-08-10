@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog;
+package cn.ac.iscas.xlab.droidfacedog.model;
 
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;

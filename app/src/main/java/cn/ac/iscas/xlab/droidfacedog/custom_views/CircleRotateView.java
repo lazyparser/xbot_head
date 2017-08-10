@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog.CustomViews;
+package cn.ac.iscas.xlab.droidfacedog.custom_views;
 
 import android.animation.ValueAnimator;
 import android.content.Context;
@@ -43,7 +43,6 @@ public class CircleRotateView extends View {
         TypedArray typedArray = context.getTheme()
                 .obtainStyledAttributes(attrs, R.styleable.CircleRotateView, defStyleAttr, 0);
         int n = typedArray.getIndexCount();
-        Log.i(TAG, "typedArray Count:" + n);
         for(int i=0;i<n;i++) {
             int attr = typedArray.getIndex(i);
             //在这个中获取自定义的styleable属性

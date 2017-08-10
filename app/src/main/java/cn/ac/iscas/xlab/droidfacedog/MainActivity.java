@@ -9,21 +9,20 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import cn.ac.iscas.xlab.droidfacedog.CustomViews.CircleRotateView;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
-import cn.ac.iscas.xlab.droidfacedog.mvp.aitalk.AITalkActivity;
+import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
+import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 
 /**
  * Created by Nguyen on 5/20/2016.
@@ -36,18 +35,17 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
-    public static final int AITALK_ACTIVITY = 3;
+    public static final int INTERACTION_ACTIVITY = 4;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
+    private long exitTime = 0;
     private Context mContext;
-    private Handler hanlder;
     private Button btnConnBackground;
     private RelativeLayout funRegister;
     private RelativeLayout funCommentary;
-    private RelativeLayout funControl;
     private RelativeLayout funSettings;
-    private RelativeLayout funAiTalk;
+    private RelativeLayout funInteraction;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
@@ -65,20 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
         showWaitingDialog();
 
-        hanlder = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-
-                if (msg.what == CONN_ROS_SERVER_SUCCESS) {
-                    if (waitingDialogFragment.isVisible()) {
-                        waitingDialogFragment.dismiss();
-                        Toast.makeText(MainActivity.this, "连接成功", Toast.LENGTH_SHORT).show();
-                    }
-                }else if(msg.what == CONN_ROS_SERVER_ERROR){
-                    Log.i(TAG, "Ros连接失败");
-                }
-            }
-        };
         initBroadcastReceiver();
 
     }
@@ -109,10 +93,8 @@ public class MainActivity extends AppCompatActivity {
 
         funRegister = (RelativeLayout) findViewById(R.id.function_register);
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
-        funControl = (RelativeLayout) findViewById(R.id.function_control);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
-        funAiTalk = (RelativeLayout) findViewById(R.id.function_aitalk);
-
+        funInteraction = (RelativeLayout) findViewById(R.id.function_interaction);
         funRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -121,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(mContext, RegisterActivity.class);
                     startActivity(intent);
                 } else {
-                    requestCameraPermission(REGISTER_ACTIVITY);
+                    requestPermissions(REGISTER_ACTIVITY);
                 }
             }
         });
@@ -134,28 +116,23 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(mContext, XBotFaceActivity.class);
                     startActivity(intent);
                 } else {
-                    requestCameraPermission(XBOTFACE_ACTIVITY);
+                    requestPermissions(XBOTFACE_ACTIVITY);
                 }
             }
         });
 
-        funControl.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(mContext,ControlActivity.class));
-            }
-        });
 
-        funAiTalk.setOnClickListener(new View.OnClickListener() {
+        funInteraction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.RECORD_AUDIO);
-                if (rc == PackageManager.PERMISSION_GRANTED) {
-                    startActivity(new Intent(mContext, AITalkActivity.class));
+                int rc1 = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+                int rc2 = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.RECORD_AUDIO);
+                
+                if (rc1 == PackageManager.PERMISSION_GRANTED && rc2 == PackageManager.PERMISSION_GRANTED) {
+                    startActivity(new Intent(mContext, InteractionActivity.class));
                 } else {
-                    requestCameraPermission(AITALK_ACTIVITY);
+                    requestPermissions(INTERACTION_ACTIVITY);
                 }
-
             }
         });
 
@@ -206,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "MainActivity启动时初始化：" + Config.string());
     }
 
-    private void requestCameraPermission(final int requestCode) {
+    private void requestPermissions(final int requestCode) {
         Log.w(TAG, "Camera permission is not granted. Requesting permission");
 
         final String[] permissions = new String[]{Manifest.permission.CAMERA,Manifest.permission.RECORD_AUDIO};
@@ -225,9 +202,8 @@ public class MainActivity extends AppCompatActivity {
                 case XBOTFACE_ACTIVITY:
                     intent = new Intent(mContext, XBotFaceActivity.class);
                     break;
-                case AITALK_ACTIVITY:
-                    intent = new Intent(mContext, AITalkActivity.class);
-                    break;
+                case INTERACTION_ACTIVITY:
+                    intent = new Intent(mContext, InteractionActivity.class);
                 default:
                     break;
             }
@@ -251,10 +227,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        XbotApplication app = (XbotApplication) getApplication();
+        app.getServiceProxy().disConnect();
         unregisterReceiver(receiver);
         super.onDestroy();
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
+            if ((System.currentTimeMillis() - exitTime) > 2000) {
+                Toast.makeText(getApplicationContext(), "在按一次返回键退出程序", Toast.LENGTH_SHORT).show();
+                exitTime = System.currentTimeMillis();
+            } else {
+                finish();
+
+            }
+            return true;
+        }
+
+        return super.onKeyDown(keyCode, keyEvent);
+    }
     public static class RosBroadcastReceiver extends BroadcastReceiver {
 
         RosCallback callback;

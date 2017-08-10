@@ -30,6 +30,13 @@ public class Config {
     //讯飞开放平台中获得的APPID
     public static final String APPID = "59198461";
 
+    //创建AIUIAgent所需的初始化参数
+    public static final String AIAGENT_PARAMS = "{\"interact\":{\"interact_timeout\":\"60000\",\"result_timeout\":\"5000\"}," +
+            "\"global\":{\"scene\":\"main\",\"clean_dialog_history\":\"auto\"}," +
+            "\"vad\":{\"vad_enable\":\"1\",\"engine_type\":\"meta\",\"res_type\":\"assets\",\"res_path\":\"vad/meta_vad_16k.jet\"}," +
+            "\"iat\":{\"sample_rate\":\"16000\"}," +
+            "\"speech\":{\"data_source\":\"sdk\"}}";
+
     public static String string() {
         StringBuffer sb = new StringBuffer();
         sb.append("\n人脸识别服务端：" + RECOGNITION_SERVER_IP + ":" + RECOGNITION_SERVER_PORT);

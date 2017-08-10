@@ -47,7 +47,7 @@ public class XbotApplication extends Application {
         };
         //绑定RosConnectionService
         intent = new Intent(this, RosConnectionService.class);
-        startService(intent);
+//        startService(intent);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
 
         //初始化讯飞TTS引擎
@@ -61,6 +61,7 @@ public class XbotApplication extends Application {
         unbindService(mServiceConnection);
         super.onTerminate();
     }
+
 
     public RosConnectionService.ServiceBinder getServiceProxy() {
         if (mServiceProxy != null) {
