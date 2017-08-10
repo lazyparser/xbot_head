@@ -51,9 +51,11 @@ public interface InteractionContract {
 
         void showRobotImg();
 
-        void showTip();
+        void showTip(String str);
 
         void setWaveViewEnable(boolean enable);
+
+        void setCommentaryButtonEnable(boolean enable);
 
         void stopFaceDetectTask();
     }

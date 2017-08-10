@@ -10,6 +10,8 @@
 
     <declare-styleable name="WaveView" >
         <attr name="inner_color" format="color|reference" />
+        <attr name="disable_color" format="color|reference" />
+        <attr name="text" format="string|reference" />
     </declare-styleable>
 
 </resources>

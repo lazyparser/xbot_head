@@ -60,6 +60,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     public static final String TAG = "InteractionFragment";
     private WaveView waveView;
+    private WaveView commentaryButton;
     private ImageView imageView;
     private TextView textCommentary;
     private TextureView textureView;
@@ -114,7 +115,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
         textureView = (TextureView) view.findViewById(R.id.texture_view);
         imageView = (ImageView) view.findViewById(R.id.talker_img);
         textCommentary = (TextView) view.findViewById(R.id.text_commentary);
-
+        commentaryButton = (WaveView) view.findViewById(R.id.id_commentary_button);
         return view;
     }
 
@@ -146,6 +147,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
         initCallbackAndListeners();
         setWaveViewEnable(false);
+        setCommentaryButtonEnable(false);
 
         initCamera();
         //开启三个定时任务
@@ -171,6 +173,16 @@ public class InteractionFragment extends Fragment implements InteractionContract
             }
         });
         textCommentary.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                presenter.stopAiTalk();
+                presenter.startCommentary();
+                setWaveViewEnable(false);
+
+            }
+        });
+        commentaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 presenter.stopAiTalk();
@@ -476,14 +488,20 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     //设置按钮是否可点击
     @Override
-    public void setWaveViewEnable(boolean b) {
-        log("WaveView -- setClickable:" + b);
-        waveView.setEnable(b);
+    public void setWaveViewEnable(boolean enable) {
+        log("WaveView -- setClickable:" + enable);
+        waveView.setEnable(enable);
     }
 
     @Override
-    public void showTip() {
-        Toast.makeText(getContext(), "Tip:在解说模式，Ai对话功能将被关闭", Toast.LENGTH_SHORT).show();
+    public void setCommentaryButtonEnable(boolean enable){
+        textCommentary.setClickable(enable);
+        commentaryButton.setEnable(enable);
+    }
+
+    @Override
+    public void showTip(String str) {
+        Toast.makeText(getActivity(), str, Toast.LENGTH_LONG).show();
 //        final Snackbar snackbar = Snackbar.make(getView(), "在解说模式，Ai对话功能将被关闭", Snackbar.LENGTH_SHORT);
 //        snackbar.setAction("知道了", new View.OnClickListener() {
 //            @Override

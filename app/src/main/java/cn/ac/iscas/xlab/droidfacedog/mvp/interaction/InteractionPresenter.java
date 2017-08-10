@@ -85,6 +85,9 @@ public class InteractionPresenter implements InteractionContract.Presenter {
 
     @Override
     public void greetToUser(String userId) {
+        view.stopFaceDetectTask();
+        view.stopCamera();
+        view.showRobotImg();
 
         ttsModel.speakUserName(userId, new TTSModel.OnTTSFinishListener() {
             @Override
@@ -92,13 +95,10 @@ public class InteractionPresenter implements InteractionContract.Presenter {
                 if (speechError != null) {
                     log(speechError.getErrorCode() + ":" + speechError.getErrorDescription());
                 }
-
-                view.setWaveViewEnable(true);
                 view.startAnimation();
+                view.setWaveViewEnable(true);
+                view.setCommentaryButtonEnable(true);
                 //当进入AI对话模式之后，停止一系列与照相头相关的工作
-                view.stopCamera();
-                view.stopFaceDetectTask();
-                view.showRobotImg();
                 startAiTalk();
             }
         });
@@ -108,11 +108,17 @@ public class InteractionPresenter implements InteractionContract.Presenter {
 
     @Override
     public void startCommentary() {
-
+        if (audioManager.isPlaying()) {
+            view.showTip("当前正在解说");
+        } else {
+            //给出提示，当进入解说模式的时候，会关闭AI对话功能
+            view.showTip("Tip:在解说模式，Ai语音对话功能将被关闭");
+        }
         audioManager.play(0);
         publishTtsStatus();
-        //给出提示，当进入解说模式的时候，会关闭AI对话功能
-        view.showTip();
+
+
+
 
     }
 

@@ -24,21 +24,22 @@ import cn.ac.iscas.xlab.droidfacedog.R;
 
 public class WaveView extends View {
 
-    public static final String TAG = "WaverView";
-    public static final String START_TALK = "开启语音对话";
-    public static final String STOP_TALK = "关闭语音对话";
+    public static final String TAG = "WaveView";
     private boolean isWorking = false;
-    private int mColor,mLastColor;
+    private int mColor,mEnableColor,mDisableColor;
     private float mRadius;
     private int mWidth,mHeight;
     private float centerX,centerY;
+    private String textContent;
+    private String strStart ="开始";
+    private String strStop ="关闭" ;
     private int textWidth,textHeight;
     private float outCircleRadius;
     private int outCircleAlpha = 255;
     private float accelerate;
 
     private Paint mPaint;
-    private Shader shader;
+    private Shader shader,disableShader;
     private ValueAnimator radiusAnimator;
     private ValueAnimator alphaAnimator;
     private ValueAnimator accelerateAnimator;
@@ -60,8 +61,15 @@ public class WaveView extends View {
             switch (attr) {
                 case R.styleable.WaveView_inner_color:
                     mColor = typedArray.getColor(attr, Color.BLUE);
-                    //mLastColor保存在XML文件中定义好的颜色
-                    mLastColor = mColor;
+                    mEnableColor = mColor;
+                    break;
+                case R.styleable.WaveView_text:
+                    textContent = typedArray.getString(attr);
+                    strStart = strStart + textContent;
+                    strStop = strStop + textContent;
+                    break;
+                case R.styleable.WaveView_disable_color:
+                    mDisableColor = typedArray.getColor(attr, Color.GRAY);
                     break;
                 default:
                     break;
@@ -72,7 +80,7 @@ public class WaveView extends View {
 
         //测量文字的高度，以便居中放置
         Rect bound = new Rect();
-        mPaint.getTextBounds(START_TALK, 0, START_TALK.length(), bound);
+        mPaint.getTextBounds(strStart, 0, strStart.length(), bound);
         textHeight = bound.height();
 
         typedArray.recycle();
@@ -113,25 +121,32 @@ public class WaveView extends View {
         Log.i(TAG, "PaddingLeft:" + getPaddingLeft() + ",PaddingRight:" + getPaddingRight());
         Log.i(TAG, "onMeasure:" + width + "x" + height);
 
-        shader = new RadialGradient(centerX, centerY, mWidth / 2, mColor,Color.WHITE, Shader.TileMode.CLAMP);
+        shader = new RadialGradient(centerX, centerY, mWidth / 2, mEnableColor,Color.WHITE, Shader.TileMode.CLAMP);
+        disableShader = new RadialGradient(centerX, centerY, mWidth / 2, mDisableColor,Color.WHITE, Shader.TileMode.CLAMP);
+
         setMeasuredDimension(mWidth, mHeight);
 
     }
 
     @Override
     public void onDraw(Canvas canvas) {
+//        Log.v(TAG, TAG + " -- onDraw(),mColor:" + mColor);
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(mColor);
         mPaint.setAlpha(255);
-        mPaint.setShader(shader);
+        if (isClickable()) {
+            mPaint.setShader(shader);
+        } else {
+            mPaint.setShader(disableShader);
+        }
         canvas.drawCircle(mWidth / 2, mHeight / 2, mRadius, mPaint);
         mPaint.setColor(Color.WHITE);
         mPaint.setTextSize(40);
         mPaint.setShader(null);
         if (!isWorking) {
-            canvas.drawText(START_TALK, centerX - mPaint.measureText(START_TALK) / 2, centerY + textHeight / 2, mPaint);
+            canvas.drawText(strStart, centerX - mPaint.measureText(strStart) / 2, centerY + textHeight / 2, mPaint);
         } else {
-            canvas.drawText(STOP_TALK, centerX - mPaint.measureText(STOP_TALK) / 2, centerY + textHeight / 2, mPaint);
+            canvas.drawText(strStop, centerX - mPaint.measureText(strStop) / 2, centerY + textHeight / 2, mPaint);
         }
 
         mPaint.setStyle(Paint.Style.STROKE);
@@ -201,11 +216,11 @@ public class WaveView extends View {
     //将WaveView设置为是否可点击
     public void setEnable(boolean enable) {
         if (enable) {
-            mColor = mLastColor;
+            mColor = mEnableColor;
             invalidate();
             setClickable(true);
         } else {
-            mColor = Color.DKGRAY;
+            mColor = mDisableColor;
             if (isWorking()) {
                 endAnimation();
             } else {
