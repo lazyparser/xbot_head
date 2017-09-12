@@ -25,13 +25,17 @@ import de.greenrobot.event.EventBus;
 
 /**
  * Created by lisongting on 2017/6/5.
+ *
  */
 
+//TODO:人脸签到场景,topic的发布和订阅
 public class RosConnectionService extends Service{
 
     public static final String TAG = "RosConnectionService";
-    public static final String SUBSCRIBE_TOPIC = "/museum_position";
-    public static final String PUBLISH_TOPIC = "/tts_status";
+    public static final String SUBSCRIBE_TOPIC = "/robot_status";
+    public static final String PUBLISH_TOPIC_TTS = "/tts_status";
+    //签到状态
+    public static final String PUBLISH_TOPIC_SIGN = "/sign_status";
 
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
@@ -56,7 +60,7 @@ public class RosConnectionService extends Service{
                     jsonMsg.put("isplaying", status.isplaying());
 
                     body.put("op", "publish");
-                    body.put("topic",PUBLISH_TOPIC);
+                    body.put("topic",PUBLISH_TOPIC_TTS);
                     body.put("msg", jsonMsg);
 
                     rosBridgeClient.send(body.toString());

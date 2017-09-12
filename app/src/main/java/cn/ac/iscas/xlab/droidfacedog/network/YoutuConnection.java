@@ -46,6 +46,23 @@ public class YoutuConnection {
         this.context = context;
         this.handler = handler;
     }
+
+    public interface RecognitionCallback{
+
+        void onResponse(String personId);
+
+        void onFailure(String errorInfo);
+    }
+
+    public interface UserListCallback{
+
+        void onUserInfoReady(UserInfo userInfo);
+
+        void onBitmapReady(Bitmap bitmap);
+
+        void onError();
+    }
+
     //发送人脸bitmap给服务端进行人脸识别
     public void sendBitmap(Bitmap faceBitmap) {
 
@@ -105,6 +122,72 @@ public class YoutuConnection {
                             handler.sendMessage(msg);
                         }
 
+                    }
+                };
+
+                //post的参数
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.accumulate("Image",encodedBitmap);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                        Request.Method.POST,
+                        RECOG_SERVER_URL,
+                        jsonObject,
+                        rightListener,
+                        errorListener
+                );
+
+                VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
+
+            }
+        }.start();
+
+    }
+
+    //以回调的方式返回结果给调用者
+    public void recognizeFace(Bitmap faceBitmap, final RecognitionCallback callback){
+
+        final String RECOG_SERVER_URL = "http://" + Config.RECOGNITION_SERVER_IP + ":" +
+                Config.RECOGNITION_SERVER_PORT + "/recognition";
+
+        final String encodedBitmap = ImageUtils.encodeBitmapToBase64(faceBitmap, Bitmap.CompressFormat.JPEG, 100);
+
+        new Thread(){
+            public void run(){
+                //请求成功的回调
+                Response.Listener<JSONObject> rightListener = new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jsonObject) {
+                        Log.i(TAG,"Recognition Right Response:"+jsonObject);
+                        try {
+                            double confidence = jsonObject.getDouble("Confidence");
+                            String userId = jsonObject.getString("Id");
+                            int ret = jsonObject.getInt("Ret");
+                            //判断Ret字段是否是0,如果是0表示识别成功
+                            if (ret == 0 && confidence>=RECOG_THRESHOLD) {
+                                callback.onResponse(userId);
+                                Log.i(TAG, "识别成功");
+                            }else {
+                                Log.i(TAG, "人脸识别失败或阈值设置过高");
+                                //如果没有识别成功，则返回空串
+                                callback.onResponse("");
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                };
+
+                //请求失败的回调
+                Response.ErrorListener errorListener = new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError volleyError) {
+                        callback.onFailure(volleyError.getMessage());
                     }
                 };
 
@@ -242,15 +325,6 @@ public class YoutuConnection {
                         errorListener);
                 VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
         return userFace;
-    }
-
-    public interface UserListCallback{
-
-        void onUserInfoReady(UserInfo userInfo);
-
-        void onBitmapReady(Bitmap bitmap);
-
-        void onError();
     }
 
     public void getUserInfoList(final UserListCallback callback) {
