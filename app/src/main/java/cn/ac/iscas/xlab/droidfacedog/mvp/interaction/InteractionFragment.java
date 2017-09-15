@@ -513,6 +513,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     public void setRosServiceBinder(RosConnectionService.ServiceBinder binder){
         presenter.setServiceProxy(binder);
+
     }
 
 

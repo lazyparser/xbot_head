@@ -8,31 +8,37 @@ package cn.ac.iscas.xlab.droidfacedog.entity;
 public class SignStatus {
 
     //是否识别完成
-    private boolean isDone;
+    private boolean isComplete;
 
     //是否识别出已注册的用户
     private boolean isSuccess;
 
-    public boolean isDone() {
-        return isDone;
+    
+    public SignStatus(boolean isComplete, boolean isSuccess) {
+        this.isComplete = isComplete;
+        this.isSuccess = isSuccess;
     }
 
-    public void setDone(boolean done) {
-        isDone = done;
+    public boolean isComplete() {
+        return isComplete;
+    }
+
+    public void setComplete(boolean isComplete) {
+        this.isComplete = isComplete;
     }
 
     public boolean isSuccess() {
         return isSuccess;
     }
 
-    public void setSuccess(boolean success) {
-        isSuccess = success;
+    public void setSuccess(boolean isSuccess) {
+        this.isSuccess = isSuccess;
     }
 
     @Override
     public String toString() {
         return "SignStatus{" +
-                "isDone=" + isDone +
+                "isComplete=" + isComplete +
                 ", isSuccess=" + isSuccess +
                 '}';
     }

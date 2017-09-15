@@ -114,6 +114,40 @@
             android:layout_height="1dp" />
 
         <RelativeLayout
+            android:id="@+id/function_sign_in"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/main_button_selector"
+            >
+
+            <ImageView
+                android:id="@+id/id_iv_sign"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="32dp"
+                android:scaleX="2.1"
+                android:scaleY="2.2"
+                android:src="@drawable/icon_checked_96" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingTop="40dp"
+                android:paddingStart="20dp"
+                android:layout_toEndOf="@id/id_iv_sign"
+                android:text="@string/function_sign"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                />
+        </RelativeLayout>
+
+        <View
+            android:background="#ddd"
+            android:layout_width="match_parent"
+            android:layout_height="1dp" />
+
+        <RelativeLayout
             android:id="@+id/function_settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

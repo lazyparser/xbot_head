@@ -42,6 +42,9 @@ public class YoutuConnection {
     private List<UserInfo> userInfoList;
     private UserInfo info;
 
+    public YoutuConnection(Context context) {
+        this.context = context;
+    }
     public YoutuConnection(Context context,Handler handler) {
         this.context = context;
         this.handler = handler;

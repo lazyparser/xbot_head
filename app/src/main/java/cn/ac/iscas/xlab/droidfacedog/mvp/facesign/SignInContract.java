@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 
 import cn.ac.iscas.xlab.droidfacedog.mvp.BasePresenter;
 import cn.ac.iscas.xlab.droidfacedog.mvp.BaseView;
-import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionContract;
 import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 
 /**
@@ -18,7 +17,7 @@ public interface SignInContract {
 
     interface Presenter extends BasePresenter{
 
-        void speek(String str);
+        void speak(String str);
 
         void recognize(Bitmap bitmap, YoutuConnection.RecognitionCallback callback);
 
@@ -28,7 +27,7 @@ public interface SignInContract {
         void setServiceProxy(@NonNull Binder binder);
     }
 
-    interface View extends BaseView<InteractionContract.Presenter>{
+    interface View extends BaseView<Presenter>{
 
         //开启摄像头的同时进行人脸识别
         void startCamera();
@@ -36,6 +35,7 @@ public interface SignInContract {
 
         void closeCamera();
 
+        void displayInfo(String str);
 
 
     }

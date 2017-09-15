@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
+import cn.ac.iscas.xlab.droidfacedog.mvp.facesign.SignInActivity;
 import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 
 /**
@@ -35,7 +36,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
-    public static final int INTERACTION_ACTIVITY = 4;
+    public static final int INTERACTION_ACTIVITY = 3;
+    public static final int SIGN_IN_ACTIVITY = 4;
     public static final int CONN_ROS_SERVER_SUCCESS = 0x11;
     public static final int CONN_ROS_SERVER_ERROR = 0x12;
 
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private RelativeLayout funCommentary;
     private RelativeLayout funSettings;
     private RelativeLayout funInteraction;
+    private RelativeLayout funSignIn;
     private CircleRotateView circleRotateView;
     private FragmentManager fragmentManager;
     private WaitingDialogFragment waitingDialogFragment;
@@ -95,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         funCommentary = (RelativeLayout) findViewById(R.id.function_commentary);
         funSettings = (RelativeLayout) findViewById(R.id.function_settings);
         funInteraction = (RelativeLayout) findViewById(R.id.function_interaction);
+        funSignIn = (RelativeLayout) findViewById(R.id.function_sign_in);
         funRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -132,6 +136,19 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(mContext, InteractionActivity.class));
                 } else {
                     requestPermissions(INTERACTION_ACTIVITY);
+                }
+            }
+        });
+
+        funSignIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
+                if (rc == PackageManager.PERMISSION_GRANTED) {
+                    Intent intent = new Intent(mContext, SignInActivity.class);
+                    startActivity(intent);
+                } else {
+                    requestPermissions(SIGN_IN_ACTIVITY);
                 }
             }
         });
@@ -204,6 +221,10 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case INTERACTION_ACTIVITY:
                     intent = new Intent(mContext, InteractionActivity.class);
+                    break;
+                case SIGN_IN_ACTIVITY:
+                    intent = new Intent(mContext, SignInActivity.class);
+                    break;
                 default:
                     break;
             }
@@ -237,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent keyEvent) {
         if (keyCode == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_DOWN) {
             if ((System.currentTimeMillis() - exitTime) > 2000) {
-                Toast.makeText(getApplicationContext(), "在按一次返回键退出程序", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "再按一次返回键退出程序", Toast.LENGTH_SHORT).show();
                 exitTime = System.currentTimeMillis();
             } else {
                 finish();

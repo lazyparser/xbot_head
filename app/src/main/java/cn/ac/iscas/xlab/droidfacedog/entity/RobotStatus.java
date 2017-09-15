@@ -7,13 +7,14 @@ package cn.ac.iscas.xlab.droidfacedog.entity;
 //该类用来描述机器人的状态
 public class RobotStatus {
 
-    //当前所处的区域
+    //当前所处的区域id
     private int locationId;
 
     //当前底盘是否正在移动
     private boolean isMoving;
+    
 
-    public RobotStatus(int locationId, boolean isMoving) {
+    public RobotStatus(int locationId,boolean isMoving) {
         this.locationId = locationId;
         this.isMoving = isMoving;
     }
@@ -34,7 +35,11 @@ public class RobotStatus {
         isMoving = moving;
     }
 
+    @Override
     public String toString() {
-        return "[" + locationId + "," + isMoving + "]";
+        return "RobotStatus{" +
+                "locationId=" + locationId +
+                ", isMoving=" + isMoving +
+                '}';
     }
 }

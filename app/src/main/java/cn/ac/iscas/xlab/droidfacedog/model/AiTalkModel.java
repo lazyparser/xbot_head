@@ -250,7 +250,7 @@ public class AiTalkModel {
     }
 
     //使用TTS引擎将AI对话的结果以语音形式播放出来
-    private void speakOutResult(String str) {
+    public void speakOutResult(String str) {
         log("Speak Out:" + str);
         if (str.equals("好的，接下来开始播放解说词")) {
             ttsSynthesizer.startSpeaking(str,synthesizerListener );
