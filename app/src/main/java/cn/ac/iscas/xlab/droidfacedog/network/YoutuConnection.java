@@ -236,6 +236,7 @@ public class YoutuConnection {
                         Message msg = handler.obtainMessage();
                         try {
                             int ret = jsonObject.getInt("Ret");
+                            Log.i(TAG, "register result code :" + ret);
                             if (ret == 0) {
                                 msg.what = CameraActivity.REGISTER_SUCCESS;
                             } else if (ret == 1) {

@@ -29,6 +29,9 @@ public class SignInPresenter implements SignInContract.Presenter {
 
     private RosConnectionService.ServiceBinder rosProxy;
 
+    //表示还没有开始一轮寻路
+    private boolean hasStart = false;
+
     public SignInPresenter(SignInContract.View view, Context context) {
         this.view = view;
         this.context = context;
@@ -48,10 +51,10 @@ public class SignInPresenter implements SignInContract.Presenter {
     }
 
     @Override
-    public void recognize(Bitmap bitmap, YoutuConnection.RecognitionCallback callback) {
+    public void recognize(Bitmap bitmap) {
 
         youtuConnection.recognizeFace(bitmap, new YoutuConnection.RecognitionCallback() {
-            //如果识别成功，则
+            //识别结果回调
             @Override
             public void onResponse(String personId) {
                 //personId不为0表示识别成功
@@ -61,12 +64,14 @@ public class SignInPresenter implements SignInContract.Presenter {
                         rosProxy.publishSignStatus(signStatus);
                     }
                     StringBuilder sb =new StringBuilder("你好，");
-                    sb.append(Util.hexStringToString(personId));
+                    String chineseName = Util.hexStringToString(personId);
+                    sb.append(chineseName);
 
                     speak(sb.toString());
-                    view.displayInfo("识别成功："+Util.hexStringToString(personId));
+                    view.displayInfo("你好，"+chineseName);
                     log("识别成功，用户id:" + personId);
                     view.closeCamera();
+                    view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
                 }else{
                     recogFailureCount++;
                     if (recogFailureCount == 3) {
@@ -75,7 +80,9 @@ public class SignInPresenter implements SignInContract.Presenter {
                             rosProxy.publishSignStatus(signStatus);
                         }
                         recogFailureCount =0;
-                        view.displayInfo("识别失败,请检查人脸服务器设置或降低人脸检测阈值");
+                        view.displayInfo("识别失败,请检查服务器设置或降低人脸检测阈值");
+                        view.closeCamera();
+                        view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
                         speak("识别失败,请检查人脸服务器设置或降低人脸检测阈值");
                         log("识别失败");
                     }
@@ -84,9 +91,20 @@ public class SignInPresenter implements SignInContract.Presenter {
 
             @Override
             public void onFailure(String errorInfo) {
-                //onFailure表示优图服务器连接失败
-                log("人脸识别服务器连接超时或网络错误");
-                view.displayInfo("人脸识别服务器连接超时或网络错误");
+                recogFailureCount ++;
+                if(recogFailureCount<3){
+                    //onFailure表示优图服务器连接失败
+                    log("人脸识别服务器连接超时或网络错误");
+                    speak("人脸识别服务器连接超时或网络错误");
+                    view.displayInfo("人脸识别服务器连接超时或网络错误");
+                    SignStatus signStatus = new SignStatus(false, false);
+                    if (rosProxy != null) {
+                        rosProxy.publishSignStatus(signStatus);
+                    }
+                    view.closeCamera();
+                    view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
+                }
+
             }
         });
     }
@@ -111,14 +129,22 @@ public class SignInPresenter implements SignInContract.Presenter {
 
         log(status.toString());
 
-        if (locationId > 0 && isMoving == false) {
-            //如果到达了新的位置，则开启摄像头进行人脸识别
+        //id为0有两情况，一是到达了起始点，此时把UIState切换为On the way ，表示前往下一个点
+        //二是一轮走完回到起始点，此时把UIState 切换为Ready
+        if (locationId == 0 && isMoving == false ) {
+            if(!hasStart){//如果第一次到起始点
+                view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
+                hasStart = true;
+            }else{
+                view.changeUiState(SignInContract.UI_STATE_READY);
+            }
 
-            speak("请进行人脸打卡");
+        }else if (locationId > 0 && isMoving == false) {
+            //如果到达了新的位置(工位)，则开启摄像头进行人脸识别
+            speak("请人脸打卡");
 
             //开启摄像头进行人脸识别
             view.startCamera();
-
         }
 
     }

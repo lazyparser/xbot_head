@@ -6,7 +6,6 @@ import android.support.annotation.NonNull;
 
 import cn.ac.iscas.xlab.droidfacedog.mvp.BasePresenter;
 import cn.ac.iscas.xlab.droidfacedog.mvp.BaseView;
-import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 
 /**
  * Created by lisongting on 2017/9/12.
@@ -15,11 +14,14 @@ import cn.ac.iscas.xlab.droidfacedog.network.YoutuConnection;
 
 public interface SignInContract {
 
+    int UI_STATE_READY = 11;
+    int UI_STATE_ON_THE_WAY = 22;
+
     interface Presenter extends BasePresenter{
 
         void speak(String str);
 
-        void recognize(Bitmap bitmap, YoutuConnection.RecognitionCallback callback);
+        void recognize(Bitmap bitmap);
 
         //释放资源
         void releaseMemory();
@@ -37,6 +39,9 @@ public interface SignInContract {
 
         void displayInfo(String str);
 
+        //将UI恢复为原始的状态
+        void resetUI();
 
+        void changeUiState(int state);
     }
 }

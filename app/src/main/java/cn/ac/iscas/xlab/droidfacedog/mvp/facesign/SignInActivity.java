@@ -29,6 +29,12 @@ public class SignInActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.container_layout);
+
+        signInFragment = SignInFragment.newInstance();
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.container, signInFragment)
+                .commit();
+
         ActionBar bar = getSupportActionBar();
         bar.setTitle("人脸签到");
         bar.setDisplayHomeAsUpEnabled(true);

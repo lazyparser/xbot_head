@@ -52,6 +52,8 @@ public class AiTalkModel {
 
     OnAiTalkerTimeout timeoutCallback;
     OnAiTalkerResult talkerCallback;
+    
+    private boolean isChatMode = false;//在对话模式
     //当AI机器人返回即将要说的话
     public interface OnAiTalkerResult{
         void onAiTalkerSpeak(String words);
@@ -205,7 +207,9 @@ public class AiTalkModel {
             //对话播放完后会停止录音，这里再次启动录音。
             @Override
             public void onCompleted(SpeechError speechError) {
-                startAiTalk(talkerCallback,timeoutCallback);
+                if (isChatMode) {
+                    startAiTalk(talkerCallback,timeoutCallback);
+                }
             }
 
             @Override
@@ -266,6 +270,8 @@ public class AiTalkModel {
     }
 
     public void startAiTalk(OnAiTalkerResult callbackMessage,OnAiTalkerTimeout callback) {
+        isChatMode = true;
+        
         if (callbackMessage!=null) {
             this.talkerCallback = callbackMessage;
         }
@@ -285,6 +291,8 @@ public class AiTalkModel {
         //启动超时检测
         startAutoCloseTask();
         isRecording = true;
+        
+        
     }
 
     public void stopAiTalk() {

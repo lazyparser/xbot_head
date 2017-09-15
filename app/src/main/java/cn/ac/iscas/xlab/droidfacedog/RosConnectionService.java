@@ -86,7 +86,7 @@ public class RosConnectionService extends Service{
                     body.put("topic", PUBLISH_TOPIC_SIGN_COMPLETION);
                     body.put("msg", jsonMsg);
                     rosBridgeClient.send(body.toString());
-                    Log.v(TAG, "publish 'pad_sign_completion' topic to Ros Server :" + body.toString());
+                    Log.i(TAG, "publish 'pad_sign_completion' topic to Ros Server :" + body.toString());
 
                 } catch (JSONException e) {
                     e.printStackTrace();

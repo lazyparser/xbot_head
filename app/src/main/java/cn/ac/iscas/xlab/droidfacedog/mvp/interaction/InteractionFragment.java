@@ -150,10 +150,10 @@ public class InteractionFragment extends Fragment implements InteractionContract
         setCommentaryButtonEnable(false);
 
         initCamera();
-        //开启三个定时任务
+
         startTimerTask();
 
-        mDetectTimer.schedule(mDetectFaceTask, 0, 200);
+
 
     }
 
@@ -416,6 +416,8 @@ public class InteractionFragment extends Fragment implements InteractionContract
                 }
             }
         };
+
+        mDetectTimer.schedule(mDetectFaceTask, 0, 200);
     }
 
 
@@ -513,7 +515,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     public void setRosServiceBinder(RosConnectionService.ServiceBinder binder){
         presenter.setServiceProxy(binder);
-
     }
 
 
