@@ -39,9 +39,6 @@ public interface SignInContract {
 
         void displayInfo(String str);
 
-        //将UI恢复为原始的状态
-        void resetUI();
-
         void changeUiState(int state);
     }
 }

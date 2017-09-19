@@ -53,14 +53,12 @@
         tools:background="@drawable/circle_drawable" />
 
 
-
     <TextureView
         android:id="@+id/texture_view"
-        android:layout_width="512dp"
-        android:layout_height="682dp"
+        android:layout_width="420dp"
+        android:layout_height="560dp"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/linear_layout"/>
+        android:layout_centerHorizontal="true" />
 
     <ImageView
         android:id="@+id/talker_img"

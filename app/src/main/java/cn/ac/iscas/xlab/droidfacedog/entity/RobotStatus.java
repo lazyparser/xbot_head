@@ -12,7 +12,7 @@ public class RobotStatus {
 
     //当前底盘是否正在移动
     private boolean isMoving;
-    
+
 
     public RobotStatus(int locationId,boolean isMoving) {
         this.locationId = locationId;

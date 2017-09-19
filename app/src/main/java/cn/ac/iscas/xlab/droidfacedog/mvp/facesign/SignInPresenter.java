@@ -26,11 +26,14 @@ public class SignInPresenter implements SignInContract.Presenter {
     private YoutuConnection youtuConnection;
     private AiTalkModel aiTalkModel;
     private int recogFailureCount = 0;
+    private int timeoutCount = 0;
 
     private RosConnectionService.ServiceBinder rosProxy;
 
     //表示还没有开始一轮寻路
-    private boolean hasStart = false;
+    private boolean isStarted = false;
+    
+    private boolean isRecognizeSuccessful = false;
 
     public SignInPresenter(SignInContract.View view, Context context) {
         this.view = view;
@@ -52,61 +55,65 @@ public class SignInPresenter implements SignInContract.Presenter {
 
     @Override
     public void recognize(Bitmap bitmap) {
+        if(!isRecognizeSuccessful){
+            youtuConnection.recognizeFace(bitmap, new YoutuConnection.RecognitionCallback() {
+                //识别结果回调
+                @Override
+                public void onResponse(String personId) {
+                    //personId不为0表示识别成功
+                    if (personId.length() != 0) {
+                        SignStatus signStatus = new SignStatus(true, true);
 
-        youtuConnection.recognizeFace(bitmap, new YoutuConnection.RecognitionCallback() {
-            //识别结果回调
-            @Override
-            public void onResponse(String personId) {
-                //personId不为0表示识别成功
-                if (personId.length() != 0) {
-                    SignStatus signStatus = new SignStatus(true, true);
-                    if (rosProxy != null) {
-                        rosProxy.publishSignStatus(signStatus);
-                    }
-                    StringBuilder sb =new StringBuilder("你好，");
-                    String chineseName = Util.hexStringToString(personId);
-                    sb.append(chineseName);
+                        StringBuilder sb =new StringBuilder("你好，");
+                        String chineseName = Util.hexStringToString(personId);
+                        sb.append(chineseName);
 
-                    speak(sb.toString());
-                    view.displayInfo("你好，"+chineseName);
-                    log("识别成功，用户id:" + personId);
-                    view.closeCamera();
-                    view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
-                }else{
-                    recogFailureCount++;
-                    if (recogFailureCount == 3) {
-                        SignStatus signStatus = new SignStatus(true, false);
+                        isRecognizeSuccessful = true;
+                        speak(sb.toString());
+                        view.closeCamera();
+                        view.displayInfo("你好，"+chineseName);
+                        view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
+                        log("识别成功，用户id:" + personId);
                         if (rosProxy != null) {
                             rosProxy.publishSignStatus(signStatus);
                         }
-                        recogFailureCount =0;
-                        view.displayInfo("识别失败,请检查服务器设置或降低人脸检测阈值");
+                    }else if(!isRecognizeSuccessful){
+                        recogFailureCount++;
+                        if (recogFailureCount == 8) {
+                            speak("识别失败,请检查人脸服务器设置或降低人脸检测阈值");
+                            view.displayInfo("识别失败,请检查服务器设置或降低人脸检测阈值");
+                            view.closeCamera();
+                            view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
+                            log("识别失败,重试次数："+recogFailureCount);
+                            if (rosProxy != null) {
+                                SignStatus signStatus = new SignStatus(true, false);
+                                rosProxy.publishSignStatus(signStatus);
+                            }
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onFailure(String errorInfo) {
+                    timeoutCount ++;
+                    if(timeoutCount==2&&!isRecognizeSuccessful){
+                        //onFailure表示优图服务器连接失败
+                        speak("人脸识别服务器连接超时");
+                        view.displayInfo("人脸识别服务器连接超时或网络错误");
                         view.closeCamera();
                         view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
-                        speak("识别失败,请检查人脸服务器设置或降低人脸检测阈值");
-                        log("识别失败");
+                        log("人脸识别服务器连接超时或网络错误");
+                        if (rosProxy != null) {
+                            SignStatus signStatus = new SignStatus(false, false);
+                            rosProxy.publishSignStatus(signStatus);
+                        }
                     }
-                }
-            }
 
-            @Override
-            public void onFailure(String errorInfo) {
-                recogFailureCount ++;
-                if(recogFailureCount<3){
-                    //onFailure表示优图服务器连接失败
-                    log("人脸识别服务器连接超时或网络错误");
-                    speak("人脸识别服务器连接超时或网络错误");
-                    view.displayInfo("人脸识别服务器连接超时或网络错误");
-                    SignStatus signStatus = new SignStatus(false, false);
-                    if (rosProxy != null) {
-                        rosProxy.publishSignStatus(signStatus);
-                    }
-                    view.closeCamera();
-                    view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
                 }
-
-            }
-        });
+            });
+        }
+        
     }
 
     @Override
@@ -131,21 +138,30 @@ public class SignInPresenter implements SignInContract.Presenter {
 
         //id为0有两情况，一是到达了起始点，此时把UIState切换为On the way ，表示前往下一个点
         //二是一轮走完回到起始点，此时把UIState 切换为Ready
-        if (locationId == 0 && isMoving == false ) {
-            if(!hasStart){//如果第一次到起始点
+        if (locationId == 0 && !isMoving) {
+            if(!isStarted){//如果第一次到起始点
                 view.changeUiState(SignInContract.UI_STATE_ON_THE_WAY);
-                hasStart = true;
-            }else{
-                view.changeUiState(SignInContract.UI_STATE_READY);
-            }
 
-        }else if (locationId > 0 && isMoving == false) {
+                isStarted = true;
+            }else{
+                //走完一轮回到起始点
+                view.changeUiState(SignInContract.UI_STATE_READY);
+                if(isStarted){
+                    isStarted = false;
+                }
+            }
+            recogFailureCount = 0;
+            timeoutCount = 0;
+        }else if (locationId > 0 && !isMoving) {
             //如果到达了新的位置(工位)，则开启摄像头进行人脸识别
             speak("请人脸打卡");
 
             //开启摄像头进行人脸识别
             view.startCamera();
+            recogFailureCount = 0;
+            timeoutCount = 0;
         }
+        isRecognizeSuccessful = false;
 
     }
 

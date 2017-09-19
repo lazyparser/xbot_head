@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="invisible"
+        android:layout_centerInParent="true"
         />
 
     <TextView
@@ -18,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="200dp"
         android:layout_marginBottom="50dp"
-        android:textSize="30sp"
+        android:textSize="40sp"
         android:textColor="@android:color/holo_orange_dark"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
@@ -29,8 +30,8 @@
         android:id="@+id/lottie_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:scaleX="2.0"
-        android:scaleY="2.0"
+        android:scaleX="3.0"
+        android:scaleY="3.0"
         android:layout_below="@+id/head_text_view"
         android:layout_centerHorizontal="true"
         app:lottie_loop="true"

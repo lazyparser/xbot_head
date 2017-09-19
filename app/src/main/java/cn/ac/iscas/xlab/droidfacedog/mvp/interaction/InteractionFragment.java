@@ -450,7 +450,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
 //            previewSize = getPreferredPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), width, height);
             previewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
             surfaceTexture.setDefaultBufferSize(previewSize.getWidth(),previewSize.getHeight());
-            Log.v(TAG, "previewSize info:" + previewSize.getWidth() + "x" + previewSize.getHeight());
+            Log.i(TAG, "previewSize info:" + previewSize.getWidth() + "x" + previewSize.getHeight());
 
             surface = new Surface(surfaceTexture);
 
@@ -459,7 +459,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
             if (surface.isValid()) {
                 builder.addTarget(surface);
             }
-            Log.v(TAG, "mTextureView info:" + textureView.getWidth() + "x" + textureView.getHeight());
+            Log.i(TAG, "mTextureView info:" + textureView.getWidth() + "x" + textureView.getHeight());
 
             cameraDevice.createCaptureSession(Arrays.asList(surface),sessionStateCallback,null);
 
@@ -483,9 +483,13 @@ public class InteractionFragment extends Fragment implements InteractionContract
     public void showRobotImg() {
         imageView.setVisibility(View.VISIBLE);
 
-        Glide.with(getContext())
-                .load(R.drawable.talker_img)
-                .into(imageView);
+        if (getActivity() != null) {
+            Glide.with(getContext())
+                    .load(R.drawable.talker_img)
+                    .into(imageView);
+        }
+
+
     }
 
     //设置按钮是否可点击

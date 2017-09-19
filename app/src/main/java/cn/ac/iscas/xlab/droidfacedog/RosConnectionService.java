@@ -76,7 +76,7 @@ public class RosConnectionService extends Service{
 
         public void publishSignStatus(SignStatus signStatus){
             JSONObject body = new JSONObject();
-            if (isConnected()) {
+            if (isConnected) {
                 JSONObject jsonMsg = new JSONObject();
                 try {
                     jsonMsg.put("complete", signStatus.isComplete());
@@ -204,7 +204,6 @@ public class RosConnectionService extends Service{
                 msgInfo = new JSONObject(msg);
                 int id = msgInfo.getInt("id");
                 boolean isMoving = msgInfo.getBoolean("ismoving");
-                Log.i(TAG, "onEvent:" + event.msg);
                 RobotStatus robotStatus = new RobotStatus(id, isMoving);
                 EventBus.getDefault().post(robotStatus);
 
