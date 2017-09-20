@@ -20,18 +20,24 @@ import java.util.TimerTask;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.PublishEvent;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.SignStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import de.greenrobot.event.EventBus;
 
 /**
  * Created by lisongting on 2017/6/5.
+ *
  */
 
+//TODO:人脸签到场景,topic的发布和订阅
 public class RosConnectionService extends Service{
 
     public static final String TAG = "RosConnectionService";
-    public static final String SUBSCRIBE_TOPIC = "/museum_position";
-    public static final String PUBLISH_TOPIC = "/tts_status";
+    public static final String SUBSCRIBE_TOPIC = "/robot_status";
+    public static final String PUBLISH_TOPIC_TTS = "/tts_status";
+
+    //签到状态
+    public static final String PUBLISH_TOPIC_SIGN_COMPLETION = "/pad_sign_completion";
 
     public Binder proxy = new ServiceBinder();
     private ROSBridgeClient rosBridgeClient;
@@ -56,7 +62,7 @@ public class RosConnectionService extends Service{
                     jsonMsg.put("isplaying", status.isplaying());
 
                     body.put("op", "publish");
-                    body.put("topic",PUBLISH_TOPIC);
+                    body.put("topic",PUBLISH_TOPIC_TTS);
                     body.put("msg", jsonMsg);
 
                     rosBridgeClient.send(body.toString());
@@ -67,6 +73,27 @@ public class RosConnectionService extends Service{
                 }
             }
         }
+
+        public void publishSignStatus(SignStatus signStatus){
+            JSONObject body = new JSONObject();
+            if (isConnected) {
+                JSONObject jsonMsg = new JSONObject();
+                try {
+                    jsonMsg.put("complete", signStatus.isComplete());
+                    jsonMsg.put("success", signStatus.isSuccess());
+
+                    body.put("op", "publish");
+                    body.put("topic", PUBLISH_TOPIC_SIGN_COMPLETION);
+                    body.put("msg", jsonMsg);
+                    rosBridgeClient.send(body.toString());
+                    Log.i(TAG, "publish 'pad_sign_completion' topic to Ros Server :" + body.toString());
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
 
         public void disConnect() {
             connectionTask.cancel();
@@ -169,6 +196,7 @@ public class RosConnectionService extends Service{
         //topic的名称
         String topicName = event.name;
         Log.i(TAG, "onEvent:" + event.msg);
+        //Topic为RobotStatus
         if (topicName.equals(SUBSCRIBE_TOPIC)) {
             String msg = event.msg;
             JSONObject msgInfo;
@@ -176,7 +204,6 @@ public class RosConnectionService extends Service{
                 msgInfo = new JSONObject(msg);
                 int id = msgInfo.getInt("id");
                 boolean isMoving = msgInfo.getBoolean("ismoving");
-                Log.i(TAG, "onEvent:" + event.msg);
                 RobotStatus robotStatus = new RobotStatus(id, isMoving);
                 EventBus.getDefault().post(robotStatus);
 

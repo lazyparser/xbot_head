@@ -595,7 +595,6 @@ public class XBotFaceActivity extends AppCompatActivity{
 
                 //首先播放第0个音频
                 mAudioManager.play(0);
-
             }
 
             //扩展用接口，由具体业务进行约定。

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextureView
+        android:id="@+id/texture_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        android:layout_centerInParent="true"
+        />
+
+    <TextView
+        android:id="@+id/head_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200dp"
+        android:layout_marginBottom="50dp"
+        android:textSize="40sp"
+        android:textColor="@android:color/holo_orange_dark"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        />
+
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottie_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleX="3.0"
+        android:scaleY="3.0"
+        android:layout_below="@+id/head_text_view"
+        android:layout_centerHorizontal="true"
+        app:lottie_loop="true"
+        app:lottie_fileName="PinJump.json"
+        />
+
+
+
+</RelativeLayout>

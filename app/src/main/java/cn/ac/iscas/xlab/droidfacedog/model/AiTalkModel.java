@@ -16,9 +16,11 @@ import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechSynthesizer;
 import com.iflytek.cloud.SynthesizerListener;
+import com.iflytek.cloud.util.ResourceUtil;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -52,6 +54,8 @@ public class AiTalkModel {
 
     OnAiTalkerTimeout timeoutCallback;
     OnAiTalkerResult talkerCallback;
+    
+    private boolean isChatMode = false;//在对话模式
     //当AI机器人返回即将要说的话
     public interface OnAiTalkerResult{
         void onAiTalkerSpeak(String words);
@@ -205,7 +209,9 @@ public class AiTalkModel {
             //对话播放完后会停止录音，这里再次启动录音。
             @Override
             public void onCompleted(SpeechError speechError) {
-                startAiTalk(talkerCallback,timeoutCallback);
+                if (isChatMode) {
+                    startAiTalk(talkerCallback,timeoutCallback);
+                }
             }
 
             @Override
@@ -250,8 +256,9 @@ public class AiTalkModel {
     }
 
     //使用TTS引擎将AI对话的结果以语音形式播放出来
-    private void speakOutResult(String str) {
+    public void speakOutResult(String str) {
         log("Speak Out:" + str);
+
         if (str.equals("好的，接下来开始播放解说词")) {
             ttsSynthesizer.startSpeaking(str,synthesizerListener );
             try {
@@ -260,12 +267,27 @@ public class AiTalkModel {
                 e.printStackTrace();
             }
         }else{
-            ttsSynthesizer.startSpeaking(str,synthesizerListener );
+            //设置声音文件的缓存。仅支持保存为 pcm 和 wav 格式
+            String cacheFileName = context.getExternalCacheDir() + "/" + str + ".pcm";
+            //如果本地已经有离线缓存，则直接播放离线缓存文件
+            if (isCacheExist(cacheFileName)) {
+                ttsSynthesizer.setParameter(ResourceUtil.TTS_RES_PATH, cacheFileName);
+                ttsSynthesizer.startSpeaking(str,synthesizerListener);
+                Log.i(TAG, "播放离线缓存文件");
+            } else {
+                //如果本地没有缓存，则播放在线数据的同时缓存到本地
+                ttsSynthesizer.setParameter(SpeechConstant.TTS_AUDIO_PATH, cacheFileName);
+                //开始播放
+                ttsSynthesizer.startSpeaking(str,synthesizerListener );
+                Log.i(TAG, "离线文件不存在,在线播放");
+            }
         }
 
     }
 
     public void startAiTalk(OnAiTalkerResult callbackMessage,OnAiTalkerTimeout callback) {
+        isChatMode = true;
+        
         if (callbackMessage!=null) {
             this.talkerCallback = callbackMessage;
         }
@@ -285,6 +307,8 @@ public class AiTalkModel {
         //启动超时检测
         startAutoCloseTask();
         isRecording = true;
+        
+        
     }
 
     public void stopAiTalk() {
@@ -310,7 +334,14 @@ public class AiTalkModel {
             ttsSynthesizer.destroy();
         }
     }
-
+    public boolean isCacheExist(String cacheFileName) {
+        File f = new File(cacheFileName);
+        if (f.exists()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     private void log(String str){
         Log.i(TAG, str);
     }

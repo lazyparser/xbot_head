@@ -11,6 +11,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Surface;
 import android.view.View;
 
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
@@ -59,6 +60,8 @@ public class FaceOverlayView extends View {
         mTextPaint.setTextSize(size);
         mTextPaint.setColor(Color.GREEN);
         mTextPaint.setStyle(Paint.Style.FILL);
+
+
     }
 
     public void setFPS(double fps) {
@@ -87,8 +90,8 @@ public class FaceOverlayView extends View {
             float scaleX = (float) getWidth() / (float) previewWidth;
             float scaleY = (float) getHeight() / (float) previewHeight;
             switch (mDisplayOrientation) {
-                case 90:
-                case 270:
+                case Surface.ROTATION_90:
+                case Surface.ROTATION_270:
                     scaleX = (float) getWidth() / (float) previewHeight;
                     scaleY = (float) getHeight() / (float) previewWidth;
                     break;
@@ -112,6 +115,8 @@ public class FaceOverlayView extends View {
             }
             canvas.restore();
         }
+
+
 
 //        DecimalFormat df2 = new DecimalFormat(".##");
 //        canvas.drawText("Detected_Frame/s: " + df2.format(fps) + " @ " + previewWidth + "x" + previewHeight, mTextPaint.getTextSize(), mTextPaint.getTextSize(), mTextPaint);

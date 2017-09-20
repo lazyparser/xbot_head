@@ -1,6 +1,7 @@
-package cn.ac.iscas.xlab.droidfacedog.mvp.interaction;
+package cn.ac.iscas.xlab.droidfacedog.mvp.facesign;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,9 +20,13 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.FaceDetector;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
@@ -30,44 +35,46 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
+import com.airbnb.lottie.LottieAnimationView;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.R;
 import cn.ac.iscas.xlab.droidfacedog.RosConnectionService;
-import cn.ac.iscas.xlab.droidfacedog.custom_views.WaveView;
+import cn.ac.iscas.xlab.droidfacedog.custom_views.FaceOverlayView;
 import cn.ac.iscas.xlab.droidfacedog.entity.FaceResult;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
 import static android.content.Context.CAMERA_SERVICE;
-import static cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity.MAX_FACE_COUNT;
 
 /**
- * Created by lisongting on 2017/8/7.
+ * Created by lisongting on 2017/9/12.
  */
 
-public class InteractionFragment extends Fragment implements InteractionContract.View {
+public class SignInFragment extends Fragment  implements SignInContract.View{
 
-    public static final String TAG = "InteractionFragment";
-    private WaveView waveView;
-    private WaveView commentaryButton;
-    private ImageView imageView;
-    private TextView textCommentary;
+    public static final String TAG = "SignInFragment";
+    public static final String TEXT_READY_TO_GO="准备出发";
+    public static final String TEXT_ON_THE_WAY="正在前往目标点...";
+    public static final int MAX_FACE_COUNT = 1;
+
+    private LottieAnimationView lottieAnimationView;
+    private TextView headTextView;
     private TextureView textureView;
     private SurfaceTexture surfaceTexture;
     private Surface surface;
+    private FaceOverlayView faceOverlayView;
 
-    private InteractionContract.Presenter presenter;
+    private SignInContract.Presenter presenter;
 
     //与拍摄图像相关的成员变量
     private String cameraID;
@@ -91,42 +98,37 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     //要发送给人脸识别服务器的人脸bitmap
     private Bitmap mFaceBitmap;
-    //这个boolean表示将人脸发送给服务器后，当前是否正在等待优图服务器返回识别结果
-    private boolean isWaitingRecogResult = false;
 
     //识别到的人脸的id（不是注册在服务端的ID）,初始为0。
     private int mPersonId =0;
-    private long mTotalFrameCount = 0;
     //比例因子，将检测到的原始人脸图像按此比例缩小，以此可以加快FaceDetect的检测速度
-    private double mScale = 0.2;
+    private double mScale = 0.15;
     //用来标记每个人脸共有几张图像,key是人脸的id，value是当前采集到的图像张数
     private SparseIntArray mFacesCountMap;
+    private boolean isDetecting  = false;
+    private HandlerThread backGroundThread1;
+    private Handler backGroundHandler1;
+    
+    public SignInFragment(){}
 
-    public InteractionFragment() {}
-
-    public static InteractionFragment newInstance(){
-        return new InteractionFragment();
+    public static SignInFragment newInstance() {
+        return new SignInFragment();
     }
 
+    @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_interaction, container, false);
-        waveView = (WaveView) view.findViewById(R.id.id_wave_view);
-        textureView = (TextureView) view.findViewById(R.id.texture_view);
-        imageView = (ImageView) view.findViewById(R.id.talker_img);
-        textCommentary = (TextView) view.findViewById(R.id.text_commentary);
-        commentaryButton = (WaveView) view.findViewById(R.id.id_commentary_button);
-        return view;
-    }
-
-    @Override
-    public void initView() {
-
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_sign, container, false);
+        textureView = (TextureView)v.findViewById(R.id.texture_view);
+        headTextView = (TextView) v.findViewById(R.id.head_text_view);
+        lottieAnimationView = (LottieAnimationView) v.findViewById(R.id.lottie_view);
+        return v;
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        initView();
 
         mFaces = new FaceResult[MAX_FACE_COUNT];
         mPreviousFaces = new FaceResult[MAX_FACE_COUNT];
@@ -137,89 +139,64 @@ public class InteractionFragment extends Fragment implements InteractionContract
         }
         mFacesCountMap = new SparseIntArray();
 
+        //initCallbackAndListeners();
     }
+
+    @Override
+    public void initView() {
+        headTextView.setText(TEXT_READY_TO_GO);
+
+        faceOverlayView = new FaceOverlayView(getContext());
+        RecyclerView.LayoutParams params = new RecyclerView.LayoutParams(RecyclerView.LayoutParams.MATCH_PARENT,
+                RecyclerView.LayoutParams.MATCH_PARENT);
+        getActivity().addContentView(faceOverlayView,params );
+//        faceOverlayView.setFront(true);
+//        faceOverlayView.setDisplayOrientation(getActivity().getWindowManager().getDefaultDisplay().getRotation());
+    }
+
     @Override
     public void onResume() {
         super.onResume();
 
-        presenter = new InteractionPresenter(this,getContext());
+        backGroundThread1 = new HandlerThread("handlerThread");
+        backGroundThread1.start();
+        backGroundHandler1 = new Handler(backGroundThread1.getLooper());
+
+        presenter = new SignInPresenter(this,getContext());
         presenter.start();
-
-        initCallbackAndListeners();
-        setWaveViewEnable(false);
-        setCommentaryButtonEnable(false);
-
-        initCamera();
-
-        startTimerTask();
-
 
 
     }
 
-    //创建回调接口，初始化监听器
+
     private void initCallbackAndListeners() {
-        //每次setOnClickListener会再次将View的clickable设置为true!
-        waveView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (waveView.isWorking()) {
-                    presenter.stopAiTalk();
-                    waveView.endAnimation();
-                } else {
-                    presenter.startAiTalk();
-                    waveView.startAnimation();
-                }
-            }
-        });
-        textCommentary.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                presenter.stopAiTalk();
-                presenter.startCommentary();
-                setWaveViewEnable(false);
-
-            }
-        });
-        commentaryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                presenter.stopAiTalk();
-                presenter.startCommentary();
-                setWaveViewEnable(false);
-            }
-        });
-
         //为SurfaceView设置监听器
         textureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
+            //当把摄像头关闭后再次打开，这个方法并不会多次触发
             @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            public void onSurfaceTextureAvailable(SurfaceTexture surface1, int widthSurface, int heightSurface) {
                 Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureAvailable()");
-                surfaceTexture = surface;
-                startCamera();
+                surfaceTexture = surface1;
+                //这里表示当第一次开启摄像头时，开启预览并检测人脸
+                startPreview();
+                startTimerTask();
+
             }
 
             @Override
             public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-                Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureSizeChanged()");
+                Log.v(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureSizeChanged()");
             }
 
             @Override
             public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                Log.i(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureDestroyed()");
+                Log.v(TAG, "TextureView.SurfaceTextureListener -- onSurfaceTextureDestroyed()");
                 return false;
             }
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
                 Log.v(TAG, "TextureView -- onSurfaceTextureUpdated");
-                mTotalFrameCount++;
-                //每过400帧数，将isWaitingRecogResult置为false，这样可以避免频繁发送人脸给服务器
-                if (mTotalFrameCount % 400 == 0) {
-                    isWaitingRecogResult = false;
-                }
-//                Log.i(TAG, "totalFrameCount:" + mTotalFrameCount);
             }
         });
 
@@ -228,7 +205,11 @@ public class InteractionFragment extends Fragment implements InteractionContract
             public void onOpened(@NonNull CameraDevice camera) {
                 Log.i(TAG, "CameraDevice.StateCallback -- onOpened()");
                 cameraDevice = camera;
-
+                //这里表示，当再次开启摄像头时，开启预览模式并启动人脸检测线程
+                if (cameraCaptureSession!=null) {
+                    startPreview();
+                    startTimerTask();
+                }
             }
 
             @Override
@@ -261,6 +242,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
                 //显示预览
                 CaptureRequest captureRequest = builder.build();
                 try {
+                    //$ process in background
                     cameraCaptureSession.setRepeatingRequest(captureRequest, new CameraCaptureSession.CaptureCallback() {
                         @Override
                         public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request,
@@ -282,7 +264,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
                             Log.v(TAG, "CameraCaptureSession -- onCaptureCompleted");
                             super.onCaptureCompleted(session, request, result);
                         }
-                    }, null);
+                    }, backGroundHandler1);
                 } catch (CameraAccessException e) {
                     e.printStackTrace();
                 }
@@ -290,9 +272,11 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
             @Override
             public void onConfigureFailed(@NonNull CameraCaptureSession session) {
-                Log.i(TAG, "CameraCaptureSession.StateCallback -- onConfigureFailed()");
+                Log.v(TAG, "CameraCaptureSession.StateCallback -- onConfigureFailed()");
             }
         };
+
+
     }
 
 
@@ -301,32 +285,99 @@ public class InteractionFragment extends Fragment implements InteractionContract
         cameraID = "" + CameraCharacteristics.LENS_FACING_BACK;
         cameraManager = (CameraManager) getContext().getSystemService(CAMERA_SERVICE);
         try {
-            if (ActivityCompat.checkSelfPermission(getContext(),Manifest.permission.CAMERA)
+            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(getContext(), "请授权使用照相机", Toast.LENGTH_SHORT).show();
                 return;
             }
-            cameraManager.openCamera(cameraID, cameraStateCallback, null);
+            //$ process in background
+            cameraManager.openCamera(cameraID, cameraStateCallback, backGroundHandler1);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void startPreview(){
+        try {
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraID);
+            StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+
+            int width = textureView.getWidth();
+            int height = textureView.getHeight();
+//            faceOverlayView.setPreviewWidth(width);
+//            faceOverlayView.setPreviewHeight(height);
+            //设置一个合适的预览尺寸，防止图像拉伸
+            previewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
+            surfaceTexture.setDefaultBufferSize(previewSize.getWidth(),previewSize.getHeight());
+            Log.i(TAG, "previewSize info:" + previewSize.getWidth() + "x" + previewSize.getHeight());
+            if (surface == null) {
+                surface = new Surface(surfaceTexture);
+            }
+            builder =cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            builder.addTarget(surface);
+            Log.i(TAG, "mTextureView info:" + textureView.getWidth() + "x" + textureView.getHeight());
+            //process in background
+            cameraDevice.createCaptureSession(Arrays.asList(surface),sessionStateCallback,backGroundHandler1);
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void stopFaceDetectTask() {
-        mDetectTimer.cancel();
+    public void startCamera() {
+        initCallbackAndListeners();
+        initCamera();
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                textureView.setVisibility(View.VISIBLE);
+                headTextView.setVisibility(View.INVISIBLE);
+                lottieAnimationView.cancelAnimation();
+                lottieAnimationView.setVisibility(View.INVISIBLE);
+//                faceOverlayView.setVisibility(View.VISIBLE);
+            }
+        });
+
+
+    }
+
+    @TargetApi(23)
+    @Override
+    public void closeCamera() {
+
+        textureView.setVisibility(View.GONE);
+
+        if (mDetectTimer != null) {
+            mDetectTimer.cancel();
+        }
+        if (cameraCaptureSession != null && isDetecting) {
+            try {
+                cameraCaptureSession.abortCaptures();
+                cameraCaptureSession.stopRepeating();
+                cameraCaptureSession.close();
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        if (cameraDevice != null) {
+            cameraDevice.close();
+        }
     }
 
     private void startTimerTask(){
-
+        isDetecting = true;
         mDetectTimer = new Timer();
         //在这个定时任务中，不断的检测界面中的人脸
         mDetectFaceTask = new TimerTask() {
             @Override
             public void run() {
                 Bitmap face = textureView.getBitmap();
-                if (face != null) {
-                    Log.v(TAG, "Bitmap in mTextureView :" + face.getWidth() +
+                if (face != null&&isDetecting) {
+                    Log.i(TAG, "Bitmap in mTextureView :" + face.getWidth() +
                             "x" + face.getHeight()+",Config:"+face.getConfig());
 
                     //原先的bitmap格式是ARGB_8888，以下的步骤是把格式转换为RGB_565
@@ -340,14 +391,16 @@ public class InteractionFragment extends Fragment implements InteractionContract
                             , (int)(RGBFace.getHeight()*mScale), false);
 
                     //创建一个人脸检测器，MAX_FACE参数表示最多识别MAX_FACE张人脸
-                    mFaceDetector = new FaceDetector(smallRGBFace.getWidth(), smallRGBFace.getHeight(), MAX_FACE_COUNT);
+                    if (mFaceDetector == null) {
+                        mFaceDetector = new FaceDetector(smallRGBFace.getWidth(), smallRGBFace.getHeight(), MAX_FACE_COUNT);
+                    }
                     //findFaces中传入的bitmap格式必须为RGB_565
                     int found = mFaceDetector.findFaces(smallRGBFace, mDetectedFaces);
 
-                    Log.v(TAG, "RGBFace:" + RGBFace.getWidth() + "x" + RGBFace.getHeight() + "," + RGBFace.getConfig());
-                    Log.v(TAG, "smallRGBFace:" + smallRGBFace.getWidth() + "x" + smallRGBFace.getHeight() + ","
+                    Log.i(TAG, "RGBFace:" + RGBFace.getWidth() + "x" + RGBFace.getHeight() + "," + RGBFace.getConfig());
+                    Log.i(TAG, "smallRGBFace:" + smallRGBFace.getWidth() + "x" + smallRGBFace.getHeight() + ","
                             + smallRGBFace.getConfig());
-                    Log.v(TAG, "found:" + found+" face(s)");
+                    Log.i(TAG, "found:" + found+" face(s)");
 
                     for(int i=0;i<MAX_FACE_COUNT;i++) {
                         if (mDetectedFaces[i] == null) {
@@ -359,8 +412,8 @@ public class InteractionFragment extends Fragment implements InteractionContract
                             //前面为了方便检测人脸将图片缩小，现在按比例还原
                             mid.x *= 1.0/mScale;
                             mid.y *= 1.0/mScale;
-                            Log.v(TAG, textureView.getWidth() + "x" + textureView.getHeight());
-                            Log.v(TAG, "mid pointF:" + mid.x + "," + mid.y);
+                            Log.i(TAG, textureView.getWidth() + "x" + textureView.getHeight());
+                            Log.i(TAG, "mid pointF:" + mid.x + "," + mid.y);
                             float eyeDistance = mDetectedFaces[i].eyesDistance()*(float)(1.0/mScale);
                             float confidence = mDetectedFaces[i].confidence();
                             float pose = mDetectedFaces[i].pose(FaceDetector.Face.EULER_Y);
@@ -389,148 +442,105 @@ public class InteractionFragment extends Fragment implements InteractionContract
                                     }
                                 }
 
-                                if (mPersonId == personId) {
-                                    mPersonId++;
-                                }
                                 mFaces[i].setFace(personId, mid, eyeDistance, confidence, pose, System.currentTimeMillis());
                                 mPreviousFaces[i].set(mFaces[i].getId(), mFaces[i].getMidEye(),
                                         mFaces[i].eyesDistance(), mFaces[i].getConfidence(), mFaces[i].getPose(), mFaces[i].getTime());
-                                
+
                                 //将采集到的人脸的帧数以key-value的形式放在一个map中
                                 int tmpFrameCount = mFacesCountMap.get(personId) + 1;
-                                if (tmpFrameCount < 5) {
+                                if (tmpFrameCount < 2) {
                                     mFacesCountMap.put(personId, tmpFrameCount);
                                 }
-                                if (tmpFrameCount == 5) {
+                                if (tmpFrameCount == 2) {
                                     mFaceBitmap = ImageUtils.cropFace(mFaces[i], RGBFace,0);
                                     if (mFaceBitmap != null) {
-                                        if (!isWaitingRecogResult) {
-                                            presenter.recognizeUserFace(mFaceBitmap);
-                                            isWaitingRecogResult = true;
-                                        }
+                                        presenter.recognize(mFaceBitmap);
+                                        mFacesCountMap.clear();
                                     }
                                 }
                             }
                         }
                     }
+                    try {
+                        bout.close();
+                        face.recycle();
+                        RGBFace.recycle();
+                        smallRGBFace.recycle();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+//                    getActivity().runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            faceOverlayView.setFaces(mFaces);
+//                        }
+//                    });
                 }
             }
         };
 
-        mDetectTimer.schedule(mDetectFaceTask, 0, 200);
+        mDetectTimer.schedule(mDetectFaceTask, 1200, 1000);
     }
 
-
     @Override
-    public void setPresenter(InteractionContract.Presenter presenter) {
+    public void setPresenter(SignInContract.Presenter presenter) {
         this.presenter = presenter;
-    }
-
-    @Override
-    public void startAnimation() {
-        waveView.startAnimation();
-    }
-
-    @Override
-    public void stopAnimation() {
-        waveView.endAnimation();
-
-    }
-
-    @Override
-    public void startCamera() {
-        try {
-            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraID);
-            StreamConfigurationMap configMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-
-            int width = textureView.getWidth();
-            int height = textureView.getHeight();
-
-            //设置一个合适的预览尺寸，防止图像拉伸
-//            previewSize = getPreferredPreviewSize(configMap.getOutputSizes(SurfaceTexture.class), width, height);
-            previewSize = Util.getPreferredPreviewSize(configMap.getOutputSizes(ImageFormat.JPEG), width, height);
-            surfaceTexture.setDefaultBufferSize(previewSize.getWidth(),previewSize.getHeight());
-            Log.i(TAG, "previewSize info:" + previewSize.getWidth() + "x" + previewSize.getHeight());
-
-            surface = new Surface(surfaceTexture);
-
-            builder =cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-
-            if (surface.isValid()) {
-                builder.addTarget(surface);
-            }
-            Log.i(TAG, "mTextureView info:" + textureView.getWidth() + "x" + textureView.getHeight());
-
-            cameraDevice.createCaptureSession(Arrays.asList(surface),sessionStateCallback,null);
-
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void stopCamera() {
-        try {
-            cameraCaptureSession.abortCaptures();
-            cameraDevice.close();
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
-        }
-        textureView.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void showRobotImg() {
-        imageView.setVisibility(View.VISIBLE);
-
-        if (getActivity() != null) {
-            Glide.with(getContext())
-                    .load(R.drawable.talker_img)
-                    .into(imageView);
-        }
-
-
-    }
-
-    //设置按钮是否可点击
-    @Override
-    public void setWaveViewEnable(boolean enable) {
-        log("WaveView -- setClickable:" + enable);
-        waveView.setEnable(enable);
-    }
-
-    @Override
-    public void setCommentaryButtonEnable(boolean enable){
-        textCommentary.setClickable(enable);
-        commentaryButton.setEnable(enable);
-    }
-
-    @Override
-    public void showTip(String str) {
-        Toast.makeText(getActivity(), str, Toast.LENGTH_LONG).show();
-//        final Snackbar snackbar = Snackbar.make(getView(), "在解说模式，Ai对话功能将被关闭", Snackbar.LENGTH_SHORT);
-//        snackbar.setAction("知道了", new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                snackbar.dismiss();
-//            }
-//        });
     }
 
     public void setRosServiceBinder(RosConnectionService.ServiceBinder binder){
         presenter.setServiceProxy(binder);
     }
 
+    public void changeUiState(int state){
+        switch (state) {
+            case SignInContract.UI_STATE_ON_THE_WAY:
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        headTextView.setVisibility(View.VISIBLE);
+                        lottieAnimationView.setVisibility(View.VISIBLE);
+                        headTextView.setText(TEXT_ON_THE_WAY);
+                        lottieAnimationView.playAnimation();
+                        //faceOverlayView.setVisibility(View.INVISIBLE);
+                        isDetecting = false;
+                    }
+                });
+                break;
+            case SignInContract.UI_STATE_READY:
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        headTextView.setVisibility(View.VISIBLE);
+                        lottieAnimationView.setVisibility(View.VISIBLE);
+                        headTextView.setText(TEXT_READY_TO_GO);
+                        lottieAnimationView.cancelAnimation();
+                        lottieAnimationView.setProgress(0);
+                        textureView.setVisibility(View.INVISIBLE);
+                        //faceOverlayView.setVisibility(View.INVISIBLE);
+                        isDetecting = false;
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void displayInfo(String str) {
+        Toast.makeText(getContext(),str, Toast.LENGTH_SHORT).show();
+    }
 
     @Override
     public void onDestroy() {
-        stopCamera();
+        closeCamera();
+//        if(isDetecting||cameraCaptureSession!=null){
+//            mDetectTimer.cancel();
+//            cameraCaptureSession.close();
+//            cameraDevice.close();
+//        }
         presenter.releaseMemory();
         super.onDestroy();
-
     }
 
-    public void log(String string) {
-        Log.i(TAG, TAG + " -- " + string);
-    }
 }
