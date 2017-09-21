@@ -33,6 +33,7 @@
         android:layout_height="@dimen/small_texture_view_Height"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
+        android:visibility="invisible"
         />
 
     <android.support.design.widget.CoordinatorLayout

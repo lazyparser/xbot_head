@@ -12,11 +12,9 @@ import android.util.Log;
 import com.iflytek.cloud.SpeechError;
 
 import java.util.Timer;
-import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.RosConnectionService;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
-import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import cn.ac.iscas.xlab.droidfacedog.model.AiTalkModel;
 import cn.ac.iscas.xlab.droidfacedog.model.AudioManager;
 import cn.ac.iscas.xlab.droidfacedog.model.TTSModel;
@@ -115,7 +113,7 @@ public class InteractionPresenter implements InteractionContract.Presenter {
             view.showTip("Tip:在解说模式，Ai语音对话功能将被关闭");
         }
         audioManager.play(0);
-        publishTtsStatus();
+//        publishTtsStatus();
 
 
 
@@ -181,20 +179,20 @@ public class InteractionPresenter implements InteractionContract.Presenter {
         youtuConnection.sendBitmap(bitmap);
     }
 
-    public void publishTtsStatus(){
-        publishTopicTimer = new Timer();
-        publishTopicTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (rosProxy != null && audioManager !=null) {
-                    int id = audioManager.getCurrentId();
-                    boolean isPlaying = audioManager.isPlaying();
-                    TtsStatus status = new TtsStatus(id,isPlaying);
-                    rosProxy.publishTtsStatus(status);
-                }
-            }
-        },1000,200);
-    }
+//    public void publishTtsStatus(){
+//        publishTopicTimer = new Timer();
+//        publishTopicTimer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                if (rosProxy != null && audioManager !=null) {
+//                    int id = audioManager.getCurrentId();
+//                    boolean isPlaying = audioManager.isPlaying();
+//                    AudioStatus status = new AudioStatus(id,isPlaying);
+//                    rosProxy.publishTtsStatus(status);
+//                }
+//            }
+//        },1000,200);
+//    }
         
     
     //EventBus的回调，用来接收从Service中发回来的机器人状态

@@ -21,7 +21,7 @@ import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.PublishEvent;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.SignStatus;
-import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.AudioStatus;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -34,8 +34,8 @@ public class RosConnectionService extends Service{
 
     public static final String TAG = "RosConnectionService";
     public static final String SUBSCRIBE_TOPIC = "/robot_status";
-    public static final String PUBLISH_TOPIC_TTS = "/tts_status";
-
+    //解说词播放状态
+    public static final String PUBLISH_TOPIC_AUDIO_STATUS = "/pad_audio_status";
     //签到状态
     public static final String PUBLISH_TOPIC_SIGN_COMPLETION = "/pad_sign_completion";
 
@@ -52,27 +52,27 @@ public class RosConnectionService extends Service{
             return isConnected;
         }
 
-        public void publishTtsStatus(TtsStatus status) {
-
-            if (isConnected) {
-                JSONObject body = new JSONObject();
-                try {
-                    JSONObject jsonMsg = new JSONObject();
-                    jsonMsg.put("id", status.getId());
-                    jsonMsg.put("isplaying", status.isplaying());
-
-                    body.put("op", "publish");
-                    body.put("topic",PUBLISH_TOPIC_TTS);
-                    body.put("msg", jsonMsg);
-
-                    rosBridgeClient.send(body.toString());
-
-                    Log.v(TAG, "publish 'tts_status' To Ros Server:" + body.toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+//        public void publishTtsStatus(AudioStatus status) {
+//
+//            if (isConnected) {
+//                JSONObject body = new JSONObject();
+//                try {
+//                    JSONObject jsonMsg = new JSONObject();
+//                    jsonMsg.put("id", status.getId());
+//                    jsonMsg.put("isplaying", status.isplaying());
+//
+//                    body.put("op", "publish");
+//                    body.put("topic",PUBLISH_TOPIC_AUDIO_STATUS);
+//                    body.put("msg", jsonMsg);
+//
+//                    rosBridgeClient.send(body.toString());
+//
+//                    Log.v(TAG, "publish 'tts_status' To Ros Server:" + body.toString());
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
 
         public void publishSignStatus(SignStatus signStatus){
             JSONObject body = new JSONObject();
@@ -92,6 +92,26 @@ public class RosConnectionService extends Service{
                     e.printStackTrace();
                 }
             }
+        }
+
+        public void publishAudioStatus(AudioStatus audioStatus) {
+            JSONObject body = new JSONObject();
+            if (isConnected()) {
+                JSONObject jsonMsg = new JSONObject();
+                try {
+                    jsonMsg.put("id", audioStatus.getId());
+                    jsonMsg.put("iscomplete", audioStatus.isComplete());
+
+                    body.put("op", "publish");
+                    body.put("topic", PUBLISH_TOPIC_AUDIO_STATUS);
+                    body.put("msg", jsonMsg);
+                    rosBridgeClient.send(body.toString());
+                    Log.i(TAG, "publish 'pad_audio_status' topic to Ros Server :" + body.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
 
 

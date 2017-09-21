@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">优图人脸识别前端</string>
+    <string name="app_name">Xbot Head</string>
     <string name="detect_window_title">人脸检测中</string>
     <string name="function_config">云端配置</string>
     <string name="function_sign">人脸签到模式</string>
