@@ -11,12 +11,12 @@ public class SignStatus {
     private boolean isComplete;
 
     //是否识别出已注册的用户
-    private boolean isSuccess;
+    private boolean isRecogSuccess;
 
     
-    public SignStatus(boolean isComplete, boolean isSuccess) {
+    public SignStatus(boolean isComplete, boolean isRecogSuccess) {
         this.isComplete = isComplete;
-        this.isSuccess = isSuccess;
+        this.isRecogSuccess = isRecogSuccess;
     }
 
     public boolean isComplete() {
@@ -27,19 +27,19 @@ public class SignStatus {
         this.isComplete = isComplete;
     }
 
-    public boolean isSuccess() {
-        return isSuccess;
+    public boolean isRecogSuccess() {
+        return isRecogSuccess;
     }
 
-    public void setSuccess(boolean isSuccess) {
-        this.isSuccess = isSuccess;
+    public void setSuccess(boolean isRecogSuccess) {
+        this.isRecogSuccess = isRecogSuccess;
     }
 
     @Override
     public String toString() {
         return "SignStatus{" +
                 "isComplete=" + isComplete +
-                ", isSuccess=" + isSuccess +
+                ", isRecogSuccess=" + isRecogSuccess +
                 '}';
     }
 }

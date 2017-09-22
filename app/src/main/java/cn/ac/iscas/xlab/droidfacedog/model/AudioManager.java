@@ -41,9 +41,9 @@ public class AudioManager {
             "tts/part8.mp3",
             "tts/part9.mp3",
             "tts/part10.mp3",
-            "tts/part11.mp3",
-            "tts/part12.mp3",
-            "tts/part13.mp3",
+            "tts/visitor.mp3",
+            "tts/lisongting.mp3",
+            "tts/wangpeng.mp3",
 
     };
 
