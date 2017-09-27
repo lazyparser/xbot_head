@@ -139,7 +139,8 @@ public class SignInFragment extends Fragment  implements SignInContract.View{
         }
         mFacesCountMap = new SparseIntArray();
 
-        //initCallbackAndListeners();
+        presenter = new SignInPresenter(this,getContext());
+        presenter.start();
     }
 
     @Override
@@ -161,13 +162,7 @@ public class SignInFragment extends Fragment  implements SignInContract.View{
         backGroundThread1 = new HandlerThread("handlerThread");
         backGroundThread1.start();
         backGroundHandler1 = new Handler(backGroundThread1.getLooper());
-
-        presenter = new SignInPresenter(this,getContext());
-        presenter.start();
-
-
     }
-
 
     private void initCallbackAndListeners() {
         //为SurfaceView设置监听器
@@ -278,8 +273,6 @@ public class SignInFragment extends Fragment  implements SignInContract.View{
 
 
     }
-
-
 
     private void initCamera() {
         cameraID = "" + CameraCharacteristics.LENS_FACING_BACK;
@@ -469,17 +462,11 @@ public class SignInFragment extends Fragment  implements SignInContract.View{
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-//                    getActivity().runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            faceOverlayView.setFaces(mFaces);
-//                        }
-//                    });
                 }
             }
         };
 
-        mDetectTimer.schedule(mDetectFaceTask, 1200, 1000);
+        mDetectTimer.schedule(mDetectFaceTask, 1000, 500);
     }
 
     @Override

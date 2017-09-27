@@ -27,17 +27,21 @@ public class TTSModel {
     //语音合成器
     private SpeechSynthesizer ttsSynthesizer;
     private SynthesizerListener synthesizerListener;
+    private String speaker = "vinn";
 
     public interface OnTTSFinishListener {
         void onTTSFinish(SpeechError speechError);
     }
 
-    private TTSModel(Context context) {
+    public TTSModel(Context context) {
         this.context = context;
         init();
     }
-    public static TTSModel getInstance(Context context) {
-        return new TTSModel(context);
+
+    public TTSModel(Context context, String speaker) {
+        this.speaker = speaker;
+        this.context = context;
+        init();
     }
 
     private void init() {
@@ -45,7 +49,7 @@ public class TTSModel {
         ttsSynthesizer = SpeechSynthesizer.createSynthesizer(context, null);
 
         //xiaoyan：青年女声-普通话  xiaoyu：青年男声-普通话   vixx：小男孩-普通话    vinn：小女孩-普通话
-        ttsSynthesizer.setParameter(SpeechConstant.VOICE_NAME, "vinn"); //设置发音人
+        ttsSynthesizer.setParameter(SpeechConstant.VOICE_NAME, speaker); //设置发音人
         ttsSynthesizer.setParameter(SpeechConstant.SPEED, "50");//设置语速
         ttsSynthesizer.setParameter(SpeechConstant.VOLUME, "80");//设置音量，范围 0~100
         ttsSynthesizer.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD); //设置云端

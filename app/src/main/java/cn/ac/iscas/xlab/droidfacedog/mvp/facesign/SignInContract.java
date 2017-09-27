@@ -27,6 +27,7 @@ public interface SignInContract {
         void releaseMemory();
 
         void setServiceProxy(@NonNull Binder binder);
+
     }
 
     interface View extends BaseView<Presenter>{

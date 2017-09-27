@@ -55,7 +55,7 @@ public class InteractionPresenter implements InteractionContract.Presenter {
         aiTalkModel = AiTalkModel.getInstance(mContext);
         audioManager = new AudioManager(mContext);
         audioManager.loadTts();
-        ttsModel = TTSModel.getInstance(mContext);
+        ttsModel = new TTSModel(mContext);
 
         hasGreeted = false;
 

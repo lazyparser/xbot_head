@@ -50,7 +50,6 @@ import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
 import static android.content.Context.CAMERA_SERVICE;
-import static cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity.MAX_FACE_COUNT;
 
 /**
  * Created by lisongting on 2017/8/7.
@@ -101,6 +100,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
     private double mScale = 0.2;
     //用来标记每个人脸共有几张图像,key是人脸的id，value是当前采集到的图像张数
     private SparseIntArray mFacesCountMap;
+    private int MAX_FACE_COUNT = 3;
 
     public InteractionFragment() {}
 

@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.custom_views.CircleRotateView;
+import cn.ac.iscas.xlab.droidfacedog.mvp.commentary.CommentaryActivity;
 import cn.ac.iscas.xlab.droidfacedog.mvp.facesign.SignInActivity;
 import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 
@@ -32,7 +33,7 @@ import cn.ac.iscas.xlab.droidfacedog.mvp.interaction.InteractionActivity;
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = MainActivity.class.getSimpleName();
-    public static final String ROS_RECEIVER_INTENTFILTER = "main_activity.receiver";
+    public static final String ROS_RECEIVER_INTENTFILTER = "mainactivity.rosconnection.receiver";
 
     public static final int REGISTER_ACTIVITY = 1;
     public static final int XBOTFACE_ACTIVITY = 2;
@@ -77,11 +78,8 @@ public class MainActivity extends AppCompatActivity {
                 if (waitingDialogFragment.isVisible()) {
                     circleRotateView.endAnimation();
                     waitingDialogFragment.dismiss();
-                    Toast.makeText(mContext, "Ros服务器连接成功", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(mContext, "Ros服务器连接成功", Toast.LENGTH_SHORT).show();
                 }
-
+                Toast.makeText(getApplicationContext(), "Ros服务器连接成功", Toast.LENGTH_SHORT).show();
             }
             @Override
             public void onFailure() {
@@ -117,7 +115,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
                 if (rc == PackageManager.PERMISSION_GRANTED) {
-                    Intent intent = new Intent(mContext, XBotFaceActivity.class);
+//                    Intent intent = new Intent(mContext, XBotFaceActivity.class);
+                    Intent intent = new Intent(mContext, CommentaryActivity.class);
                     startActivity(intent);
                 } else {
                     requestPermissions(XBOTFACE_ACTIVITY);
@@ -193,9 +192,9 @@ public class MainActivity extends AppCompatActivity {
 
         Config.ENABLE_MESSAGE_NOTIFICATION = sharedPreference.getBoolean(res.getString(R.string.key_enable_notification),true);
 
-        Config.ROS_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_ros_server_ip), "192.168.1.111");
+        Config.ROS_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_ros_server_ip), "192.168.0.135");
 
-        Config.RECOGNITION_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_recognition_server_ip), "192.168.0.111");
+        Config.RECOGNITION_SERVER_IP = sharedPreference.getString(res.getString(R.string.key_recognition_server_ip), "192.168.0.135");
 
         Log.i(TAG, "MainActivity启动时初始化：" + Config.string());
     }
@@ -217,7 +216,8 @@ public class MainActivity extends AppCompatActivity {
                     intent = new Intent(mContext, RegisterActivity.class);
                     break;
                 case XBOTFACE_ACTIVITY:
-                    intent = new Intent(mContext, XBotFaceActivity.class);
+//                    intent = new Intent(mContext, XBotFaceActivity.class);
+                    intent = new Intent(mContext, CommentaryActivity.class);
                     break;
                 case INTERACTION_ACTIVITY:
                     intent = new Intent(mContext, InteractionActivity.class);
@@ -262,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
                 exitTime = System.currentTimeMillis();
             } else {
                 finish();
-
             }
             return true;
         }

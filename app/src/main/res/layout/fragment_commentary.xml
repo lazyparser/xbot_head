@@ -1,35 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/id_xbotface_layout"
+    android:id="@+id/commentary_viewgroup"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:keepScreenOn="true"
-    >
+    android:background="@android:color/white">
 
     <ImageView
-        android:id="@+id/id_iv_face_state"
+        android:id="@+id/background_face_state"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_centerVertical="true"
-        android:background="#FFFFFF"
-        android:src="@drawable/idleface" />
+        android:src="@drawable/idleface"
+        android:scaleType="fitCenter"
+        />
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/id_face_recyclerview"
+        android:id="@+id/face_recyclerview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_margin="10dp"
-        />
+        android:layout_margin="10dp"/>
 
     <TextureView
-        android:id="@+id/id_small_texture_view"
-        android:layout_width="@dimen/small_texture_view_width"
-        android:layout_height="@dimen/small_texture_view_Height"
-        android:layout_alignParentTop="true"
+        android:id="@+id/texture_view"
+        android:layout_width="240dp"
+        android:layout_height="320dp"
         android:layout_alignParentStart="true"
         android:visibility="invisible"
         />
@@ -38,22 +33,20 @@
         android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        >
+        android:layout_alignParentBottom="true">
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/floating_action_bar"
+            android:id="@+id/floating_action_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|right"
-            android:src="@mipmap/ic_record"
+            android:layout_margin="20dp"
+            android:src="@mipmap/ic_replay"
             android:clickable="true"
-            android:layout_margin="@dimen/fab_margin"
             app:fabSize="normal"
-            app:borderWidth="@dimen/fab_border_width"
             app:backgroundTint="@color/fab_background_color"
             app:rippleColor="@color/fab_Ripple_color"
-            app:pressedTranslationZ="@dimen/fab_press_translation"/>
+            app:pressedTranslationZ="5dp"
+            />
     </android.support.design.widget.CoordinatorLayout>
-
 
 </RelativeLayout>

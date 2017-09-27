@@ -56,6 +56,8 @@
         <activity
             android:name=".mvp.facesign.SignInActivity"
             android:screenOrientation="portrait" />
+        <activity android:name=".mvp.commentary.CommentaryActivity"
+            android:screenOrientation="portrait"/>
 
         <!--Sophix参数-->
         <!--APP ID-->

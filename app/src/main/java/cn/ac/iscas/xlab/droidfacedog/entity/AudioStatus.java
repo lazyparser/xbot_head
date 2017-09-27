@@ -7,7 +7,7 @@ package cn.ac.iscas.xlab.droidfacedog.entity;
 //该类用来描述当前MediaPlayer的播放情况
 public class AudioStatus {
 
-    //当前正在播放的解说词音频的id。现在一共就三部分音频,取值[0,2]
+    //当前正在播放的解说词音频的id。
     private int id;
     //当前的播放状态
     private boolean isComplete;

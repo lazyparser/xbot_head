@@ -880,17 +880,10 @@ public class XBotFaceActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-
-//        //取消所有运行中的Timer
-//        mDetectTimer.cancel();
-//        mPublishTopicTimer.cancel();
     }
 
     @Override
     public void onDestroy() {
-//        if (mCameraDevice != null) {
-//            mCameraDevice.close();
-//        }
 
         if (mSurfaceTexture != null) {
             mSurfaceTexture.release();
