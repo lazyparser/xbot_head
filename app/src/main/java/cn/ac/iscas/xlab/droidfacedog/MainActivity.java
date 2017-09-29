@@ -115,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 int rc = ActivityCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA);
                 if (rc == PackageManager.PERMISSION_GRANTED) {
-//                    Intent intent = new Intent(mContext, XBotFaceActivity.class);
                     Intent intent = new Intent(mContext, CommentaryActivity.class);
                     startActivity(intent);
                 } else {
@@ -216,7 +215,6 @@ public class MainActivity extends AppCompatActivity {
                     intent = new Intent(mContext, RegisterActivity.class);
                     break;
                 case XBOTFACE_ACTIVITY:
-//                    intent = new Intent(mContext, XBotFaceActivity.class);
                     intent = new Intent(mContext, CommentaryActivity.class);
                     break;
                 case INTERACTION_ACTIVITY:

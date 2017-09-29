@@ -364,9 +364,9 @@ public class CommentaryFragment extends Fragment implements CommentaryContract.V
 
                             //将采集到的人脸的帧数以key-value的形式放在一个map中
                             int tmpFrameCount = facesCountMap.get(personId) + 1;
-                            if (tmpFrameCount < 5) {
+                            if (tmpFrameCount < 3) {
                                 facesCountMap.put(personId, tmpFrameCount);
-                            }else if (tmpFrameCount == 5) {
+                            }else if (tmpFrameCount == 3) {
                                 faceBitmap = ImageUtils.cropFace(faces[0], RGBFace,0);
                                 imagePreviewAdapter = new ImagePreviewAdapter(getContext(), recyclerViewBitmapList, new ImagePreviewAdapter.ViewHolder.OnItemClickListener() {
                                     @Override

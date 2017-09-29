@@ -14,8 +14,6 @@ import java.io.File;
 
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
-import static cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity.TTS_UNREGISTERED_USER;
-
 /**
  * Created by lisongting on 2017/8/8.
  */
@@ -103,7 +101,7 @@ public class TTSModel {
         StringBuilder text = new StringBuilder();
         text.append("你好，");
 
-        if (userId.equals(TTS_UNREGISTERED_USER)) {
+        if (userId.length()==0) {
             text.append("游客。");
         } else {
             String name = Util.hexStringToString(userId);

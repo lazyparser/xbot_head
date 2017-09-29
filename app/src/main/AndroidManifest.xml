@@ -46,8 +46,6 @@
             android:screenOrientation="portrait"/>
 
         <service android:name=".RosConnectionService" />
-        <activity android:name=".XBotFaceActivity"
-            android:screenOrientation="portrait"/>
         <activity android:name=".mvp.userlist.UserListActivity"
             android:screenOrientation="portrait"/>
         <activity

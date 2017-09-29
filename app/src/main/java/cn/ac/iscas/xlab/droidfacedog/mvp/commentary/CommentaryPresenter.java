@@ -29,7 +29,7 @@ public class CommentaryPresenter implements CommentaryContract.Presenter{
     private boolean isRobotStared;
     private int recogFailCount = 0;
     private int timeoutCount = 0;
-    private boolean isWaitingRecogResult = false;
+    private volatile boolean isWaitingRecogResult = false;
 
     public CommentaryPresenter(CommentaryContract.View view, Context context) {
         this.view = view;
@@ -47,7 +47,7 @@ public class CommentaryPresenter implements CommentaryContract.Presenter{
     }
 
     @Override
-    public void recognize(Bitmap bitmap) {
+    public synchronized void recognize(Bitmap bitmap) {
         if (isWaitingRecogResult) {
             return;
         }
@@ -100,7 +100,6 @@ public class CommentaryPresenter implements CommentaryContract.Presenter{
                         }
                     });
                 }
-                isWaitingRecogResult = false;
                 view.closeCamera();
             }
 
@@ -119,7 +118,6 @@ public class CommentaryPresenter implements CommentaryContract.Presenter{
                     view.closeCamera();
                     timeoutCount = 0;
                 }
-                isWaitingRecogResult = false;
             }
         });
     }
