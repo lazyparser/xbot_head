@@ -61,7 +61,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
     private WaveView waveView;
     private WaveView commentaryButton;
     private ImageView imageView;
-    private TextView textCommentary;
     private TextureView textureView;
     private SurfaceTexture surfaceTexture;
     private Surface surface;
@@ -114,7 +113,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
         waveView = (WaveView) view.findViewById(R.id.id_wave_view);
         textureView = (TextureView) view.findViewById(R.id.texture_view);
         imageView = (ImageView) view.findViewById(R.id.talker_img);
-        textCommentary = (TextView) view.findViewById(R.id.text_commentary);
         commentaryButton = (WaveView) view.findViewById(R.id.id_commentary_button);
         return view;
     }
@@ -172,16 +170,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
                 }
             }
         });
-        textCommentary.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                presenter.stopAiTalk();
-                presenter.startCommentary();
-                setWaveViewEnable(false);
-
-            }
-        });
         commentaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -501,7 +490,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     @Override
     public void setCommentaryButtonEnable(boolean enable){
-        textCommentary.setClickable(enable);
         commentaryButton.setEnable(enable);
     }
 

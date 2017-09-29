@@ -417,7 +417,7 @@ public class SignInFragment extends Fragment  implements SignInContract.View{
                             RectF rectF = ImageUtils.getPreviewFaceRectF(mid, eyeDistance);
 
                             //如果人脸矩形区域大于一定面积，才采集图像
-                            if (rectF.width() * rectF.height() > 90 * 60) {
+                            if (rectF.width() * rectF.height() > 50 * 60) {
                                 for(int j=0;j<MAX_FACE_COUNT;j++) {
                                     //获取之前的Faces数据
                                     float eyesDisPre = mPreviousFaces[j].eyesDistance();
@@ -466,7 +466,7 @@ public class SignInFragment extends Fragment  implements SignInContract.View{
             }
         };
 
-        mDetectTimer.schedule(mDetectFaceTask, 1000, 500);
+        mDetectTimer.schedule(mDetectFaceTask, 1000, 200);
     }
 
     @Override

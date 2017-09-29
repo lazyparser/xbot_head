@@ -97,7 +97,6 @@ public class CommentaryFragment extends Fragment implements CommentaryContract.V
     private double mScale = 0.2;
     private int MAX_FACE_COUNT = 1;
     private boolean isDetecting = false ;
-    private boolean isWaitingRecogResult = false;
     private Timer detectTimer;
     private TimerTask detectFaceTask;
     private FaceDetector faceDetector;
@@ -343,7 +342,7 @@ public class CommentaryFragment extends Fragment implements CommentaryContract.V
                         RectF rectF = ImageUtils.getPreviewFaceRectF(mid, eyeDistance);
 
                         //如果人脸矩形区域大于一定面积，才采集图像
-                        if (rectF.width() * rectF.height() > 90 * 60) {
+                        if (rectF.width() * rectF.height() > 15 * 20) {
                             //获取之前的Faces数据
                             float eyesDisPre = previousFaces[0].eyesDistance();
                             PointF midPre = new PointF();
@@ -404,7 +403,7 @@ public class CommentaryFragment extends Fragment implements CommentaryContract.V
             }
         };
 
-        detectTimer.schedule(detectFaceTask, 0, 500);
+        detectTimer.schedule(detectFaceTask, 0, 200);
     }
     
     @Override
@@ -437,7 +436,7 @@ public class CommentaryFragment extends Fragment implements CommentaryContract.V
             cameraDevice.close();
         }
         textureView.setVisibility(View.INVISIBLE);
-        recyclerView.setVisibility(View.INVISIBLE);
+//        recyclerView.setVisibility(View.INVISIBLE);
         isDetecting = false;
         detectTimer.cancel();
     }
@@ -452,11 +451,9 @@ public class CommentaryFragment extends Fragment implements CommentaryContract.V
                         stateImageView.setImageResource(R.drawable.idleface);
                         break;
                     case CommentaryContract.STATE_DETECTED:
-                        isWaitingRecogResult = false;
                         stateImageView.setImageResource(R.drawable.detectedface);
                         break;
                     case CommentaryContract.STATE_IDENTIFIED:
-                        isWaitingRecogResult = false;
                         stateImageView.setImageResource(R.drawable.identifiedface);
                         break;
                     default:

@@ -102,10 +102,10 @@ public class TTSModel {
         text.append("你好，");
 
         if (userId.length()==0) {
-            text.append("游客。");
+            text.append("游客,");
         } else {
             String name = Util.hexStringToString(userId);
-            text.append(name+"。");
+            text.append(name).append(",");
         }
 
         text.append("我是语音机器人，你有什么想对我说的吗");

@@ -89,11 +89,11 @@ public class InteractionPresenter implements InteractionContract.Presenter {
             //给出提示，当进入解说模式的时候，会关闭AI对话功能
             view.showTip("Tip:在解说模式，Ai语音对话功能将被关闭");
         }
-
-        audioManager.playAsync(0, new AudioManager.AudioCompletionCallback() {
+        final int audioId  = 0;
+        audioManager.playAsync(audioId, new AudioManager.AudioCompletionCallback() {
             @Override
             public void onComplete(int id) {
-                rosProxy.publishAudioStatus(new AudioStatus(0,true));
+                rosProxy.publishAudioStatus(new AudioStatus(audioId,true));
             }
         });
 
