@@ -3,15 +3,10 @@ package cn.ac.iscas.xlab.droidfacedog.mvp.interaction;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Binder;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.iflytek.cloud.SpeechError;
-
-import java.util.Timer;
 
 import cn.ac.iscas.xlab.droidfacedog.RosConnectionService;
 import cn.ac.iscas.xlab.droidfacedog.entity.AudioStatus;
@@ -29,7 +24,6 @@ import de.greenrobot.event.EventBus;
 public class InteractionPresenter implements InteractionContract.Presenter {
 
     public static final String TAG = "InteractionPresenter";
-    public static final int HANDLER_PLAY_TTS = 0x13;
 
     private Context mContext;
     private AiTalkModel aiTalkModel;
@@ -42,9 +36,7 @@ public class InteractionPresenter implements InteractionContract.Presenter {
     private RosConnectionService.ServiceBinder rosProxy;
     private boolean hasGreeted ;
     private YoutuConnection youtuConnection;
-    private Handler youtuHandler;
 
-    private Timer publishTopicTimer;
     public InteractionPresenter(InteractionContract.View view,Context context) {
         this.view = view;
         this.mContext = context;
@@ -59,18 +51,6 @@ public class InteractionPresenter implements InteractionContract.Presenter {
         ttsModel = new TTSModel(mContext);
 
         hasGreeted = false;
-
-        //该用来接收优图的识别结果
-        youtuHandler = new Handler(){
-            public void handleMessage(Message msg) {
-                if (msg.what == HANDLER_PLAY_TTS) {
-                    Bundle data = msg.getData();
-                    String userId = (String) data.get("userId");
-
-                }
-            }
-        };
-
 
         youtuConnection = new YoutuConnection(mContext);
 
@@ -192,13 +172,18 @@ public class InteractionPresenter implements InteractionContract.Presenter {
 
     //EventBus的回调，用来接收从Service中发回来的机器人状态
     public void onEvent(RobotStatus status) {
-        int locationId = status.getLocationId();
+        final int locationId = status.getLocationId();
 //        boolean isMoving = status.isMoving();
         Log.i(TAG, "接收到来自Ros服务器的RobotStatus:"+status.toString());
         //如果到达了新的位置，并且audioManager并没有在播放音频，则开始播放指定id的音频
         //如果到达了指定位置而前面一段解说词没有播放完，则会等待其播放完
         if (locationId != audioManager.getCurrentId() && !audioManager.isPlaying()) {
-            audioManager.play(locationId);
+            audioManager.playAsync(locationId, new AudioManager.AudioCompletionCallback() {
+                @Override
+                public void onComplete(int id) {
+                    rosProxy.publishAudioStatus(new AudioStatus(id,true));
+                }
+            });
         }
     }
 
