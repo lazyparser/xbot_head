@@ -18,10 +18,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
+import cn.ac.iscas.xlab.droidfacedog.entity.AudioStatus;
+import cn.ac.iscas.xlab.droidfacedog.entity.MuseumPosition;
 import cn.ac.iscas.xlab.droidfacedog.entity.PublishEvent;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.SignStatus;
-import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -29,13 +30,14 @@ import de.greenrobot.event.EventBus;
  *
  */
 
-//TODO:人脸签到场景,topic的发布和订阅
 public class RosConnectionService extends Service{
 
     public static final String TAG = "RosConnectionService";
-    public static final String SUBSCRIBE_TOPIC = "/robot_status";
-    public static final String PUBLISH_TOPIC_TTS = "/tts_status";
-
+    public static final String SUBSCRIBE_ROBOT_STATUS = "/robot_status";
+    public static final String SUBSCRIBE_MUSEUM_POSITION = "/museum_pos";
+    
+    //解说词播放状态
+    public static final String PUBLISH_TOPIC_AUDIO_STATUS = "/pad_audio_status";
     //签到状态
     public static final String PUBLISH_TOPIC_SIGN_COMPLETION = "/pad_sign_completion";
 
@@ -52,35 +54,13 @@ public class RosConnectionService extends Service{
             return isConnected;
         }
 
-        public void publishTtsStatus(TtsStatus status) {
-
-            if (isConnected) {
-                JSONObject body = new JSONObject();
-                try {
-                    JSONObject jsonMsg = new JSONObject();
-                    jsonMsg.put("id", status.getId());
-                    jsonMsg.put("isplaying", status.isplaying());
-
-                    body.put("op", "publish");
-                    body.put("topic",PUBLISH_TOPIC_TTS);
-                    body.put("msg", jsonMsg);
-
-                    rosBridgeClient.send(body.toString());
-
-                    Log.v(TAG, "publish 'tts_status' To Ros Server:" + body.toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
         public void publishSignStatus(SignStatus signStatus){
             JSONObject body = new JSONObject();
             if (isConnected) {
                 JSONObject jsonMsg = new JSONObject();
                 try {
                     jsonMsg.put("complete", signStatus.isComplete());
-                    jsonMsg.put("success", signStatus.isSuccess());
+                    jsonMsg.put("success", signStatus.isRecogSuccess());
 
                     body.put("op", "publish");
                     body.put("topic", PUBLISH_TOPIC_SIGN_COMPLETION);
@@ -94,6 +74,52 @@ public class RosConnectionService extends Service{
             }
         }
 
+        public void publishAudioStatus(AudioStatus audioStatus) {
+            JSONObject body = new JSONObject();
+            if (isConnected()) {
+                JSONObject jsonMsg = new JSONObject();
+                try {
+                    jsonMsg.put("id", audioStatus.getId());
+                    jsonMsg.put("iscomplete", audioStatus.isComplete());
+
+                    body.put("op", "publish");
+                    body.put("topic", PUBLISH_TOPIC_AUDIO_STATUS);
+                    body.put("msg", jsonMsg);
+                    rosBridgeClient.send(body.toString());
+                    Log.i(TAG, "publish 'pad_audio_status' topic to Ros Server :" + body.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+        //订阅某个topic或者取消订阅某个topic
+        public void manipulateTopic(String topic, boolean isSubscribe) {
+            if (isConnected()) {
+                //订阅
+                if (isSubscribe) {
+                    JSONObject subscribeMuseumPos = new JSONObject();
+                    try {
+                        subscribeMuseumPos.put("op", "subscribe");
+                        subscribeMuseumPos.put("topic", topic);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    rosBridgeClient.send(subscribeMuseumPos.toString());
+
+                } else {//取消订阅
+                    JSONObject subscribeMuseumPos = new JSONObject();
+                    try {
+                        subscribeMuseumPos.put("op", "unsubscribe");
+                        subscribeMuseumPos.put("topic", topic);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    rosBridgeClient.send(subscribeMuseumPos.toString());
+                }
+            }
+        }
 
         public void disConnect() {
             connectionTask.cancel();
@@ -119,34 +145,20 @@ public class RosConnectionService extends Service{
                         @Override
                         public void onConnect() {
                             rosBridgeClient.setDebug(true);
-                            Log.i(TAG, "ConnectionStatusListener--onConnect");
+                            Log.i(TAG, "Ros ConnectionStatusListener--onConnect");
                         }
 
                         @Override
                         public void onDisconnect(boolean normal, String reason, int code) {
-                            Log.v(TAG, "ConnectionStatusListener--disconnect");
+                            Log.v(TAG, "Ros ConnectionStatusListener--disconnect");
                         }
 
                         @Override
                         public void onError(Exception ex) {
                             ex.printStackTrace();
-                            Log.i(TAG, "ConnectionStatusListener--ROS communication error");
+                            Log.i(TAG, "Ros ConnectionStatusListener--ROS communication error");
                         }
                     });
-                    if (conneSucc) {
-                        // 订阅Ros即将发布的topic
-                        JSONObject strSubscribe = new JSONObject();
-                        try {
-                            strSubscribe.put("op", "subscribe");
-                            strSubscribe.put("topic", SUBSCRIBE_TOPIC);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        rosBridgeClient.send(strSubscribe.toString());
-                        Log.i(TAG, TAG+" -- 连接Ros Server成功");
-                    } else {
-                        Log.v(TAG, TAG+" -- 连接Ros Server失败");
-                    }
                     isConnected = conneSucc;
                     Intent broadcastIntent = new Intent(MainActivity.ROS_RECEIVER_INTENTFILTER);
                     Bundle data = new Bundle();
@@ -163,6 +175,7 @@ public class RosConnectionService extends Service{
                     //如果连接成功则取消该定时任务
                     cancel();
                 }
+
             }
         };
 
@@ -188,6 +201,7 @@ public class RosConnectionService extends Service{
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(TAG, "RosConnectionService onBind()");
+
         return proxy;
     }
 
@@ -197,7 +211,7 @@ public class RosConnectionService extends Service{
         String topicName = event.name;
         Log.i(TAG, "onEvent:" + event.msg);
         //Topic为RobotStatus
-        if (topicName.equals(SUBSCRIBE_TOPIC)) {
+        if (topicName.equals(SUBSCRIBE_ROBOT_STATUS)) {
             String msg = event.msg;
             JSONObject msgInfo;
             try {
@@ -207,6 +221,16 @@ public class RosConnectionService extends Service{
                 RobotStatus robotStatus = new RobotStatus(id, isMoving);
                 EventBus.getDefault().post(robotStatus);
 
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if (topicName.equals(SUBSCRIBE_MUSEUM_POSITION)) {
+            String msg = event.msg;
+            try {
+                JSONObject msgInfo = new JSONObject(msg);
+                int id = msgInfo.getInt("id");
+                boolean isMoving = msgInfo.getBoolean("ismoving");
+                EventBus.getDefault().post(new MuseumPosition(id, isMoving));
             } catch (JSONException e) {
                 e.printStackTrace();
             }

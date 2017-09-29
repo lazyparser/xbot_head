@@ -107,10 +107,10 @@ public class ImageUtils {
                     case ExifInterface.ORIENTATION_ROTATE_270:
                         bitmap = ImageUtils.rotate(bitmap, 270);
                         break;
-                    // etc.
+                    default:
+                        break;
                 }
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }

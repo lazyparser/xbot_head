@@ -2,7 +2,6 @@ package cn.ac.iscas.xlab.droidfacedog.network;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
@@ -20,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.ac.iscas.xlab.droidfacedog.CameraActivity;
-import cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity;
 import cn.ac.iscas.xlab.droidfacedog.config.Config;
 import cn.ac.iscas.xlab.droidfacedog.entity.UserInfo;
 import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
@@ -66,90 +64,6 @@ public class YoutuConnection {
         void onError();
     }
 
-    //发送人脸bitmap给服务端进行人脸识别
-    public void sendBitmap(Bitmap faceBitmap) {
-
-        final String RECOG_SERVER_URL = "http://" + Config.RECOGNITION_SERVER_IP + ":" +
-                Config.RECOGNITION_SERVER_PORT + "/recognition";
-
-        final String encodedBitmap = ImageUtils.encodeBitmapToBase64(faceBitmap, Bitmap.CompressFormat.JPEG, 100);
-
-        new Thread(){
-            public void run(){
-                //请求成功的回调
-                Response.Listener<JSONObject> rightListener = new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject jsonObject) {
-                        Log.i(TAG,"Recognition Right Response:"+jsonObject);
-                        try {
-                            double confidence = jsonObject.getDouble("Confidence");
-                            String userId = jsonObject.getString("Id");
-                            int ret = jsonObject.getInt("Ret");
-                            Message msg = handler.obtainMessage();
-                            msg.what = XBotFaceActivity.HANDLER_PLAY_TTS;
-                            Bundle user = new Bundle();
-                            //判断Ret字段是否是0,如果是0表示识别成功
-                            if (ret == 0 && confidence>=RECOG_THRESHOLD) {
-                                Log.i(TAG, "识别成功");
-                                user.putString("userId",userId);
-                                msg.setData(user);
-                                msg.arg1 = ret;
-                                handler.sendMessage(msg);
-                            }else {
-                                Log.i(TAG, "人脸识别失败或阈值设置过高");
-                                //识别失败
-                                user.putString("userId", XBotFaceActivity.TTS_UNREGISTERED_USER);
-                                msg.setData(user);
-                                msg.arg1 = ret;
-                                handler.sendMessage(msg);
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-
-                    }
-                };
-
-                //请求失败的回调
-                Response.ErrorListener errorListener = new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError volleyError) {
-                        Log.i(TAG,"Recognition Error:"+volleyError.getMessage());
-                        if (handler != null) {
-                            Message msg = handler.obtainMessage();
-                            msg.what = XBotFaceActivity.HANDLER_PLAY_TTS;
-                            Bundle user = new Bundle();
-                            user.putString("userId", XBotFaceActivity.TTS_UNREGISTERED_USER);
-                            msg.setData(user);
-                            msg.arg1 = -1;
-                            handler.sendMessage(msg);
-                        }
-
-                    }
-                };
-
-                //post的参数
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.accumulate("Image",encodedBitmap);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
-                        Request.Method.POST,
-                        RECOG_SERVER_URL,
-                        jsonObject,
-                        rightListener,
-                        errorListener
-                );
-
-                VolleySingleton.getVolleySingleton(context).addToRequestQueue(jsonObjectRequest);
-
-            }
-        }.start();
-
-    }
 
     //以回调的方式返回结果给调用者
     public void recognizeFace(Bitmap faceBitmap, final RecognitionCallback callback){

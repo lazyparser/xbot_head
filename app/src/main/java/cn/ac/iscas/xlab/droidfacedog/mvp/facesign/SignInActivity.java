@@ -1,18 +1,14 @@
 package cn.ac.iscas.xlab.droidfacedog.mvp.facesign;
 
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MenuItem;
 
 import cn.ac.iscas.xlab.droidfacedog.R;
 import cn.ac.iscas.xlab.droidfacedog.RosConnectionService;
+import cn.ac.iscas.xlab.droidfacedog.XbotApplication;
 
 /**
  * Created by lisongting on 2017/9/12.
@@ -22,7 +18,7 @@ public class SignInActivity extends AppCompatActivity{
 
     public static final String TAG = "SignInActivity";
     SignInFragment signInFragment;
-    ServiceConnection serviceConnection;
+    RosConnectionService.ServiceBinder serviceProxy;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,26 +40,30 @@ public class SignInActivity extends AppCompatActivity{
     @Override
     protected void onStart() {
         super.onStart();
-        serviceConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                signInFragment.setRosServiceBinder((RosConnectionService.ServiceBinder) service);
-                Log.i(TAG, "rosServiceConnection -- onServiceConnected");
-            }
+    }
 
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
+    @Override
+    protected void onResume() {
+        super.onResume();
+        XbotApplication app = (XbotApplication) getApplication();
+        serviceProxy = app.getServiceProxy();
+        if (serviceProxy != null) {
+            signInFragment.setRosServiceBinder(serviceProxy);
+            serviceProxy.manipulateTopic(RosConnectionService.SUBSCRIBE_ROBOT_STATUS,true);
+        }
+    }
 
-            }
-        };
-
-        Intent intent = new Intent(this, RosConnectionService.class);
-        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (serviceProxy != null) {
+            signInFragment.setRosServiceBinder(serviceProxy);
+            serviceProxy.manipulateTopic(RosConnectionService.SUBSCRIBE_ROBOT_STATUS,false);
+        }
     }
 
     @Override
     protected void onDestroy() {
-        unbindService(serviceConnection);
         super.onDestroy();
     }
 

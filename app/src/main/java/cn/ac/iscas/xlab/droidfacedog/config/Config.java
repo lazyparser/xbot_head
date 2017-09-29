@@ -6,11 +6,11 @@ package cn.ac.iscas.xlab.droidfacedog.config;
 
 public class Config {
 
-    public static String ROS_SERVER_IP = "192.168.1.111";
+    public static String ROS_SERVER_IP = "192.168.0.135";
 
     public static String ROS_SERVER_PORT = "9090";
 
-    public static String RECOGNITION_SERVER_IP = "192.168.0.111";
+    public static String RECOGNITION_SERVER_IP = "192.168.0.135";
 
     public static String RECOGNITION_SERVER_PORT = "8000";
 

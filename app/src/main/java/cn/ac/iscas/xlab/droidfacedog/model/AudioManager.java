@@ -41,7 +41,17 @@ public class AudioManager {
             "tts/part8.mp3",
             "tts/part9.mp3",
             "tts/part10.mp3",
+            "tts/visitor.mp3",
+            "tts/lisongting.mp3",
+            "tts/wangpeng.mp3",
+
     };
+
+    public interface AudioCompletionCallback {
+        //表示已经播放完的音频id
+        void onComplete(int id);
+    }
+
 
     public AudioManager(Context context) {
         this.context = context;
@@ -85,6 +95,21 @@ public class AudioManager {
         currentPlayer.start();
         isPlaying = true;
         currentId = audioId;
+    }
+
+    public void playAsync(int audioId, final AudioCompletionCallback completionCallback) {
+        Log.i(TAG, "AudioManager在播放：" + audioId + "号音频");
+        currentPlayer = audioMap.get(audioId);
+        currentPlayer.start();
+        isPlaying = true;
+        currentId = audioId;
+
+        currentPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                completionCallback.onComplete(currentId);
+            }
+        });
     }
 
     public void releaseMemory() {

@@ -3,20 +3,14 @@ package cn.ac.iscas.xlab.droidfacedog.mvp.interaction;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Binder;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.iflytek.cloud.SpeechError;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import cn.ac.iscas.xlab.droidfacedog.RosConnectionService;
+import cn.ac.iscas.xlab.droidfacedog.entity.AudioStatus;
 import cn.ac.iscas.xlab.droidfacedog.entity.RobotStatus;
-import cn.ac.iscas.xlab.droidfacedog.entity.TtsStatus;
 import cn.ac.iscas.xlab.droidfacedog.model.AiTalkModel;
 import cn.ac.iscas.xlab.droidfacedog.model.AudioManager;
 import cn.ac.iscas.xlab.droidfacedog.model.TTSModel;
@@ -30,7 +24,6 @@ import de.greenrobot.event.EventBus;
 public class InteractionPresenter implements InteractionContract.Presenter {
 
     public static final String TAG = "InteractionPresenter";
-    public static final int HANDLER_PLAY_TTS = 0x13;
 
     private Context mContext;
     private AiTalkModel aiTalkModel;
@@ -43,9 +36,7 @@ public class InteractionPresenter implements InteractionContract.Presenter {
     private RosConnectionService.ServiceBinder rosProxy;
     private boolean hasGreeted ;
     private YoutuConnection youtuConnection;
-    private Handler youtuHandler;
 
-    private Timer publishTopicTimer;
     public InteractionPresenter(InteractionContract.View view,Context context) {
         this.view = view;
         this.mContext = context;
@@ -57,27 +48,11 @@ public class InteractionPresenter implements InteractionContract.Presenter {
         aiTalkModel = AiTalkModel.getInstance(mContext);
         audioManager = new AudioManager(mContext);
         audioManager.loadTts();
-        ttsModel = TTSModel.getInstance(mContext);
+        ttsModel = new TTSModel(mContext);
 
         hasGreeted = false;
 
-        //该用来接收优图的识别结果
-        youtuHandler = new Handler(){
-            public void handleMessage(Message msg) {
-                if (msg.what == HANDLER_PLAY_TTS) {
-                    Bundle data = msg.getData();
-                    String userId = (String) data.get("userId");
-                    //当识别人脸成功后，说出问候语，当问候语说完后，进入AI对话模式
-                    if (!hasGreeted) {
-                        greetToUser(userId);
-                        hasGreeted = true;
-                    }
-                }
-            }
-        };
-
-
-        youtuConnection = new YoutuConnection(mContext,youtuHandler);
+        youtuConnection = new YoutuConnection(mContext);
 
         EventBus.getDefault().register(this);
 
@@ -114,11 +89,13 @@ public class InteractionPresenter implements InteractionContract.Presenter {
             //给出提示，当进入解说模式的时候，会关闭AI对话功能
             view.showTip("Tip:在解说模式，Ai语音对话功能将被关闭");
         }
-        audioManager.play(0);
-        publishTtsStatus();
-
-
-
+        final int audioId  = 0;
+        audioManager.playAsync(audioId, new AudioManager.AudioCompletionCallback() {
+            @Override
+            public void onComplete(int id) {
+                rosProxy.publishAudioStatus(new AudioStatus(audioId,true));
+            }
+        });
 
     }
 
@@ -138,13 +115,6 @@ public class InteractionPresenter implements InteractionContract.Presenter {
                     startCommentary();
                     stopAiTalk();
                     view.setWaveViewEnable(false);
-//                    youtuHandler.post(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            view.setWaveViewEnable(false);
-//
-//                        }
-//                    });
                 }
             }
         }, new AiTalkModel.OnAiTalkerTimeout() {
@@ -178,34 +148,42 @@ public class InteractionPresenter implements InteractionContract.Presenter {
 
     @Override
     public void recognizeUserFace(Bitmap bitmap) {
-        youtuConnection.sendBitmap(bitmap);
-    }
-
-    public void publishTtsStatus(){
-        publishTopicTimer = new Timer();
-        publishTopicTimer.schedule(new TimerTask() {
+        youtuConnection.recognizeFace(bitmap, new YoutuConnection.RecognitionCallback() {
             @Override
-            public void run() {
-                if (rosProxy != null && audioManager !=null) {
-                    int id = audioManager.getCurrentId();
-                    boolean isPlaying = audioManager.isPlaying();
-                    TtsStatus status = new TtsStatus(id,isPlaying);
-                    rosProxy.publishTtsStatus(status);
+            public void onResponse(String personId) {
+                //当识别人脸成功后，说出问候语，当问候语说完后，进入AI对话模式
+                if (!hasGreeted) {
+                    greetToUser(personId);
+                    hasGreeted = true;
+                }
+
+            }
+
+            @Override
+            public void onFailure(String errorInfo) {
+                //识别服务器连接超时
+                if (!hasGreeted) {
+                    greetToUser("");
+                    hasGreeted = true;
                 }
             }
-        },1000,200);
+        });
     }
-        
-    
+
     //EventBus的回调，用来接收从Service中发回来的机器人状态
     public void onEvent(RobotStatus status) {
-        int locationId = status.getLocationId();
+        final int locationId = status.getLocationId();
 //        boolean isMoving = status.isMoving();
         Log.i(TAG, "接收到来自Ros服务器的RobotStatus:"+status.toString());
         //如果到达了新的位置，并且audioManager并没有在播放音频，则开始播放指定id的音频
         //如果到达了指定位置而前面一段解说词没有播放完，则会等待其播放完
         if (locationId != audioManager.getCurrentId() && !audioManager.isPlaying()) {
-            audioManager.play(locationId);
+            audioManager.playAsync(locationId, new AudioManager.AudioCompletionCallback() {
+                @Override
+                public void onComplete(int id) {
+                    rosProxy.publishAudioStatus(new AudioStatus(id,true));
+                }
+            });
         }
     }
 

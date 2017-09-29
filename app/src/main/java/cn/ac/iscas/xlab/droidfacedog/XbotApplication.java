@@ -24,7 +24,7 @@ public class XbotApplication extends Application {
     public static final String TAG = "XbotApplication";
 
     public ServiceConnection mServiceConnection;
-    public RosConnectionService.ServiceBinder mServiceProxy;
+    private RosConnectionService.ServiceBinder mServiceProxy;
     private Intent intent;
 
     public XbotApplication() {
@@ -53,9 +53,8 @@ public class XbotApplication extends Application {
         };
         //绑定RosConnectionService
         intent = new Intent(this, RosConnectionService.class);
-//        startService(intent);
+        //startService(intent);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
-
         //初始化讯飞TTS引擎
         SpeechUtility.createUtility(this, SpeechConstant.APPID +"="+ Config.APPID);
 
@@ -87,7 +86,7 @@ public class XbotApplication extends Application {
                             // 表明新补丁生效需要重启. 开发者可提示用户或者强制重启;
                             // 建议: 用户可以监听进入后台事件, 然后调用killProcessSafely自杀，以此加快应用补丁，详见1.3.2.3
                         } else {
-                            Log.d(TAG, "Sophix -- 错误");
+                            Log.d(TAG, "Sophix -- 无更新补丁");
                             // 其它错误信息, 查看PatchStatus类说明
                         }
                     }
@@ -99,6 +98,7 @@ public class XbotApplication extends Application {
     @Override
     public void onTerminate() {
         Log.i(TAG, "XbotApplication -- onTerminate()");
+        //stopService(intent);
         unbindService(mServiceConnection);
         super.onTerminate();
     }

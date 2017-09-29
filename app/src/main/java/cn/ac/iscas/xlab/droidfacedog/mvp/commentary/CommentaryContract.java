@@ -1,4 +1,4 @@
-package cn.ac.iscas.xlab.droidfacedog.mvp.facesign;
+package cn.ac.iscas.xlab.droidfacedog.mvp.commentary;
 
 import android.graphics.Bitmap;
 import android.os.Binder;
@@ -8,33 +8,28 @@ import cn.ac.iscas.xlab.droidfacedog.mvp.BasePresenter;
 import cn.ac.iscas.xlab.droidfacedog.mvp.BaseView;
 
 /**
- * Created by lisongting on 2017/9/12.
- * 人脸打卡/签到功能
+ * Created by lisongting on 2017/9/22.
  */
 
-public interface SignInContract {
+public class CommentaryContract {
 
-    int UI_STATE_READY = 11;
-    int UI_STATE_ON_THE_WAY = 22;
+    public static final int STATE_IDLE = 0;//待机状态
+    public static final int STATE_DETECTED = 1;//人脸检测完毕
+    public static final int STATE_IDENTIFIED = 2;//人脸识别成功
 
-    interface Presenter extends BasePresenter{
-
-        void speak(String str);
+    interface Presenter extends BasePresenter {
 
         void recognize(Bitmap bitmap);
 
-        //释放资源
         void releaseMemory();
 
         void setServiceProxy(@NonNull Binder binder);
 
     }
 
-    interface View extends BaseView<Presenter>{
+    interface View extends BaseView<Presenter> {
 
-        //开启摄像头的同时进行人脸识别
         void startCamera();
-
 
         void closeCamera();
 
@@ -42,4 +37,5 @@ public interface SignInContract {
 
         void changeUiState(int state);
     }
+
 }

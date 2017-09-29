@@ -50,7 +50,6 @@ import cn.ac.iscas.xlab.droidfacedog.util.ImageUtils;
 import cn.ac.iscas.xlab.droidfacedog.util.Util;
 
 import static android.content.Context.CAMERA_SERVICE;
-import static cn.ac.iscas.xlab.droidfacedog.XBotFaceActivity.MAX_FACE_COUNT;
 
 /**
  * Created by lisongting on 2017/8/7.
@@ -62,7 +61,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
     private WaveView waveView;
     private WaveView commentaryButton;
     private ImageView imageView;
-    private TextView textCommentary;
     private TextureView textureView;
     private SurfaceTexture surfaceTexture;
     private Surface surface;
@@ -101,6 +99,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
     private double mScale = 0.2;
     //用来标记每个人脸共有几张图像,key是人脸的id，value是当前采集到的图像张数
     private SparseIntArray mFacesCountMap;
+    private int MAX_FACE_COUNT = 3;
 
     public InteractionFragment() {}
 
@@ -114,7 +113,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
         waveView = (WaveView) view.findViewById(R.id.id_wave_view);
         textureView = (TextureView) view.findViewById(R.id.texture_view);
         imageView = (ImageView) view.findViewById(R.id.talker_img);
-        textCommentary = (TextView) view.findViewById(R.id.text_commentary);
         commentaryButton = (WaveView) view.findViewById(R.id.id_commentary_button);
         return view;
     }
@@ -172,16 +170,7 @@ public class InteractionFragment extends Fragment implements InteractionContract
                 }
             }
         });
-        textCommentary.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                presenter.stopAiTalk();
-                presenter.startCommentary();
-                setWaveViewEnable(false);
-
-            }
-        });
         commentaryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -501,7 +490,6 @@ public class InteractionFragment extends Fragment implements InteractionContract
 
     @Override
     public void setCommentaryButtonEnable(boolean enable){
-        textCommentary.setClickable(enable);
         commentaryButton.setEnable(enable);
     }
 
